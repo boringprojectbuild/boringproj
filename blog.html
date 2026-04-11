@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Design & SEO Blog San Antonio | Boring Project</title>
+  <meta name="description" content="Practical web design and local SEO tips for San Antonio small businesses. Learn how to get found on Google, set up your GBP, and build a site that actually ranks.">
+  <meta name="keywords" content="web design blog San Antonio, local SEO tips San Antonio, GBP guide San Antonio, small business SEO blog">
+  <link rel="canonical" href="https://boringproj.com/blog">
+  <meta property="og:title" content="Web Design & SEO Blog San Antonio | Boring Project">
+  <meta property="og:description" content="Practical web design and local SEO advice for San Antonio service businesses. No fluff. Just what works.">
+  <meta property="og:url" content="https://boringproj.com/blog">
+  <meta name="robots" content="index, follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Boring Project",
+    "description": "Web design and local SEO agency serving San Antonio TX and surrounding areas",
+    "url": "https://boringproj.com",
+    "telephone": "(210) 862-8837",
+    "email": "boringprj210@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "San Antonio",
+      "addressRegion": "TX",
+      "addressCountry": "US"
+    },
+    "areaServed": ["San Antonio", "Bulverde", "Converse", "Leon Valley", "Alamo Heights", "Helotes"],
+    "priceRange": "$$",
+    "serviceType": ["Web Design", "Local SEO", "Google Business Profile Optimization"]
+  }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0D0D0D;
+      --surface: #1A1A1A;
+      --blue: #2B5FA6;
+      --gold: #C4922A;
+      --white: #F5F5F3;
+      --muted: #888780;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── CURSOR ─── */
+    html { cursor: none !important; }
+    body { cursor: none !important; }
+    * { cursor: none !important; }
+    a { cursor: none !important; }
+    button { cursor: none !important; }
+    input { cursor: none !important; }
+    textarea { cursor: none !important; }
+    select { cursor: none !important; }
+
+    #custom-cursor {
+      position: fixed; top: 0; left: 0;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(196, 146, 42, 0.35);
+      border: 1.5px solid rgba(196, 146, 42, 0.7);
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s ease, height 0.2s ease, background 0.2s ease, border-radius 0.2s ease;
+      will-change: transform;
+    }
+
+    #custom-cursor.expanded { width: 48px; height: 48px; background: rgba(196, 146, 42, 0.2); }
+    #custom-cursor.text-mode { width: 2px; height: 28px; border-radius: 1px; background: rgba(196, 146, 42, 0.7); border: none; }
+
+    @media (hover: none) {
+      html, body, * { cursor: auto !important; }
+      #custom-cursor { display: none; }
+    }
+
+    /* ─── PARTICLES ─── */
+    #particles-bg {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ─── LOADER ─── */
+    #loader {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      transition: opacity 0.5s ease;
+    }
+
+    #loader-pct { font-weight: 500; font-size: 12px; color: var(--white); margin-bottom: 10px; letter-spacing: 0.05em; }
+    #loader-bar-track { width: 200px; height: 1px; background: rgba(255,255,255,0.08); position: relative; }
+    #loader-bar-fill { position: absolute; top: 0; left: 0; height: 1px; width: 0%; background: var(--blue); transition: width 0.05s linear; }
+    #loader-brand { margin-top: 16px; font-weight: 700; font-size: 18px; color: var(--white); letter-spacing: 0.2em; opacity: 0; transition: opacity 0.4s ease; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 1000; height: 64px;
+      background: rgba(13,13,13,0.95);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+    }
+
+    .nav-logo { font-weight: 700; font-size: 18px; color: var(--white); white-space: nowrap; }
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 32px;
+      list-style: none; position: absolute; left: 50%; transform: translateX(-50%);
+    }
+
+    .nav-links a { font-weight: 500; font-size: 14px; color: var(--muted); transition: color 0.2s ease; }
+    .nav-links a:hover, .nav-links a.active { color: var(--white); }
+
+    .nav-cta {
+      background: var(--gold); color: var(--bg);
+      font-weight: 700; font-size: 13px;
+      border-radius: 50px; padding: 10px 20px;
+      transition: background 0.3s ease; white-space: nowrap;
+    }
+    .nav-cta:hover { background: var(--blue); color: var(--white); }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; padding: 4px; }
+    .hamburger span { display: block; width: 22px; height: 1.5px; background: var(--white); transition: all 0.3s ease; }
+
+    .mobile-menu {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(13,13,13,0.98); backdrop-filter: blur(10px);
+      padding: 24px 32px; z-index: 999;
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      flex-direction: column; gap: 20px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-weight: 500; font-size: 16px; color: var(--muted); transition: color 0.2s; }
+    .mobile-menu a:hover, .mobile-menu a.active { color: var(--white); }
+
+    /* ─── SHARED ─── */
+    section, footer { position: relative; z-index: 1; }
+    section { background: transparent !important; }
+
+    .fade-up {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    .section-label {
+      font-weight: 500; font-size: 11px;
+      color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.15em; margin-bottom: 24px;
+    }
+
+    .cat-pill {
+      display: inline-block;
+      background: rgba(43, 95, 166, 0.15);
+      border: 1px solid rgba(43, 95, 166, 0.3);
+      color: var(--blue);
+      font-weight: 500; font-size: 11px;
+      padding: 4px 12px; border-radius: 50px;
+    }
+
+    .read-link {
+      font-weight: 700; font-size: 14px;
+      color: var(--gold);
+      transition: color 0.2s ease;
+      position: relative;
+      display: inline-block;
+    }
+
+    .read-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0; right: 0;
+      height: 1px; background: var(--white);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.25s ease;
+    }
+
+    .read-link:hover { color: var(--white); }
+    .read-link:hover::after { transform: scaleX(1); }
+
+    /* ─── BLOG HERO ─── */
+    #blog-hero {
+      min-height: 50vh; background: var(--bg);
+      display: flex; align-items: center;
+      padding: 100px 80px 48px;
+    }
+
+    .blog-hero-inner { max-width: 900px; width: 100%; }
+
+    .blog-eyebrow {
+      font-weight: 500; font-size: 12px;
+      color: var(--gold); letter-spacing: 0.15em;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+
+    .blog-headline {
+      font-weight: 900;
+      font-size: clamp(48px, 7vw, 88px);
+      color: var(--white);
+      letter-spacing: -2px; line-height: 1.05;
+    }
+
+    .blog-sub {
+      font-weight: 400; font-size: 18px;
+      color: var(--muted); max-width: 520px;
+      line-height: 1.7; margin-top: 20px;
+    }
+
+    /* ─── FEATURED POST ─── */
+    #featured {
+      background: var(--bg);
+      padding: 80px 80px 40px;
+    }
+
+    .featured-inner { max-width: 1100px; margin: 0 auto; }
+
+    .featured-card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+      transition: border-color 0.3s ease;
+    }
+
+    .featured-card:hover {
+      border-color: rgba(43, 95, 166, 0.3);
+    }
+
+    .featured-img {
+      height: 400px;
+      background: linear-gradient(135deg, rgba(43,95,166,0.3) 0%, rgba(13,13,13,0.8) 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .featured-content {
+      padding: 48px 40px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .featured-date {
+      font-weight: 500; font-size: 12px;
+      color: var(--muted); margin-bottom: 12px;
+      margin-top: 12px;
+    }
+
+    .featured-title {
+      font-weight: 700; font-size: 32px;
+      color: var(--white);
+      letter-spacing: -0.5px; line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .featured-excerpt {
+      font-weight: 400; font-size: 15px;
+      color: var(--muted); line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    /* ─── ALL POSTS GRID ─── */
+    #all-posts {
+      background: var(--bg);
+      padding: 40px 80px 120px;
+    }
+
+    .all-posts-inner { max-width: 1100px; margin: 0 auto; }
+
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .post-card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+      display: block;
+    }
+
+    .post-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(43, 95, 166, 0.3);
+    }
+
+    .post-img {
+      height: 200px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .post-img-1 { background: linear-gradient(135deg, rgba(43,95,166,0.4) 0%, rgba(13,13,13,0.9) 100%); }
+    .post-img-2 { background: linear-gradient(135deg, rgba(196,146,42,0.3) 0%, rgba(13,13,13,0.9) 100%); }
+    .post-img-3 { background: linear-gradient(135deg, rgba(43,95,166,0.2) 0%, rgba(196,146,42,0.15) 50%, rgba(13,13,13,0.9) 100%); }
+
+    .post-content { padding: 28px; }
+
+    .post-meta {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 10px; flex-wrap: wrap;
+    }
+
+    .post-date {
+      font-weight: 500; font-size: 11px;
+      color: var(--muted);
+    }
+
+    .post-title {
+      font-weight: 700; font-size: 20px;
+      color: var(--white);
+      line-height: 1.35; margin-bottom: 12px;
+    }
+
+    .post-excerpt {
+      font-weight: 400; font-size: 13px;
+      color: var(--muted); line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .post-read-link {
+      font-weight: 500; font-size: 13px;
+      color: var(--gold);
+      transition: color 0.2s ease;
+    }
+
+    .post-card:hover .post-read-link { color: var(--white); }
+
+    /* ─── BOTTOM CTA ─── */
+    #blog-cta {
+      background: #111111;
+      padding: 100px 80px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+
+    .blog-cta-bg {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 900;
+      font-size: clamp(80px, 14vw, 180px);
+      color: rgba(255,255,255,0.03);
+      pointer-events: none; white-space: nowrap;
+      user-select: none; line-height: 1;
+    }
+
+    .blog-cta-inner { position: relative; z-index: 1; }
+
+    .blog-cta-headline {
+      font-weight: 700; font-size: 36px;
+      color: var(--white); margin-bottom: 16px;
+    }
+
+    .blog-cta-sub {
+      font-weight: 400; font-size: 16px;
+      color: var(--muted); margin-bottom: 40px;
+    }
+
+    .cta-pill-btn {
+      display: inline-block;
+      background: var(--gold); color: var(--bg);
+      font-weight: 700; font-size: 16px;
+      padding: 16px 36px; border-radius: 50px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .cta-pill-btn:hover { background: var(--blue); color: var(--white); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #111111;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 80px 80px 40px;
+    }
+
+    .footer-grid {
+      max-width: 1280px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px;
+    }
+
+    .footer-logo { font-weight: 700; font-size: 20px; color: var(--white); }
+    .footer-logo span { color: var(--gold); }
+    .footer-tagline { font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+    .footer-socials { display: flex; gap: 12px; margin-top: 20px; }
+    .footer-socials a { color: var(--muted); transition: color 0.2s; }
+    .footer-socials a:hover { color: var(--white); }
+
+    .footer-col-label {
+      font-weight: 500; font-size: 12px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;
+    }
+
+    .footer-links { list-style: none; }
+    .footer-links li { line-height: 2.2; }
+    .footer-links a { font-weight: 400; font-size: 14px; color: var(--muted); transition: color 0.2s; }
+    .footer-links a:hover { color: var(--white); }
+
+    .footer-contact-item {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 400; font-size: 13px; color: var(--muted); line-height: 2;
+    }
+    .footer-contact-item svg { flex-shrink: 0; color: var(--blue); }
+
+    .footer-bottom {
+      max-width: 1280px; margin: 48px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-bottom p { font-weight: 400; font-size: 12px; color: var(--muted); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      #blog-hero { padding: 100px 24px 48px; min-height: auto; }
+
+      #featured { padding: 60px 24px 32px; }
+      .featured-card { grid-template-columns: 1fr; }
+      .featured-img { height: 220px; }
+      .featured-content { padding: 28px 24px; }
+      .featured-title { font-size: 24px; }
+
+      #all-posts { padding: 32px 24px 80px; }
+      .posts-grid { grid-template-columns: 1fr; }
+
+      #blog-cta { padding: 72px 24px; }
+      .blog-cta-headline { font-size: 28px; }
+
+      footer { padding: 60px 24px 32px; }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+      .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="particles-bg"></canvas>
+  <div id="custom-cursor"></div>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div id="loader-pct">0%</div>
+    <div id="loader-bar-track"><div id="loader-bar-fill"></div></div>
+    <div id="loader-brand">boring project.</div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">boring project<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="nav-cta">Get started →</a>
+    <div class="hamburger" id="hamburger" aria-label="Menu" role="button" tabindex="0">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="about.html">About</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="blog.html" class="active">Blog</a>
+    <a href="contact.html">Contact</a>
+    <a href="contact.html" class="nav-cta" style="text-align:center; margin-top:8px;">Get started →</a>
+  </div>
+
+  <!-- ═══ SECTION 1 — HERO ═══ -->
+  <section id="blog-hero">
+    <div class="blog-hero-inner fade-up">
+      <p class="blog-eyebrow">✦ The boring blog</p>
+      <h1 class="blog-headline">Read before you rank.</h1>
+      <p class="blog-sub">Practical web design and local SEO advice for San Antonio service businesses. No fluff. No gatekeeping. Just what actually works.</p>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 2 — FEATURED POST ═══ -->
+  <section id="featured">
+    <div class="featured-inner">
+      <p class="section-label fade-up">Featured post</p>
+      <a href="blog/ai-web-design-san-antonio.html" class="featured-card fade-up">
+        <img
+          src="blog/images/ai-web-design-san-antonio.webp"
+          alt="AI web design for San Antonio local businesses — Boring Project"
+          style="width:100%; height: 100%; object-fit: cover; display: block;"
+          loading="lazy"
+          width="600"
+          height="400">
+        <div class="featured-content">
+          <span class="cat-pill">AI + Web Design</span>
+          <p class="featured-date">April 2026</p>
+          <h2 class="featured-title">AI web design San Antonio — what it means for local businesses</h2>
+          <p class="featured-excerpt">Traditional agencies charge steep prices and take months to deliver. AI changes that equation entirely — and San Antonio service businesses are the biggest winners. Here's exactly what it means for you.</p>
+          <span class="read-link">Read post →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3 — ALL POSTS ═══ -->
+  <section id="all-posts">
+    <div class="all-posts-inner">
+      <p class="section-label fade-up">All posts</p>
+      <div class="posts-grid">
+
+        <!-- Card 1 -->
+        <a href="blog/ai-web-design-san-antonio.html" class="post-card fade-up">
+          <img
+            src="blog/images/ai-web-design-san-antonio.webp"
+            alt="AI web design for San Antonio local businesses — Boring Project"
+            style="width:100%; height: 200px; object-fit: cover; display: block;"
+            loading="lazy"
+            width="600"
+            height="200">
+          <div class="post-content">
+            <div class="post-meta">
+              <span class="cat-pill">AI + Web Design</span>
+              <span class="post-date">April 2026</span>
+            </div>
+            <h3 class="post-title">AI web design San Antonio — what it means for local businesses</h3>
+            <p class="post-excerpt">How AI is changing the cost and speed of professional web design for local service businesses in San Antonio.</p>
+            <span class="post-read-link">Read post →</span>
+          </div>
+        </a>
+
+        <!-- Card 2 -->
+        <a href="blog/google-business-profile-san-antonio.html" class="post-card fade-up" style="transition-delay:0.1s;">
+          <img
+            src="blog/images/google-business-profile-san-antonio.webp"
+            alt="Google Business Profile setup San Antonio TX — Boring Project"
+            style="width:100%; height: 200px; object-fit: cover; display: block;"
+            loading="lazy"
+            width="600"
+            height="200">
+          <div class="post-content">
+            <div class="post-meta">
+              <span class="cat-pill">Local SEO</span>
+              <span class="post-date">April 2026</span>
+            </div>
+            <h3 class="post-title">How to set up Google Business Profile in San Antonio (2026 guide)</h3>
+            <p class="post-excerpt">A step-by-step guide to setting up and fully optimizing your GBP listing so San Antonio customers can find you on Google Maps.</p>
+            <span class="post-read-link">Read post →</span>
+          </div>
+        </a>
+
+        <!-- Card 3 -->
+        <a href="blog/boring-businesses-seo-san-antonio.html" class="post-card fade-up" style="transition-delay:0.2s;">
+          <img
+            src="blog/images/small-business-seo-san-antonio.webp"
+            alt="Small business SEO San Antonio TX — Boring Project"
+            style="width:100%; height: 200px; object-fit: cover; display: block;"
+            loading="lazy"
+            width="600"
+            height="200">
+          <div class="post-content">
+            <div class="post-meta">
+              <span class="cat-pill">Small Business SEO</span>
+              <span class="post-date">April 2026</span>
+            </div>
+            <h3 class="post-title">Why boring businesses are getting crushed online — and how to fix it</h3>
+            <p class="post-excerpt">Most San Antonio service businesses are invisible on Google. Here's exactly why — and the straightforward fix that works.</p>
+            <span class="post-read-link">Read post →</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 4 — BOTTOM CTA ═══ -->
+  <section id="blog-cta">
+    <div class="blog-cta-bg">KNOWLEDGE.</div>
+    <div class="blog-cta-inner fade-up">
+      <h2 class="blog-cta-headline">Ready to put this into practice?</h2>
+      <p class="blog-cta-sub">We handle all of this for you. Website, SEO, GBP — done in days.</p>
+      <a href="contact.html" class="cta-pill-btn">Get found online →</a>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <p class="footer-logo">boring project<span>.</span></p>
+        <p class="footer-tagline">Finally found.</p>
+        <div class="footer-socials">
+          <a href="https://www.instagram.com/boringproj/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-label">Quick links</p>
+        <ul class="footer-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-label">Services</p>
+        <ul class="footer-links">
+          <li><a href="services.html">Website Design</a></li>
+          <li><a href="services.html">Local SEO</a></li>
+          <li><a href="services.html">GBP Optimization</a></li>
+          <li><a href="services.html">SEO Audit</a></li>
+          <li><a href="services.html">Monthly Retainer</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-label">Contact</p>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.56-.56a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
+          (210) 862-8837
+        </div>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          boringprj210@gmail.com
+        </div>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+          San Antonio, TX
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Boring Project. All rights reserved.</p>
+      <p>San Antonio, TX</p>
+    </div>
+  </footer>
+
+  <script>
+    // ─── LOADER ───
+    (function () {
+      const loader = document.getElementById('loader');
+      const pct    = document.getElementById('loader-pct');
+      const fill   = document.getElementById('loader-bar-fill');
+      const brand  = document.getElementById('loader-brand');
+      let current = 0;
+      const timer = setInterval(() => {
+        current = Math.min(current + (100 / (1800 / 18)) + (Math.random() * 0.5), 100);
+        pct.textContent = Math.floor(current) + '%';
+        fill.style.width = current + '%';
+        if (current >= 100) {
+          clearInterval(timer);
+          pct.textContent = '100%'; fill.style.width = '100%';
+          setTimeout(() => { brand.style.opacity = '1'; }, 50);
+          setTimeout(() => {
+            loader.style.opacity = '0'; loader.style.pointerEvents = 'none';
+            setTimeout(() => {
+              loader.style.display = 'none';
+              document.querySelectorAll('#blog-hero .fade-up').forEach(el => el.classList.add('visible'));
+            }, 500);
+          }, 500);
+        }
+      }, 18);
+    })();
+
+    // ─── HAMBURGER ───
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+    });
+
+    // ─── PARTICLES ───
+    (function () {
+      const canvas = document.getElementById('particles-bg');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const COUNT = 80;
+
+      function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+      function makeColor() {
+        return Math.random() < 0.8 ? 'rgba(43, 95, 166, 0.6)' : 'rgba(196, 146, 42, 0.5)';
+      }
+
+      function createParticle(initSpread) {
+        const h = canvas.height || window.innerHeight;
+        const w = canvas.width || window.innerWidth;
+        return {
+          x: Math.random() * w,
+          y: initSpread ? Math.random() * h : h + Math.random() * 40,
+          r: Math.random() * 1.5 + 1,
+          speedY: Math.random() * 0.4 + 0.2,
+          speedX: (Math.random() - 0.5) * 0.3,
+          color: makeColor(),
+        };
+      }
+
+      function initParticles() {
+        particles = [];
+        for (let i = 0; i < COUNT; i++) particles.push(createParticle(true));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.y -= p.speedY; p.x += p.speedX;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color; ctx.fill();
+          if (p.y < -4) particles[i] = createParticle(false);
+        }
+        requestAnimationFrame(draw);
+      }
+
+      resize(); initParticles(); draw();
+      window.addEventListener('resize', () => { resize(); initParticles(); });
+    })();
+
+    // ─── SCROLL FADE-INS ───
+    (function () {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('.fade-up').forEach(el => {
+        if (!el.closest('#blog-hero')) observer.observe(el);
+      });
+    })();
+
+    // ─── CUSTOM CURSOR ───
+    (function () {
+      const cursor = document.getElementById('custom-cursor');
+      if (!cursor) return;
+      let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+      let curX = mouseX, curY = mouseY;
+      const LERP = 0.12;
+
+      document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+      const clickTargets = 'a, button, [role="button"], label';
+      const textTargets  = 'input, textarea, select';
+
+      document.addEventListener('mouseover', e => {
+        if (e.target.closest(textTargets)) { cursor.classList.remove('expanded'); cursor.classList.add('text-mode'); }
+        else if (e.target.closest(clickTargets)) { cursor.classList.remove('text-mode'); cursor.classList.add('expanded'); }
+      });
+      document.addEventListener('mouseout', e => {
+        if (e.target.closest(textTargets)) cursor.classList.remove('text-mode');
+        else if (e.target.closest(clickTargets)) cursor.classList.remove('expanded');
+      });
+
+      document.addEventListener('mouseleave', () => { cursor.style.opacity = '0'; });
+      document.addEventListener('mouseenter', () => { cursor.style.opacity = '1'; });
+
+      function animate() {
+        curX += (mouseX - curX) * LERP;
+        curY += (mouseY - curY) * LERP;
+        cursor.style.transform = `translate(calc(${curX}px - 50%), calc(${curY}px - 50%))`;
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+  </script>
+
+</body>
+</html>

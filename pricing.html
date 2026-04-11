@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affordable Web Design & SEO Pricing San Antonio | Boring Project</title>
+  <meta name="description" content="Simple, transparent web design and SEO pricing for San Antonio small businesses. Plans from $299/mo. No long contracts. No surprise fees.">
+  <meta name="keywords" content="web design pricing San Antonio, SEO pricing San Antonio, affordable SEO San Antonio, local SEO cost San Antonio">
+  <link rel="canonical" href="https://boringproj.com/pricing">
+  <meta property="og:title" content="Pricing — Boring Project Web Design & SEO San Antonio">
+  <meta property="og:description" content="Plans from $299/mo. No long contracts. No surprise fees.">
+  <meta property="og:url" content="https://boringproj.com/pricing">
+  <meta name="robots" content="index, follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Boring Project",
+    "description": "Web design and local SEO agency serving San Antonio TX and surrounding areas",
+    "url": "https://boringproj.com",
+    "telephone": "(210) 862-8837",
+    "email": "boringprj210@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "San Antonio",
+      "addressRegion": "TX",
+      "addressCountry": "US"
+    },
+    "areaServed": ["San Antonio", "Bulverde", "Converse", "Leon Valley", "Alamo Heights", "Helotes"],
+    "priceRange": "$$",
+    "serviceType": ["Web Design", "Local SEO", "Google Business Profile Optimization"]
+  }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0D0D0D;
+      --surface: #1A1A1A;
+      --blue: #2B5FA6;
+      --gold: #C4922A;
+      --white: #F5F5F3;
+      --muted: #888780;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── CURSOR ─── */
+    html { cursor: none !important; }
+    body { cursor: none !important; }
+    * { cursor: none !important; }
+    a { cursor: none !important; }
+    button { cursor: none !important; }
+    input { cursor: none !important; }
+    textarea { cursor: none !important; }
+    select { cursor: none !important; }
+
+    #custom-cursor {
+      position: fixed;
+      top: 0; left: 0;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(196, 146, 42, 0.35);
+      border: 1.5px solid rgba(196, 146, 42, 0.7);
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s ease, height 0.2s ease, background 0.2s ease, border-radius 0.2s ease;
+      will-change: transform;
+    }
+
+    #custom-cursor.expanded { width: 48px; height: 48px; background: rgba(196, 146, 42, 0.2); }
+    #custom-cursor.text-mode { width: 2px; height: 28px; border-radius: 1px; background: rgba(196, 146, 42, 0.7); border: none; }
+
+    @media (hover: none) {
+      html, body, * { cursor: auto !important; }
+      #custom-cursor { display: none; }
+    }
+
+    /* ─── PARTICLES ─── */
+    #particles-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── LOADER ─── */
+    #loader {
+      position: fixed; inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      transition: opacity 0.5s ease;
+    }
+
+    #loader-pct { font-weight: 500; font-size: 12px; color: var(--white); margin-bottom: 10px; letter-spacing: 0.05em; }
+    #loader-bar-track { width: 200px; height: 1px; background: rgba(255,255,255,0.08); position: relative; }
+    #loader-bar-fill { position: absolute; top: 0; left: 0; height: 1px; width: 0%; background: var(--blue); transition: width 0.05s linear; }
+    #loader-brand { margin-top: 16px; font-weight: 700; font-size: 18px; color: var(--white); letter-spacing: 0.2em; opacity: 0; transition: opacity 0.4s ease; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 1000; height: 64px;
+      background: rgba(13,13,13,0.95);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+    }
+
+    .nav-logo { font-weight: 700; font-size: 18px; color: var(--white); white-space: nowrap; }
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 32px;
+      list-style: none; position: absolute; left: 50%; transform: translateX(-50%);
+    }
+
+    .nav-links a { font-weight: 500; font-size: 14px; color: var(--muted); transition: color 0.2s ease; }
+    .nav-links a:hover, .nav-links a.active { color: var(--white); }
+
+    .nav-cta {
+      background: var(--gold); color: var(--bg);
+      font-weight: 700; font-size: 13px;
+      border-radius: 50px; padding: 10px 20px;
+      transition: background 0.3s ease; white-space: nowrap;
+    }
+    .nav-cta:hover { background: var(--blue); color: var(--white); }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; padding: 4px; }
+    .hamburger span { display: block; width: 22px; height: 1.5px; background: var(--white); transition: all 0.3s ease; }
+
+    .mobile-menu {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(13,13,13,0.98); backdrop-filter: blur(10px);
+      padding: 24px 32px; z-index: 999;
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      flex-direction: column; gap: 20px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-weight: 500; font-size: 16px; color: var(--muted); transition: color 0.2s; }
+    .mobile-menu a:hover, .mobile-menu a.active { color: var(--white); }
+
+    /* ─── SHARED ─── */
+    section, footer { position: relative; z-index: 1; }
+    section { background: transparent !important; }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    .section-label {
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 40px;
+    }
+
+    /* ─── PRICING HERO ─── */
+    #pricing-hero {
+      min-height: 50vh;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 100px 40px 60px;
+    }
+
+    .pricing-hero-inner { max-width: 700px; width: 100%; }
+
+    .pricing-eyebrow {
+      font-weight: 500; font-size: 12px;
+      color: var(--gold); letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .pricing-headline {
+      font-weight: 900;
+      font-size: clamp(40px, 6vw, 72px);
+      color: var(--white);
+      letter-spacing: -2px; line-height: 1.05;
+      margin-top: 16px;
+    }
+
+    .pricing-sub {
+      font-weight: 400; font-size: 18px;
+      color: var(--muted); line-height: 1.7;
+      margin-top: 20px;
+    }
+
+    /* ─── MONTHLY PLANS ─── */
+    #monthly-plans {
+      background: var(--bg);
+      padding: 80px 80px 40px;
+    }
+
+    .plans-inner { max-width: 1100px; margin: 0 auto; }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 40px 32px;
+    }
+
+    .plan-card.featured {
+      border: 2px solid var(--gold);
+      padding: 48px 32px;
+      position: relative;
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--gold);
+      color: var(--bg);
+      font-weight: 700; font-size: 10px;
+      padding: 4px 16px;
+      border-radius: 50px;
+      white-space: nowrap;
+    }
+
+    .plan-name {
+      font-weight: 700; font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .plan-price {
+      display: flex; align-items: flex-end; gap: 4px;
+      margin-bottom: 0;
+    }
+
+    .plan-amount {
+      font-weight: 900; font-size: 64px;
+      color: var(--white); line-height: 1;
+    }
+
+    .plan-period {
+      font-weight: 400; font-size: 18px;
+      color: var(--muted);
+      padding-bottom: 8px;
+    }
+
+    .plan-desc {
+      font-weight: 400; font-size: 14px;
+      color: var(--muted); line-height: 1.6;
+      margin: 16px 0 32px;
+    }
+
+    .plan-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+      margin-bottom: 28px;
+    }
+
+    .plan-features { list-style: none; }
+
+    .plan-features li {
+      font-weight: 400; font-size: 14px;
+      color: var(--muted);
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+
+    .plan-features li:last-child { border-bottom: none; }
+
+    .plan-features li::before {
+      content: '✓';
+      color: var(--blue);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .plan-btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-weight: 700; font-size: 14px;
+      padding: 14px;
+      border-radius: 8px;
+      margin-top: 32px;
+      transition: all 0.3s ease;
+    }
+
+    .plan-btn-outline {
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: var(--white);
+    }
+
+    .plan-btn-outline:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .plan-btn-gold {
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+    }
+
+    .plan-btn-gold:hover { background: var(--blue); color: var(--white); }
+
+    /* ─── ONE-TIME SERVICES ─── */
+    #one-time {
+      background: var(--bg);
+      padding: 40px 80px 100px;
+    }
+
+    .one-time-inner { max-width: 1100px; margin: 0 auto; }
+
+    .one-time-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .one-time-card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 32px;
+      transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .one-time-card:hover {
+      border-color: rgba(43, 95, 166, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .one-time-name {
+      font-weight: 500; font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.12em;
+      margin-bottom: 12px;
+    }
+
+    .one-time-price {
+      display: flex; align-items: baseline; gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .one-time-amount {
+      font-weight: 700; font-size: 28px;
+      color: var(--white);
+    }
+
+    .one-time-freq {
+      font-weight: 400; font-size: 14px;
+      color: var(--muted);
+    }
+
+    .one-time-desc {
+      font-weight: 400; font-size: 14px;
+      color: var(--muted); line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    .one-time-cta {
+      font-weight: 500; font-size: 13px;
+      color: var(--gold);
+      transition: color 0.2s ease;
+    }
+
+    .one-time-cta:hover { color: var(--white); }
+
+    /* ─── FAQ ─── */
+    #faq {
+      background: #111111;
+      padding: 100px 80px;
+    }
+
+    .faq-inner { max-width: 800px; margin: 0 auto; }
+
+    .faq-headline {
+      font-weight: 700; font-size: 42px;
+      color: var(--white);
+      margin-bottom: 48px;
+    }
+
+    .faq-item {
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .faq-item:last-child {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0;
+      font-weight: 500; font-size: 18px;
+      color: var(--white);
+      gap: 16px;
+    }
+
+    .faq-toggle {
+      font-size: 22px;
+      color: var(--gold);
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+      line-height: 1;
+      font-weight: 300;
+    }
+
+    .faq-item.open .faq-toggle {
+      transform: rotate(45deg);
+    }
+
+    .faq-answer {
+      display: none;
+      font-weight: 400; font-size: 15px;
+      color: var(--muted); line-height: 1.7;
+      padding-bottom: 24px;
+    }
+
+    .faq-item.open .faq-answer { display: block; }
+
+    /* ─── BOTTOM CTA ─── */
+    #pricing-cta {
+      background: var(--bg);
+      padding: 120px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pricing-cta-bg {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 900;
+      font-size: clamp(60px, 10vw, 140px);
+      color: rgba(255,255,255,0.03);
+      pointer-events: none;
+      white-space: nowrap;
+      user-select: none;
+      line-height: 1;
+    }
+
+    .pricing-cta-inner { position: relative; z-index: 1; }
+
+    .pricing-cta-headline {
+      font-weight: 700; font-size: 36px;
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+
+    .pricing-cta-sub {
+      font-weight: 400; font-size: 16px;
+      color: var(--muted); line-height: 1.7;
+      max-width: 500px;
+      margin: 0 auto 40px;
+    }
+
+    .cta-pill-btn {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--bg);
+      font-weight: 700; font-size: 16px;
+      padding: 16px 36px;
+      border-radius: 50px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .cta-pill-btn:hover { background: var(--blue); color: var(--white); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #111111;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 80px 80px 40px;
+    }
+
+    .footer-grid {
+      max-width: 1280px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px;
+    }
+
+    .footer-logo { font-weight: 700; font-size: 20px; color: var(--white); }
+    .footer-logo span { color: var(--gold); }
+    .footer-tagline { font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+    .footer-socials { display: flex; gap: 12px; margin-top: 20px; }
+    .footer-socials a { color: var(--muted); transition: color 0.2s; }
+    .footer-socials a:hover { color: var(--white); }
+
+    .footer-col-label {
+      font-weight: 500; font-size: 12px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;
+    }
+
+    .footer-links { list-style: none; }
+    .footer-links li { line-height: 2.2; }
+    .footer-links a { font-weight: 400; font-size: 14px; color: var(--muted); transition: color 0.2s; }
+    .footer-links a:hover { color: var(--white); }
+
+    .footer-contact-item {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 400; font-size: 13px; color: var(--muted); line-height: 2;
+    }
+    .footer-contact-item svg { flex-shrink: 0; color: var(--blue); }
+
+    .footer-bottom {
+      max-width: 1280px; margin: 48px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-bottom p { font-weight: 400; font-size: 12px; color: var(--muted); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      #pricing-hero { padding: 100px 24px 48px; min-height: auto; }
+      #monthly-plans { padding: 60px 24px 32px; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .plan-card.featured { margin-top: 8px; }
+
+      #one-time { padding: 32px 24px 60px; }
+      .one-time-grid { grid-template-columns: 1fr; }
+
+      #faq { padding: 60px 24px; }
+      .faq-headline { font-size: 32px; }
+
+      #pricing-cta { padding: 80px 24px; }
+      .pricing-cta-headline { font-size: 28px; }
+
+      footer { padding: 60px 24px 32px; }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+      .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="particles-bg"></canvas>
+  <div id="custom-cursor"></div>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div id="loader-pct">0%</div>
+    <div id="loader-bar-track"><div id="loader-bar-fill"></div></div>
+    <div id="loader-brand">boring project.</div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">boring project<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="pricing.html" class="active">Pricing</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="nav-cta">Get started →</a>
+    <div class="hamburger" id="hamburger" aria-label="Menu" role="button" tabindex="0">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="about.html">About</a>
+    <a href="pricing.html" class="active">Pricing</a>
+    <a href="blog.html">Blog</a>
+    <a href="contact.html">Contact</a>
+    <a href="contact.html" class="nav-cta" style="text-align:center; margin-top:8px;">Get started →</a>
+  </div>
+
+  <!-- ═══ SECTION 1 — HERO ═══ -->
+  <section id="pricing-hero">
+    <div class="pricing-hero-inner fade-up">
+      <p class="pricing-eyebrow">✦ Straightforward pricing</p>
+      <h1 class="pricing-headline">Finally, prices that make sense.</h1>
+      <p class="pricing-sub">No long contracts. No surprise fees. No agency markup. Just honest work at a price built for businesses that actually need it.</p>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 2 — MONTHLY PLANS ═══ -->
+  <section id="monthly-plans">
+    <div class="plans-inner">
+      <p class="section-label fade-up">Monthly retainer plans</p>
+      <div class="plans-grid">
+
+        <!-- Card 1: Visibility -->
+        <div class="plan-card fade-up">
+          <p class="plan-name">Visibility</p>
+          <div class="plan-price">
+            <span class="plan-amount">$299</span>
+            <span class="plan-period">/mo</span>
+          </div>
+          <p class="plan-desc">Get found in Google Maps and local search — fast.</p>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li>GBP full optimization</li>
+            <li>Local citation audit + fix</li>
+            <li>Monthly GSC sprint</li>
+            <li>Review response templates</li>
+            <li>Monthly performance report</li>
+          </ul>
+          <a href="contact.html" class="plan-btn plan-btn-outline">Choose your plan →</a>
+        </div>
+
+        <!-- Card 2: Foundation (featured) -->
+        <div class="plan-card featured fade-up" style="transition-delay:0.1s;">
+          <div class="plan-badge">Most popular</div>
+          <p class="plan-name">Foundation</p>
+          <div class="plan-price">
+            <span class="plan-amount">$599</span>
+            <span class="plan-period">/mo</span>
+          </div>
+          <p class="plan-desc">A complete site + SEO system built from the ground up.</p>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li>Everything in Visibility</li>
+            <li>New website build</li>
+            <li>50+ optimized pages</li>
+            <li>Schema + technical SEO</li>
+            <li>8-week GBP post calendar</li>
+            <li>Keyword gap audit</li>
+          </ul>
+          <a href="contact.html" class="plan-btn plan-btn-gold">Choose your plan →</a>
+        </div>
+
+        <!-- Card 3: Dominate -->
+        <div class="plan-card fade-up" style="transition-delay:0.2s;">
+          <p class="plan-name">Dominate</p>
+          <div class="plan-price">
+            <span class="plan-amount">$999</span>
+            <span class="plan-period">/mo</span>
+          </div>
+          <p class="plan-desc">Full-stack SEO authority for businesses ready to own their market.</p>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li>Everything in Foundation</li>
+            <li>Content gap analysis (20 briefs)</li>
+            <li>Backlink + competitor audit</li>
+            <li>Entity optimization + schema</li>
+            <li>Competitor GBP analysis</li>
+            <li>Weekly reporting</li>
+          </ul>
+          <a href="contact.html" class="plan-btn plan-btn-outline">Choose your plan →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3 — ONE-TIME SERVICES ═══ -->
+  <section id="one-time">
+    <div class="one-time-inner">
+      <p class="section-label fade-up">One-time services</p>
+      <div class="one-time-grid">
+
+        <div class="one-time-card fade-up">
+          <p class="one-time-name">SEO audit + roadmap</p>
+          <div class="one-time-price">
+            <span class="one-time-amount">$299</span>
+            <span class="one-time-freq">one-time</span>
+          </div>
+          <p class="one-time-desc">Full site + GBP review, keyword gap report, and prioritized fix list. Delivered in 3–5 days.</p>
+          <a href="contact.html" class="one-time-cta">Get started →</a>
+        </div>
+
+        <div class="one-time-card fade-up" style="transition-delay:0.1s;">
+          <p class="one-time-name">Website build</p>
+          <div class="one-time-price">
+            <span class="one-time-amount">$1,500</span>
+            <span class="one-time-freq">one-time</span>
+          </div>
+          <p class="one-time-desc">50+ page optimized site. Schema, technical SEO, mobile-first. 30-day support included.</p>
+          <a href="contact.html" class="one-time-cta">Get started →</a>
+        </div>
+
+        <div class="one-time-card fade-up">
+          <p class="one-time-name">GBP setup</p>
+          <div class="one-time-price">
+            <span class="one-time-amount">$199</span>
+            <span class="one-time-freq">one-time</span>
+          </div>
+          <p class="one-time-desc">Full profile optimization, categories, attributes, and 8-week post calendar. Done in 48hrs.</p>
+          <a href="contact.html" class="one-time-cta">Get started →</a>
+        </div>
+
+        <div class="one-time-card fade-up" style="transition-delay:0.1s;">
+          <p class="one-time-name">Website refresh</p>
+          <div class="one-time-price">
+            <span class="one-time-amount">$750</span>
+            <span class="one-time-freq">one-time</span>
+          </div>
+          <p class="one-time-desc">Technical fixes, page title rewrites, speed optimization, and internal linking cleanup.</p>
+          <a href="contact.html" class="one-time-cta">Get started →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 4 — FAQ ═══ -->
+  <section id="faq">
+    <div class="faq-inner fade-up">
+      <h2 class="faq-headline">Common questions.</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span>Do I have to sign a long contract?</span>
+          <span class="faq-toggle">+</span>
+        </div>
+        <p class="faq-answer">No. All retainer plans are month-to-month. Cancel anytime with 30 days notice. We keep clients by delivering results — not by locking them in.</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span>How long before I see results?</span>
+          <span class="faq-toggle">+</span>
+        </div>
+        <p class="faq-answer">GBP optimization can show results within days. Website SEO typically takes 30–90 days to start moving. We'll show you exactly where you stand from day one.</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span>What if I already have a website?</span>
+          <span class="faq-toggle">+</span>
+        </div>
+        <p class="faq-answer">We can work with what you have. The Visibility plan is built for businesses that need SEO on an existing site. We audit it first and tell you honestly what's worth keeping.</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span>Do you only work with San Antonio businesses?</span>
+          <span class="faq-toggle">+</span>
+        </div>
+        <p class="faq-answer">Primarily yes — our SEO strategies are built specifically for local San Antonio search behavior. We do work with surrounding areas including Bulverde, Converse, Leon Valley, and Alamo Heights.</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span>What makes Boring Project different from other agencies?</span>
+          <span class="faq-toggle">+</span>
+        </div>
+        <p class="faq-answer">We're AI-powered, which means we deliver faster and charge less without cutting quality. And we only work with local service businesses — so we know your market better than any generalist agency.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 5 — BOTTOM CTA ═══ -->
+  <section id="pricing-cta">
+    <div class="pricing-cta-bg">NO SURPRISES.</div>
+    <div class="pricing-cta-inner fade-up">
+      <h2 class="pricing-cta-headline">Still not sure which plan fits?</h2>
+      <p class="pricing-cta-sub">Start with a free SEO audit. We'll show you exactly where you stand and recommend the right plan.</p>
+      <a href="contact.html" class="cta-pill-btn">Choose your plan →</a>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <p class="footer-logo">boring project<span>.</span></p>
+        <p class="footer-tagline">Finally found.</p>
+        <div class="footer-socials">
+          <a href="https://www.instagram.com/boringproj/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-label">Quick links</p>
+        <ul class="footer-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-label">Services</p>
+        <ul class="footer-links">
+          <li><a href="services.html">Website Design</a></li>
+          <li><a href="services.html">Local SEO</a></li>
+          <li><a href="services.html">GBP Optimization</a></li>
+          <li><a href="services.html">SEO Audit</a></li>
+          <li><a href="services.html">Monthly Retainer</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-label">Contact</p>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.56-.56a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
+          (210) 862-8837
+        </div>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          boringprj210@gmail.com
+        </div>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+          San Antonio, TX
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Boring Project. All rights reserved.</p>
+      <p>San Antonio, TX</p>
+    </div>
+  </footer>
+
+  <script>
+    // ─── LOADER ───
+    (function () {
+      const loader = document.getElementById('loader');
+      const pct    = document.getElementById('loader-pct');
+      const fill   = document.getElementById('loader-bar-fill');
+      const brand  = document.getElementById('loader-brand');
+      let current = 0;
+      const timer = setInterval(() => {
+        current = Math.min(current + (100 / (1800 / 18)) + (Math.random() * 0.5), 100);
+        pct.textContent = Math.floor(current) + '%';
+        fill.style.width = current + '%';
+        if (current >= 100) {
+          clearInterval(timer);
+          pct.textContent = '100%'; fill.style.width = '100%';
+          setTimeout(() => { brand.style.opacity = '1'; }, 50);
+          setTimeout(() => {
+            loader.style.opacity = '0'; loader.style.pointerEvents = 'none';
+            setTimeout(() => {
+              loader.style.display = 'none';
+              document.querySelectorAll('#pricing-hero .fade-up').forEach(el => el.classList.add('visible'));
+            }, 500);
+          }, 500);
+        }
+      }, 18);
+    })();
+
+    // ─── HAMBURGER ───
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+    });
+
+    // ─── FAQ ACCORDION ───
+    document.querySelectorAll('.faq-item').forEach(item => {
+      const question = item.querySelector('.faq-question');
+      const toggle   = item.querySelector('.faq-toggle');
+      question.addEventListener('click', () => {
+        const isOpen = item.classList.contains('open');
+        // Close all
+        document.querySelectorAll('.faq-item').forEach(i => {
+          i.classList.remove('open');
+          i.querySelector('.faq-toggle').textContent = '+';
+        });
+        // Open clicked if it was closed
+        if (!isOpen) {
+          item.classList.add('open');
+          toggle.textContent = '−';
+        }
+      });
+    });
+
+    // ─── PARTICLES ───
+    (function () {
+      const canvas = document.getElementById('particles-bg');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const COUNT = 80;
+
+      function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+      function makeColor() {
+        return Math.random() < 0.8 ? 'rgba(43, 95, 166, 0.6)' : 'rgba(196, 146, 42, 0.5)';
+      }
+
+      function createParticle(initSpread) {
+        const h = canvas.height || window.innerHeight;
+        const w = canvas.width || window.innerWidth;
+        return {
+          x: Math.random() * w,
+          y: initSpread ? Math.random() * h : h + Math.random() * 40,
+          r: Math.random() * 1.5 + 1,
+          speedY: Math.random() * 0.4 + 0.2,
+          speedX: (Math.random() - 0.5) * 0.3,
+          color: makeColor(),
+        };
+      }
+
+      function initParticles() {
+        particles = [];
+        for (let i = 0; i < COUNT; i++) particles.push(createParticle(true));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.y -= p.speedY; p.x += p.speedX;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+          if (p.y < -4) particles[i] = createParticle(false);
+        }
+        requestAnimationFrame(draw);
+      }
+
+      resize(); initParticles(); draw();
+      window.addEventListener('resize', () => { resize(); initParticles(); });
+    })();
+
+    // ─── SCROLL FADE-INS ───
+    (function () {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('.fade-up').forEach(el => {
+        if (!el.closest('#pricing-hero')) observer.observe(el);
+      });
+    })();
+
+    // ─── CUSTOM CURSOR ───
+    (function () {
+      const cursor = document.getElementById('custom-cursor');
+      if (!cursor) return;
+      let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+      let curX = mouseX, curY = mouseY;
+      const LERP = 0.12;
+
+      document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+      const clickTargets = 'a, button, [role="button"], label';
+      const textTargets  = 'input, textarea, select';
+
+      document.addEventListener('mouseover', e => {
+        if (e.target.closest(textTargets)) { cursor.classList.remove('expanded'); cursor.classList.add('text-mode'); }
+        else if (e.target.closest(clickTargets)) { cursor.classList.remove('text-mode'); cursor.classList.add('expanded'); }
+      });
+      document.addEventListener('mouseout', e => {
+        if (e.target.closest(textTargets)) cursor.classList.remove('text-mode');
+        else if (e.target.closest(clickTargets)) cursor.classList.remove('expanded');
+      });
+
+      document.addEventListener('mouseleave', () => { cursor.style.opacity = '0'; });
+      document.addEventListener('mouseenter', () => { cursor.style.opacity = '1'; });
+
+      function animate() {
+        curX += (mouseX - curX) * LERP;
+        curY += (mouseY - curY) * LERP;
+        cursor.style.transform = `translate(calc(${curX}px - 50%), calc(${curY}px - 50%))`;
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+  </script>
+
+</body>
+</html>
