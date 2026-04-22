@@ -470,11 +470,18 @@
   <style>
     .tally-iframe-container {
       width: 100%;
-      min-width: 600px;
     }
     .tally-iframe-container iframe {
       width: 100%;
-      min-width: 600px;
+      min-width: 0;
+    }
+    @media (min-width: 768px) {
+      .tally-iframe-container {
+        min-width: 600px;
+      }
+      .tally-iframe-container iframe {
+        min-width: 600px;
+      }
     }
   </style>
 
