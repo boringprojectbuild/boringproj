@@ -530,63 +530,28 @@
 
       <!-- LEFT: FORM -->
       <div class="contact-form-wrap fade-up">
-        <form class="contact-form" action="https://formspree.io/f/xaqlzqya" method="POST">
-          <input type="hidden" name="_subject" value="New inquiry — Boring Project">
-          <input type="hidden" name="_next" value="contact.html">
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="name">Your name *</label>
-              <input class="form-input" type="text" id="name" name="name" placeholder="Joseph Gutierrez" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="phone">Phone number</label>
-              <input class="form-input" type="tel" id="phone" name="phone" placeholder="(210) 555-0100">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="business">Business name *</label>
-            <input class="form-input" type="text" id="business" name="business" placeholder="Acme Plumbing San Antonio" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="email">Email address *</label>
-            <input class="form-input" type="email" id="email" name="email" placeholder="you@yourbusiness.com" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="service">Service you need</label>
-            <select class="form-select" id="service" name="service">
-              <option value="">Select a service...</option>
-              <option value="website-design">Website design</option>
-              <option value="local-seo">Local SEO</option>
-              <option value="gbp">Google Business Profile</option>
-              <option value="retainer">Monthly retainer</option>
-              <option value="seo-audit">SEO audit</option>
-              <option value="not-sure">Not sure yet</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="message">Tell us about your business</label>
-            <textarea class="form-textarea" id="message" name="message" rows="5" placeholder="What do you do, where are you located, and what's your biggest challenge online right now?"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="source">How did you hear about us?</label>
-            <select class="form-select" id="source" name="source">
-              <option value="">Select one...</option>
-              <option value="google">Google search</option>
-              <option value="referral">Referral</option>
-              <option value="social">Social media</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
-          <button type="submit" class="form-submit">Send it →</button>
-
-        </form>
+        <iframe
+          data-tally-src="https://tally.so/embed/yPqB4d?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+          loading="lazy"
+          width="100%"
+          height="400"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0"
+          title="boring project. — Let's Talk">
+        </iframe>
+        <script>
+          var d=document,w="https://tally.so/widgets/embed.js",
+          v=function(){"undefined"!=typeof Tally?
+          Tally.loadEmbeds():d.querySelectorAll(
+          "iframe[data-tally-src]:not([src])").forEach(
+          function(e){e.src=e.dataset.tallySrc})};
+          if("undefined"!=typeof Tally)v();
+          else if(d.querySelector('script[src="'+w+'"]')==null){
+          var s=d.createElement("script");
+          s.src=w;s.onload=v;s.onerror=v;
+          d.body.appendChild(s);}
+        </script>
       </div>
 
       <!-- RIGHT: CONTACT INFO -->
