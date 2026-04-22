@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank You — Boring Project</title>
+  <meta name="description" content="Thank you for reaching out to Boring Project. Joseph will be in touch within 24 hours.">
+  <link rel="canonical" href="https://boringproj.com/thank-you">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0D0D0D;
+      --surface: #1A1A1A;
+      --blue: #2B5FA6;
+      --gold: #C4922A;
+      --white: #F5F5F3;
+      --muted: #888780;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* ─── CURSOR ─── */
+    html { cursor: none !important; }
+    body { cursor: none !important; }
+    * { cursor: none !important; }
+    a { cursor: none !important; }
+    button { cursor: none !important; }
+    input { cursor: none !important; }
+    textarea { cursor: none !important; }
+    select { cursor: none !important; }
+
+    #custom-cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(196, 146, 42, 0.35);
+      border: 1.5px solid rgba(196, 146, 42, 0.7);
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s ease, height 0.2s ease, background 0.2s ease, border-radius 0.2s ease;
+      will-change: transform;
+    }
+
+    #custom-cursor.expanded {
+      width: 48px;
+      height: 48px;
+      background: rgba(196, 146, 42, 0.2);
+    }
+
+    #custom-cursor.text-mode {
+      width: 2px;
+      height: 28px;
+      border-radius: 1px;
+      background: rgba(196, 146, 42, 0.7);
+      border: none;
+    }
+
+    @media (hover: none) {
+      html, body, * { cursor: auto !important; }
+      #custom-cursor { display: none; }
+    }
+
+    /* ─── PARTICLES ─── */
+    #particles-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── LOADING SCREEN ─── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.5s ease;
+    }
+
+    #loader-pct {
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--white);
+      margin-bottom: 10px;
+      letter-spacing: 0.05em;
+    }
+
+    #loader-bar-track {
+      width: 200px;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+    }
+
+    #loader-bar-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 1px;
+      width: 0%;
+      background: var(--blue);
+      transition: width 0.05s linear;
+    }
+
+    #loader-brand {
+      margin-top: 16px;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--white);
+      letter-spacing: 0.2em;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      height: 64px;
+      background: rgba(13, 13, 13, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+    }
+
+    .nav-logo {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--white);
+      white-space: nowrap;
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .nav-links a {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--white);
+    }
+
+    .nav-cta {
+      background: var(--gold);
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 13px;
+      border-radius: 50px;
+      padding: 10px 20px;
+      transition: background 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .nav-cta:hover {
+      background: var(--blue);
+      color: var(--white);
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      padding: 4px;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--white);
+      transition: all 0.3s ease;
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(13,13,13,0.98);
+      backdrop-filter: blur(10px);
+      padding: 24px 32px;
+      z-index: 999;
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .mobile-menu.open { display: flex; }
+
+    .mobile-menu a {
+      font-weight: 500;
+      font-size: 16px;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .mobile-menu a:hover,
+    .mobile-menu a.active {
+      color: var(--white);
+    }
+
+    /* ─── SHARED ─── */
+    section, footer {
+      position: relative;
+      z-index: 1;
+    }
+    section { background: transparent !important; }
+
+    /* ─── THANK YOU HERO ─── */
+    #thankyou-hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 40px 60px;
+      text-align: center;
+    }
+
+    .ty-icon {
+      margin-bottom: 32px;
+    }
+
+    .ty-headline {
+      font-weight: 900;
+      font-size: clamp(52px, 8vw, 96px);
+      color: var(--white);
+      letter-spacing: -2px;
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+
+    .ty-subheading {
+      font-weight: 700;
+      font-size: clamp(20px, 3vw, 32px);
+      color: var(--gold);
+      letter-spacing: -0.5px;
+      margin-bottom: 28px;
+    }
+
+    .ty-body {
+      font-weight: 400;
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .cta-pill-btn {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 50px;
+      padding: 14px 32px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .cta-pill-btn:hover {
+      background: var(--blue);
+      color: var(--white);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #111111;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 80px 80px 40px;
+    }
+
+    .footer-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 48px;
+    }
+
+    .footer-logo {
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--white);
+    }
+
+    .footer-logo span { color: var(--gold); }
+
+    .footer-tagline {
+      font-weight: 400;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .footer-socials {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .footer-socials a {
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .footer-socials a:hover { color: var(--white); }
+
+    .footer-col-label {
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .footer-links li { line-height: 2.2; }
+
+    .footer-links a {
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--white); }
+
+    .footer-contact-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 400;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 2;
+    }
+
+    .footer-contact-item svg {
+      flex-shrink: 0;
+      color: var(--blue);
+    }
+
+    .footer-bottom {
+      max-width: 1280px;
+      margin: 48px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-bottom p {
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      #thankyou-hero { padding: 100px 24px 60px; }
+
+      footer { padding: 60px 24px 32px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RXHFVJS5JT"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-RXHFVJS5JT');
+  </script>
+</head>
+<body>
+
+  <div id="custom-cursor"></div>
+  <canvas id="particles-bg"></canvas>
+
+  <!-- ═══ LOADER ═══ -->
+  <div id="loader">
+    <p id="loader-pct">0%</p>
+    <div id="loader-bar-track">
+      <div id="loader-bar-fill"></div>
+    </div>
+    <p id="loader-brand">boring project.</p>
+  </div>
+
+  <!-- ═══ NAV ═══ -->
+  <nav>
+    <a href="index.html" class="nav-logo">boring project<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="blog.html">Blog</a></li>
+    </ul>
+    <a href="contact.html" class="nav-cta">Get found →</a>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ═══ MOBILE MENU ═══ -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="services.html">Services</a>
+    <a href="about.html">About</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="blog.html">Blog</a>
+    <a href="contact.html">Get found →</a>
+  </div>
+
+  <!-- ═══ THANK YOU HERO ═══ -->
+  <section id="thankyou-hero">
+    <div class="ty-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="46" height="46" rx="6" stroke="#2B5FA6" stroke-width="1.5"/>
+        <rect x="8" y="8" width="32" height="32" rx="3" stroke="#2B5FA6" stroke-width="1"/>
+        <circle cx="24" cy="24" r="5" fill="#C4922A">
+          <animate attributeName="r" values="5;6.5;5" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+    </div>
+    <h1 class="ty-headline">Thank you.</h1>
+    <p class="ty-subheading">Finally found.</p>
+    <p class="ty-body">Joseph will be in touch within 24 hours. In the meantime feel free to explore the site and see what we're building for San Antonio.</p>
+    <a href="https://boringproj.com" class="cta-pill-btn">Return home →</a>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <p class="footer-logo">boring project<span>.</span></p>
+        <p class="footer-tagline">Finally found.</p>
+        <div class="footer-socials">
+          <a href="https://www.instagram.com/boringproj/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+            </svg>
+          </a>
+          <a href="https://www.linkedin.com/company/boring-project210/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="4"/>
+              <path d="M7 10v7M7 7v.5M12 17v-4c0-1.5 2.5-2 3.5 0M15.5 17v-4"/>
+            </svg>
+          </a>
+          <a href="https://www.facebook.com/share/1YYPrJmpSZ/?mibextid=wwXIfr" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="4"/>
+              <path d="M15 8h-2a1 1 0 00-1 1v2h3l-.5 3H12v5"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-label">Quick links</p>
+        <ul class="footer-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-label">Services</p>
+        <ul class="footer-links">
+          <li><a href="services.html">Website Design</a></li>
+          <li><a href="services.html">Local SEO</a></li>
+          <li><a href="services.html">GBP Optimization</a></li>
+          <li><a href="services.html">SEO Audit</a></li>
+          <li><a href="services.html">Monthly Retainer</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-label">Contact</p>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.56-.56a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
+          (210) 862-8837
+        </div>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          boringprj210@gmail.com
+        </div>
+        <div class="footer-contact-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+          San Antonio, TX
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Boring Project. All rights reserved.</p>
+      <p>San Antonio, TX</p>
+    </div>
+  </footer>
+
+  <script>
+    // ─── LOADING SCREEN ───
+    (function () {
+      const loader = document.getElementById('loader');
+      const pct = document.getElementById('loader-pct');
+      const fill = document.getElementById('loader-bar-fill');
+      const brand = document.getElementById('loader-brand');
+
+      let current = 0;
+      const interval = 18;
+      const increment = 100 / (1800 / interval);
+
+      const timer = setInterval(() => {
+        current = Math.min(current + increment + (Math.random() * 0.5), 100);
+        pct.textContent = Math.floor(current) + '%';
+        fill.style.width = current + '%';
+
+        if (current >= 100) {
+          clearInterval(timer);
+          pct.textContent = '100%';
+          fill.style.width = '100%';
+          setTimeout(() => { brand.style.opacity = '1'; }, 50);
+          setTimeout(() => {
+            loader.style.opacity = '0';
+            loader.style.pointerEvents = 'none';
+            setTimeout(() => { loader.style.display = 'none'; }, 500);
+          }, 500);
+        }
+      }, interval);
+    })();
+
+    // ─── HAMBURGER ───
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+    });
+
+    // ─── PARTICLES ───
+    (function () {
+      const canvas = document.getElementById('particles-bg');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const COUNT = 80;
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function makeColor() {
+        return Math.random() < 0.8
+          ? 'rgba(43, 95, 166, 0.6)'
+          : 'rgba(196, 146, 42, 0.5)';
+      }
+
+      function createParticle(initSpread) {
+        const h = canvas.height || window.innerHeight;
+        const w = canvas.width || window.innerWidth;
+        return {
+          x: Math.random() * w,
+          y: initSpread ? Math.random() * h : h + Math.random() * 40,
+          r: Math.random() * 1.5 + 1,
+          speedY: Math.random() * 0.4 + 0.2,
+          speedX: (Math.random() - 0.5) * 0.3,
+          color: makeColor(),
+        };
+      }
+
+      function initParticles() {
+        particles = [];
+        for (let i = 0; i < COUNT; i++) particles.push(createParticle(true));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.y -= p.speedY;
+          p.x += p.speedX;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+          if (p.y < -4) particles[i] = createParticle(false);
+        }
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      initParticles();
+      draw();
+      window.addEventListener('resize', () => { resize(); initParticles(); });
+    })();
+
+    // ─── CUSTOM CURSOR ───
+    (function () {
+      const cursor = document.getElementById('custom-cursor');
+      if (!cursor) return;
+
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      let curX = mouseX, curY = mouseY;
+      const LERP = 0.12;
+
+      document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+      const clickTargets = 'a, button, [role="button"], label';
+      const textTargets = 'input, textarea, select';
+
+      document.addEventListener('mouseover', e => {
+        if (e.target.closest(textTargets)) {
+          cursor.classList.remove('expanded');
+          cursor.classList.add('text-mode');
+        } else if (e.target.closest(clickTargets)) {
+          cursor.classList.remove('text-mode');
+          cursor.classList.add('expanded');
+        }
+      });
+      document.addEventListener('mouseout', e => {
+        if (e.target.closest(textTargets)) cursor.classList.remove('text-mode');
+        else if (e.target.closest(clickTargets)) cursor.classList.remove('expanded');
+      });
+
+      document.addEventListener('mouseleave', () => { cursor.style.opacity = '0'; });
+      document.addEventListener('mouseenter', () => { cursor.style.opacity = '1'; });
+
+      function animate() {
+        curX += (mouseX - curX) * LERP;
+        curY += (mouseY - curY) * LERP;
+        cursor.style.transform = `translate(calc(${curX}px - 50%), calc(${curY}px - 50%))`;
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    })();
+  </script>
+
+</body>
+</html>
