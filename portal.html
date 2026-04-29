@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Portal | Boring Project</title>
+  <meta name="description" content="Boring Project client portal. Access your dashboard and performance reports.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://boringproj.com/portal">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0D0D0D;
+      --surface: #1A1A1A;
+      --blue: #2B5FA6;
+      --gold: #C4922A;
+      --near-black: #2B2B2B;
+      --white: #F5F5F3;
+      --muted: #888780;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .portal-wrap {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* ─── LOGO ─── */
+    .portal-logo {
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      margin-bottom: 6px;
+    }
+
+    .portal-logo span {
+      color: var(--gold);
+    }
+
+    .portal-tagline {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 52px;
+    }
+
+    /* ─── HEADING ─── */
+    .portal-heading {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .portal-sub {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    /* ─── FORM ─── */
+    .portal-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .portal-form input {
+      width: 100%;
+      background: var(--surface);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--white);
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .portal-form input::placeholder {
+      color: var(--muted);
+    }
+
+    .portal-form input:focus {
+      border-color: rgba(43, 95, 166, 0.6);
+    }
+
+    .portal-btn {
+      width: 100%;
+      background: var(--blue);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 20px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      margin-top: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .portal-btn:hover {
+      opacity: 0.88;
+    }
+
+    /* ─── FOOTER TEXT ─── */
+    .portal-footer-text {
+      margin-top: 32px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .portal-footer-text a {
+      color: var(--white);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .portal-footer-text a:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+
+    /* ─── DIVIDER ─── */
+    .portal-divider {
+      width: 100%;
+      height: 0.5px;
+      background: rgba(255,255,255,0.07);
+      margin: 48px 0 0;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 480px) {
+      body {
+        padding: 36px 20px;
+      }
+
+      .portal-heading {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="portal-wrap">
+
+    <a href="index.html" class="portal-logo">boring project<span>.</span></a>
+    <p class="portal-tagline">Finally found.</p>
+
+    <h1 class="portal-heading">Client Portal</h1>
+    <p class="portal-sub">Access your dashboard<br>and performance reports.</p>
+
+    <form class="portal-form" action="#" method="post" autocomplete="on">
+      <input
+        type="email"
+        name="email"
+        placeholder="Email address"
+        autocomplete="email"
+        required
+      >
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      >
+      <button type="submit" class="portal-btn">Log in</button>
+    </form>
+
+    <p class="portal-footer-text">
+      Don't have access yet?<br>
+      <a href="contact.html">Contact boring project.</a>
+    </p>
+
+    <div class="portal-divider"></div>
+
+  </div>
+
+</body>
+</html>
