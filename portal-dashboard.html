@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Dashboard | boring project.</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      color: #F5F5F3;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    ul { list-style: none; }
+
+    /* ═══════════════════════════════════════════════
+       CSS VARIABLES
+    ═══════════════════════════════════════════════ */
+    :root {
+      /* Brand */
+      --bg:          #0D0D0D;
+      --blue:        #2B5FA6;
+      --blue-light:  #3a75c4;
+      --gold:        #C4922A;
+      --gold-bright: #d4a035;
+      --white:       #F5F5F3;
+      --muted:       rgba(245, 245, 243, 0.45);
+      --danger:      #e05555;
+
+      /* Glassmorphism */
+      --glass-bg:      rgba(255, 255, 255, 0.05);
+      --glass-border:  1px solid rgba(255, 255, 255, 0.10);
+      --glass-blur:    blur(12px);
+      --glass-shadow:  0 8px 32px rgba(0, 0, 0, 0.35);
+      --glass-radius:  16px;
+
+      /* Header / Sidebar */
+      --header-h:    60px;
+      --sidebar-w:   220px;
+      --sidebar-w-c: 60px; /* collapsed width */
+
+      /* Transitions */
+      --t-fast:   0.15s ease;
+      --t-mid:    0.25s ease;
+      --t-slow:   0.35s ease;
+    }
+
+    /* Light mode overrides */
+    body.light-mode {
+      --glass-bg:     rgba(255, 255, 255, 0.65);
+      --glass-border: 1px solid rgba(0, 0, 0, 0.08);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --white:        #0D0D0D;
+      --muted:        rgba(13, 13, 13, 0.5);
+    }
+
+    /* ═══════════════════════════════════════════════
+       ANIMATED BACKGROUND
+    ═══════════════════════════════════════════════ */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(
+        -45deg,
+        #0D0D0D 0%,
+        #0a1628 15%,
+        #112040 30%,
+        #2B5FA6 50%,
+        #1a3a70 65%,
+        #0d1a30 80%,
+        #0D0D0D 100%
+      );
+      background-size: 400% 400%;
+      animation: gradientFlow 14s ease infinite;
+      transition: background 0.5s ease;
+    }
+
+    body.light-mode .bg-layer {
+      background: linear-gradient(
+        -45deg,
+        #e8f0fa 0%,
+        #d0e2f7 20%,
+        #EBF2FB 45%,
+        #c8d8f0 60%,
+        #ddeaf8 80%,
+        #F5F5F3 100%
+      );
+      background-size: 400% 400%;
+    }
+
+    @keyframes gradientFlow {
+      0%   { background-position: 0%   50%; }
+      25%  { background-position: 50%  0%;  }
+      50%  { background-position: 100% 50%; }
+      75%  { background-position: 50%  100%;}
+      100% { background-position: 0%   50%; }
+    }
+
+    /* ═══════════════════════════════════════════════
+       GLASSMORPHISM UTILITY
+    ═══════════════════════════════════════════════ */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: var(--glass-border);
+      border-radius: var(--glass-radius);
+      box-shadow: var(--glass-shadow);
+    }
+
+    /* ═══════════════════════════════════════════════
+       HEADER BAR
+    ═══════════════════════════════════════════════ */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px 0 16px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    body.light-mode .header {
+      background: rgba(255, 255, 255, 0.55);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    /* — Sidebar toggle — */
+    .header-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      color: var(--white);
+      transition: background var(--t-fast), color var(--t-fast);
+      flex-shrink: 0;
+    }
+
+    .header-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .header-toggle:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .header-toggle svg {
+      width: 20px;
+      height: 20px;
+      transition: transform var(--t-slow);
+    }
+
+    /* — Center brand — */
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .header-brand {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    .header-brand .dot {
+      color: var(--gold);
+    }
+
+    .header-date {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    /* — Right actions — */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .header-icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      color: var(--muted);
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+
+    .header-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--white);
+    }
+
+    .header-icon-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .header-icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Notification badge */
+    .notif-wrap {
+      position: relative;
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 7px;
+      height: 7px;
+      background: var(--gold);
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,0,0,0.4);
+    }
+
+    /* Profile pill */
+    .profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px 4px 6px;
+      border-radius: 20px;
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 500;
+      transition: background var(--t-fast);
+      cursor: pointer;
+    }
+
+    .profile-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .profile-pill:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .profile-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .profile-chevron {
+      width: 12px;
+      height: 12px;
+      opacity: 0.6;
+    }
+
+    /* Logout button */
+    .logout-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--danger);
+      border: 1px solid rgba(224, 85, 85, 0.3);
+      transition: background var(--t-fast), border-color var(--t-fast);
+      letter-spacing: 0.02em;
+    }
+
+    .logout-btn:hover {
+      background: rgba(224, 85, 85, 0.12);
+      border-color: rgba(224, 85, 85, 0.6);
+    }
+
+    .logout-btn:focus-visible {
+      outline: 2px solid var(--danger);
+      outline-offset: 2px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       APP LAYOUT SHELL
+    ═══════════════════════════════════════════════ */
+    .app-layout {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      height: 100vh;
+      padding-top: var(--header-h);
+    }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR PLACEHOLDER
+    ═══════════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      height: 100%;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
+      border-left: 3px solid var(--gold);
+      transition: width var(--t-slow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    body.light-mode .sidebar {
+      background: rgba(255, 255, 255, 0.5);
+      border-right: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .app-layout.collapsed .sidebar {
+      width: var(--sidebar-w-c);
+    }
+
+    /* ═══════════════════════════════════════════════
+       MAIN CONTENT PLACEHOLDER
+    ═══════════════════════════════════════════════ */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-width: 0;
+      padding: 24px;
+      /* Scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.12) transparent;
+    }
+
+    .main-content::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .main-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .main-content::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE — MOBILE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      html, body {
+        overflow: hidden;
+      }
+
+      .main-content {
+        overflow-y: auto;
+        padding: 16px;
+      }
+
+      /* Sidebar becomes overlay on mobile */
+      .sidebar {
+        position: fixed;
+        top: var(--header-h);
+        left: 0;
+        bottom: 0;
+        z-index: 90;
+        width: var(--sidebar-w) !important;
+        transform: translateX(-100%);
+        transition: transform var(--t-slow);
+      }
+
+      .app-layout.mobile-open .sidebar {
+        transform: translateX(0);
+      }
+
+      /* Overlay backdrop */
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        top: var(--header-h);
+        z-index: 89;
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      .app-layout.mobile-open .sidebar-overlay {
+        display: block;
+      }
+
+      /* Logout text only on mobile, no border */
+      .logout-btn {
+        padding: 6px 10px;
+      }
+
+      /* Hide profile name on small screens */
+      .profile-name {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        padding: 0 12px;
+      }
+
+      .header-right {
+        gap: 4px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       FOCUS / ACCESSIBILITY
+    ═══════════════════════════════════════════════ */
+    :focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    /* Skip link */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      background: var(--gold);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 0 0 8px 8px;
+      font-weight: 600;
+      font-size: 13px;
+      z-index: 9999;
+      transition: top 0.2s;
+    }
+
+    .skip-link:focus {
+      top: 0;
+      outline: none;
+    }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR TOGGLE ARROW ROTATION
+    ═══════════════════════════════════════════════ */
+    .header-toggle svg {
+      transition: transform var(--t-slow);
+    }
+
+    .app-layout.collapsed .header-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR — WORDMARK
+    ═══════════════════════════════════════════════ */
+    .sidebar-brand {
+      flex-shrink: 0;
+      padding: 18px 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    body.light-mode .sidebar-brand {
+      border-bottom-color: rgba(0, 0, 0, 0.07);
+    }
+
+    .sidebar-wordmark {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1.3;
+      transition: opacity var(--t-mid);
+      white-space: nowrap;
+    }
+
+    .sidebar-wordmark .dot {
+      color: var(--gold);
+    }
+
+    .sidebar-tagline {
+      display: block;
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      transition: opacity var(--t-mid);
+      white-space: nowrap;
+    }
+
+    .app-layout.collapsed .sidebar-wordmark,
+    .app-layout.collapsed .sidebar-tagline {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR — NAV LIST
+    ═══════════════════════════════════════════════ */
+    .sidebar-nav {
+      flex: 1;
+      padding: 10px 8px;
+      overflow: hidden;
+    }
+
+    .sidebar-nav ul {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 10px 10px;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(245, 245, 243, 0.55);
+      background: none;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      text-align: left;
+      transition: background var(--t-fast), color var(--t-fast), gap var(--t-slow), padding var(--t-slow);
+    }
+
+    .nav-item:hover {
+      color: var(--gold);
+      background: rgba(196, 146, 42, 0.08);
+    }
+
+    .nav-item.active {
+      color: var(--gold);
+      background: rgba(196, 146, 42, 0.13);
+    }
+
+    .nav-item:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: -2px;
+    }
+
+    body.light-mode .nav-item {
+      color: rgba(13, 13, 13, 0.5);
+    }
+
+    body.light-mode .nav-item:hover,
+    body.light-mode .nav-item.active {
+      color: var(--gold);
+      background: rgba(196, 146, 42, 0.1);
+    }
+
+    /* Icon wrapper */
+    .nav-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Label fades + collapses on sidebar close */
+    .nav-label {
+      flex: 1;
+      overflow: hidden;
+      max-width: 160px;
+      transition: max-width var(--t-slow), opacity var(--t-mid);
+    }
+
+    .app-layout.collapsed .nav-label {
+      max-width: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Center icon when collapsed */
+    .app-layout.collapsed .nav-item {
+      gap: 0;
+      justify-content: center;
+      padding: 10px 0;
+    }
+
+    /* ═══════════════════════════════════════════════
+       METRIC CARDS
+    ═══════════════════════════════════════════════ */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-left: 3px solid var(--gold);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      padding: 20px 20px 18px;
+      position: relative;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.45s ease, transform 0.45s ease,
+                  box-shadow var(--t-mid), border-color var(--t-fast);
+    }
+
+    .metric-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: box-shadow var(--t-mid), border-color var(--t-fast),
+                  transform var(--t-mid);
+    }
+
+    .metric-card.visible:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+      border-color: rgba(255, 255, 255, 0.18);
+      border-left-color: var(--gold-bright);
+    }
+
+    body.light-mode .metric-card {
+      background: rgba(255, 255, 255, 0.6);
+      border-color: rgba(0, 0, 0, 0.08);
+      border-left-color: var(--gold);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+    }
+
+    /* Card header row */
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      line-height: 1.45;
+    }
+
+    /* Info icon button */
+    .info-btn {
+      position: relative;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      color: rgba(245, 245, 243, 0.28);
+      transition: color var(--t-fast);
+      background: none;
+      border: none;
+      cursor: default;
+      padding: 0;
+    }
+
+    .info-btn:hover {
+      color: var(--gold);
+    }
+
+    .info-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* Tooltip */
+    .info-tooltip {
+      position: absolute;
+      top: calc(100% + 9px);
+      right: 0;
+      width: 210px;
+      background: rgba(10, 10, 10, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 13px;
+      font-size: 12px;
+      font-weight: 400;
+      color: rgba(245, 245, 243, 0.82);
+      line-height: 1.6;
+      z-index: 300;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-5px);
+      transition: opacity var(--t-fast), transform var(--t-fast);
+      white-space: normal;
+      text-align: left;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+    }
+
+    /* Tooltip arrow */
+    .info-tooltip::before {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      right: 4px;
+      border: 5px solid transparent;
+      border-bottom-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .info-tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: calc(100% - 1px);
+      right: 5px;
+      border: 4px solid transparent;
+      border-bottom-color: rgba(10, 10, 10, 0.96);
+    }
+
+    .info-btn:hover .info-tooltip,
+    .info-btn:focus-visible .info-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Big number */
+    .card-number {
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    /* Subtext */
+    .card-subtext {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    /* Trend */
+    .card-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .trend-note {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--gold);
+      opacity: 0.75;
+    }
+
+    /* Responsive: 2×2 */
+    @media (max-width: 1100px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Responsive: 1 column */
+    @media (max-width: 520px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card-number {
+        font-size: 36px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       ROW 2 — 60/40 SPLIT
+    ═══════════════════════════════════════════════ */
+    .row-2 {
+      display: grid;
+      grid-template-columns: 60fr 40fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .chart-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      padding: 22px 24px 18px;
+    }
+
+    body.light-mode .chart-card {
+      background: rgba(255, 255, 255, 0.6);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+    }
+
+    .chart-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 3px;
+      line-height: 1.3;
+    }
+
+    .chart-subtitle {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      margin-bottom: 18px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 220px;
+    }
+
+    @media (max-width: 768px) {
+      .row-2 {
+        grid-template-columns: 1fr;
+        margin-top: 14px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       REVIEWS CARD
+    ═══════════════════════════════════════════════ */
+    .reviews-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      padding: 22px 22px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body.light-mode .reviews-card {
+      background: rgba(255, 255, 255, 0.6);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+    }
+
+    .reviews-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+
+    .reviews-count {
+      font-size: 52px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .reviews-stars {
+      font-size: 20px;
+      color: rgba(245, 245, 243, 0.22);
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+    }
+
+    .reviews-subtext {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 20px;
+    }
+
+    .reviews-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: flex-start;
+      padding: 10px 20px;
+      background: var(--gold);
+      color: #000;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background var(--t-fast), transform var(--t-fast);
+    }
+
+    .reviews-btn:hover {
+      background: var(--gold-bright);
+      transform: translateY(-1px);
+    }
+
+    .reviews-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       MODAL
+    ═══════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--t-mid);
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      background: rgba(16, 16, 16, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+      padding: 28px 28px 24px;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      transform: translateY(18px);
+      transition: transform var(--t-mid);
+    }
+
+    .modal-overlay.open .modal-box {
+      transform: translateY(0);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--white);
+    }
+
+    .modal-close:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .modal-close svg { width: 15px; height: 15px; }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+      padding-right: 28px;
+      line-height: 1.3;
+    }
+
+    .modal-subtitle {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .script-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: rgba(245, 245, 243, 0.85);
+      line-height: 1.75;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+      cursor: text;
+      user-select: all;
+    }
+
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      background: var(--gold);
+      color: #000;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background var(--t-fast);
+    }
+
+    .copy-btn:hover { background: var(--gold-bright); }
+
+    .copy-btn.copied {
+      background: #2e7d3e;
+      color: #fff;
+    }
+
+    .copy-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .copy-btn svg { flex-shrink: 0; }
+
+    /* ═══════════════════════════════════════════════
+       ROW 3 — TRENDLINE / WORK COMPLETED
+    ═══════════════════════════════════════════════ */
+    .row-3 {
+      display: grid;
+      grid-template-columns: 60fr 40fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .chart-note {
+      font-size: 11px;
+      color: rgba(245, 245, 243, 0.32);
+      margin-top: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    body.light-mode .chart-note {
+      color: rgba(13, 13, 13, 0.38);
+    }
+
+    @media (max-width: 768px) {
+      .row-3 {
+        grid-template-columns: 1fr;
+        margin-top: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+
+  <!-- ── Animated background ── -->
+  <div class="bg-layer" aria-hidden="true"></div>
+
+  <!-- ════════════════════════════════════
+       HEADER BAR
+  ════════════════════════════════════ -->
+  <header class="header" role="banner">
+
+    <!-- Left: sidebar toggle -->
+    <button
+      class="header-toggle"
+      id="sidebarToggle"
+      aria-label="Toggle sidebar navigation"
+      aria-expanded="true"
+      aria-controls="sidebar"
+    >
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="13 4 6 10 13 16"/>
+      </svg>
+    </button>
+
+    <!-- Center: brand + date -->
+    <div class="header-center" aria-label="Client: boring project. — April 2026">
+      <span class="header-brand">boring project<span class="dot">.</span></span>
+      <span class="header-date">April 2026</span>
+    </div>
+
+    <!-- Right: actions -->
+    <div class="header-right">
+
+      <!-- Light/dark toggle -->
+      <button
+        class="header-icon-btn"
+        id="themeToggle"
+        aria-label="Toggle light mode"
+        title="Toggle light/dark mode"
+      >
+        <svg id="themeIconDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <svg id="themeIconLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+
+      <!-- Notification bell -->
+      <button
+        class="header-icon-btn notif-wrap"
+        aria-label="Notifications — 1 unread"
+        title="Notifications"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="notif-badge" aria-hidden="true"></span>
+      </button>
+
+      <!-- Profile -->
+      <button
+        class="profile-pill"
+        aria-label="Account menu for Joseph"
+        aria-haspopup="true"
+        title="Account"
+      >
+        <span class="profile-avatar" aria-hidden="true">J</span>
+        <span class="profile-name">Joseph</span>
+        <svg class="profile-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="2 4 6 8 10 4"/>
+        </svg>
+      </button>
+
+      <!-- Logout -->
+      <button
+        class="logout-btn"
+        id="logoutBtn"
+        aria-label="Log out of client portal"
+      >
+        Log out
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════
+       APP LAYOUT
+  ════════════════════════════════════ -->
+  <div class="app-layout" id="appLayout">
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+    <!-- Sidebar (content built in next phase) -->
+    <aside
+      class="sidebar"
+      id="sidebar"
+      aria-label="Dashboard navigation"
+    >
+      <!-- Wordmark -->
+      <div class="sidebar-brand" aria-label="boring project. — Finally found.">
+        <span class="sidebar-wordmark">boring project<span class="dot">.</span></span>
+        <span class="sidebar-tagline">Finally found.</span>
+      </div>
+
+      <!-- Nav -->
+      <nav class="sidebar-nav" aria-label="Dashboard sections">
+        <ul role="list">
+
+          <li>
+            <button class="nav-item active" data-page="overview" aria-current="page" title="Overview">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+                  <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+                  <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+                  <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+                </svg>
+              </span>
+              <span class="nav-label">Overview</span>
+            </button>
+          </li>
+
+          <li>
+            <button class="nav-item" data-page="rankings" title="Rankings">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="2 14 7 9 11 12 18 5"/>
+                  <polyline points="14 5 18 5 18 9"/>
+                </svg>
+              </span>
+              <span class="nav-label">Rankings</span>
+            </button>
+          </li>
+
+          <li>
+            <button class="nav-item" data-page="gbp" title="GBP Performance">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 2a6 6 0 0 1 6 6c0 4.5-6 10-6 10S4 12.5 4 8a6 6 0 0 1 6-6z"/>
+                  <circle cx="10" cy="8" r="2"/>
+                </svg>
+              </span>
+              <span class="nav-label">GBP Performance</span>
+            </button>
+          </li>
+
+          <li>
+            <button class="nav-item" data-page="traffic" title="Website Traffic">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 3l5.5 14 3-6.5 6-2.5L3 3z"/>
+                  <line x1="12" y1="12" x2="17" y2="17"/>
+                </svg>
+              </span>
+              <span class="nav-label">Website Traffic</span>
+            </button>
+          </li>
+
+          <li>
+            <button class="nav-item" data-page="reports" title="Reports">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z"/>
+                  <polyline points="12 2 12 6 16 6"/>
+                  <line x1="7" y1="10" x2="13" y2="10"/>
+                  <line x1="7" y1="13" x2="11" y2="13"/>
+                </svg>
+              </span>
+              <span class="nav-label">Reports</span>
+            </button>
+          </li>
+
+          <li>
+            <button class="nav-item" data-page="messages" title="Messages">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 9a6 6 0 0 0-10.4-4A6 6 0 0 0 4 9c0 1.4.5 2.7 1.3 3.7L4 17l3.7-1.3A6 6 0 1 0 17 9z"/>
+                </svg>
+              </span>
+              <span class="nav-label">Messages</span>
+            </button>
+          </li>
+
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main content area -->
+    <main
+      class="main-content"
+      id="main-content"
+      aria-label="Dashboard content"
+      tabindex="-1"
+    >
+      <!-- ── Row 1: Metric cards ── -->
+      <section class="metrics-grid" aria-label="Key performance metrics">
+
+        <!-- Card 1: GBP Profile Views -->
+        <article class="metric-card" aria-label="GBP Profile Views: 124">
+          <div class="card-header">
+            <span class="card-label">GBP Profile Views</span>
+            <button class="info-btn" aria-label="What is GBP Profile Views?" tabindex="0">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="10" cy="10" r="8"/>
+                <line x1="10" y1="9.5" x2="10" y2="14"/>
+                <circle cx="10" cy="6.5" r="0.6" fill="currentColor" stroke="none"/>
+              </svg>
+              <span class="info-tooltip" role="tooltip" id="tooltip-views">
+                How many times your Google Business Profile was viewed this month by people searching on Google or Google Maps.
+              </span>
+            </button>
+          </div>
+          <div class="card-number" data-target="124" aria-label="124">0</div>
+          <div class="card-subtext">Profile views this month</div>
+          <div class="card-trend" aria-label="Up 12 percent from last month">
+            <span aria-hidden="true">↑</span> +12%
+          </div>
+        </article>
+
+        <!-- Card 2: Direct Calls -->
+        <article class="metric-card" aria-label="Direct Calls: 18">
+          <div class="card-header">
+            <span class="card-label">Direct Calls</span>
+            <button class="info-btn" aria-label="What are Direct Calls?" tabindex="0">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="10" cy="10" r="8"/>
+                <line x1="10" y1="9.5" x2="10" y2="14"/>
+                <circle cx="10" cy="6.5" r="0.6" fill="currentColor" stroke="none"/>
+              </svg>
+              <span class="info-tooltip" role="tooltip" id="tooltip-calls">
+                Phone calls made directly from your Google listing. These are customers who found you on Google and tapped "Call" — without ever visiting your website.
+              </span>
+            </button>
+          </div>
+          <div class="card-number" data-target="18" aria-label="18">0</div>
+          <div class="card-subtext">Calls from Google</div>
+          <div class="card-trend" aria-label="Up 3 calls from last month">
+            <span aria-hidden="true">↑</span> +3
+          </div>
+        </article>
+
+        <!-- Card 3: Website Clicks -->
+        <article class="metric-card" aria-label="Website Clicks: 47">
+          <div class="card-header">
+            <span class="card-label">Website Clicks</span>
+            <button class="info-btn" aria-label="What are Website Clicks?" tabindex="0">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="10" cy="10" r="8"/>
+                <line x1="10" y1="9.5" x2="10" y2="14"/>
+                <circle cx="10" cy="6.5" r="0.6" fill="currentColor" stroke="none"/>
+              </svg>
+              <span class="info-tooltip" role="tooltip" id="tooltip-clicks">
+                Visitors who clicked through to your website from your Google listing. These are high-intent people already searching for what you offer.
+              </span>
+            </button>
+          </div>
+          <div class="card-number" data-target="47" aria-label="47">0</div>
+          <div class="card-subtext">Clicks to your website</div>
+          <div class="card-trend" aria-label="Up 8 clicks from last month">
+            <span aria-hidden="true">↑</span> +8
+          </div>
+        </article>
+
+        <!-- Card 4: Avg. Google Position -->
+        <article class="metric-card" aria-label="Average Google Position: 14.3">
+          <div class="card-header">
+            <span class="card-label">Avg. Google Position</span>
+            <button class="info-btn" aria-label="What is Average Google Position?" tabindex="0">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="10" cy="10" r="8"/>
+                <line x1="10" y1="9.5" x2="10" y2="14"/>
+                <circle cx="10" cy="6.5" r="0.6" fill="currentColor" stroke="none"/>
+              </svg>
+              <span class="info-tooltip" role="tooltip" id="tooltip-position">
+                Your average position in Google search results. Position 1 means you're at the very top of the page. A lower number is better — it means more people see your business first.
+              </span>
+            </button>
+          </div>
+          <div class="card-number" data-target="14.3" data-decimals="1" aria-label="14.3">0</div>
+          <div class="card-subtext">Average search ranking</div>
+          <div class="card-trend" aria-label="Improved by 2.1 positions — lower number is better">
+            <span aria-hidden="true">↓</span> -2.1
+            <span class="trend-note">· Lower is better</span>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- ── Row 2: Bar chart (60%) + right panel (40%) ── -->
+      <div class="row-2">
+
+        <div class="chart-card">
+          <div class="chart-title">4-Month Performance</div>
+          <div class="chart-subtitle">Month over month comparison</div>
+          <div class="chart-wrap">
+            <canvas
+              id="perfChart"
+              aria-label="Bar chart showing GBP Views, Calls, and Website Clicks for January through April 2026"
+              role="img"
+            ></canvas>
+          </div>
+        </div>
+
+        <!-- Reviews card — right 40% -->
+        <div class="reviews-card">
+          <div class="reviews-title">Google Reviews</div>
+          <div class="reviews-count" aria-label="0 reviews">0</div>
+          <div class="reviews-stars" role="img" aria-label="0 out of 5 stars">☆☆☆☆☆</div>
+          <p class="reviews-subtext">Reviews help you rank higher and build trust with new customers.</p>
+          <button
+            class="reviews-btn"
+            id="reviewScriptBtn"
+            aria-label="Get review request script"
+            aria-haspopup="dialog"
+          >
+            Get Review Script
+          </button>
+        </div>
+
+      </div>
+
+      <!-- ── Row 3: Trendline (60%) + work completed (40%) ── -->
+      <div class="row-3">
+
+        <div class="chart-card">
+          <div class="chart-title">Keyword Rankings</div>
+          <div class="chart-subtitle">Lower number = higher on Google</div>
+          <div class="chart-wrap">
+            <canvas
+              id="rankChart"
+              aria-label="Line chart showing keyword ranking trends for web design San Antonio, local SEO San Antonio, and GBP optimization San Antonio from January through April 2026"
+              role="img"
+            ></canvas>
+          </div>
+          <p class="chart-note">Position 1 = top of Google search</p>
+        </div>
+
+        <!-- Right 40% — work completed (coming next) -->
+        <div id="row3-right"></div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Review script modal -->
+  <div
+    class="modal-overlay"
+    id="reviewModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+    aria-hidden="true"
+  >
+    <div class="modal-box">
+
+      <button class="modal-close" id="modalClose" aria-label="Close modal">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <line x1="2" y1="2" x2="14" y2="14"/>
+          <line x1="14" y1="2" x2="2" y2="14"/>
+        </svg>
+      </button>
+
+      <div class="modal-title" id="modalTitle">Your Review Request Script</div>
+      <div class="modal-subtitle">Copy and text this to satisfied customers</div>
+
+      <div class="script-box" id="scriptText">Hi [Name]! Thank you so much for choosing us. If you had a great experience we'd love a Google review — it helps us more than you know.
+
+Here's the link: [Your Google Review Link]
+
+Thank you! — [Business Name]</div>
+
+      <button class="copy-btn" id="copyScriptBtn" aria-label="Copy review request script to clipboard">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="14" height="14">
+          <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+          <path d="M11 5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h2"/>
+        </svg>
+        Copy Script
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ════════════════════════════════════
+       JAVASCRIPT
+  ════════════════════════════════════ -->
+  <script>
+    const appLayout    = document.getElementById('appLayout');
+    const sidebarEl    = document.getElementById('sidebar');
+    const toggleBtn    = document.getElementById('sidebarToggle');
+    const overlay      = document.getElementById('sidebarOverlay');
+    const themeToggle  = document.getElementById('themeToggle');
+    const logoutBtn    = document.getElementById('logoutBtn');
+    const isMobile     = () => window.innerWidth <= 768;
+
+    // ── Sidebar toggle ──────────────────
+    function openSidebar() {
+      appLayout.classList.add('mobile-open');
+      overlay.removeAttribute('aria-hidden');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSidebar() {
+      appLayout.classList.remove('mobile-open');
+      overlay.setAttribute('aria-hidden', 'true');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (isMobile()) {
+        appLayout.classList.contains('mobile-open') ? closeSidebar() : openSidebar();
+      } else {
+        const collapsed = appLayout.classList.toggle('collapsed');
+        toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+      }
+    });
+
+    overlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar on mobile when resizing to desktop
+    window.addEventListener('resize', () => {
+      if (!isMobile()) closeSidebar();
+    });
+
+    // ── Light / dark mode toggle ────────
+    themeToggle.addEventListener('click', () => {
+      const isLight = document.body.classList.toggle('light-mode');
+      document.getElementById('themeIconDark').style.display  = isLight ? 'none'  : '';
+      document.getElementById('themeIconLight').style.display = isLight ? ''      : 'none';
+      themeToggle.setAttribute('aria-label', isLight ? 'Toggle dark mode' : 'Toggle light mode');
+    });
+
+    // ── Sidebar nav active state ────────
+    const navItems = document.querySelectorAll('.nav-item');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navItems.forEach(n => {
+          n.classList.remove('active');
+          n.removeAttribute('aria-current');
+        });
+        item.classList.add('active');
+        item.setAttribute('aria-current', 'page');
+
+        // Close mobile sidebar on nav click
+        if (isMobile()) closeSidebar();
+      });
+    });
+
+    // ── Metric card count-up ───────────
+    function animateCount(el) {
+      const target   = parseFloat(el.dataset.target);
+      const decimals = parseInt(el.dataset.decimals || '0');
+      const duration = 1100;
+      const start    = performance.now();
+
+      (function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = decimals > 0
+          ? (target * eased).toFixed(decimals)
+          : Math.floor(target * eased).toString();
+        if (p < 1) requestAnimationFrame(step);
+        else el.textContent = decimals > 0 ? target.toFixed(decimals) : String(target);
+      })(start);
+    }
+
+    // Staggered fade-in — each card 150ms apart
+    document.querySelectorAll('.metric-card').forEach((card, i) => {
+      setTimeout(() => {
+        card.classList.add('visible');
+        const num = card.querySelector('.card-number');
+        if (num) animateCount(num);
+      }, i * 150);
+    });
+
+    // ── Performance bar chart ──────────
+    const perfCtx = document.getElementById('perfChart').getContext('2d');
+    new Chart(perfCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+        datasets: [
+          {
+            label: 'GBP Views',
+            data: [89, 98, 112, 124],
+            backgroundColor: 'rgba(43, 95, 166, 0.88)',
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+          {
+            label: 'Calls',
+            data: [12, 14, 16, 18],
+            backgroundColor: 'rgba(196, 146, 42, 0.9)',
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+          {
+            label: 'Website Clicks',
+            data: [31, 38, 42, 47],
+            backgroundColor: 'rgba(245, 245, 243, 0.82)',
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 900,
+          easing: 'easeOutQuart',
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'start',
+            labels: {
+              color: 'rgba(245, 245, 243, 0.7)',
+              font: { family: 'Poppins', size: 11, weight: '500' },
+              boxWidth: 10,
+              boxHeight: 10,
+              borderRadius: 3,
+              useBorderRadius: true,
+              padding: 16,
+            },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(10, 10, 10, 0.93)',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            borderWidth: 1,
+            titleColor: '#F5F5F3',
+            bodyColor: 'rgba(245, 245, 243, 0.72)',
+            titleFont: { family: 'Poppins', size: 12, weight: '600' },
+            bodyFont: { family: 'Poppins', size: 12 },
+            padding: 11,
+            cornerRadius: 8,
+            boxWidth: 9,
+            boxHeight: 9,
+          },
+        },
+        scales: {
+          x: {
+            border: { display: false },
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: {
+              color: 'rgba(245, 245, 243, 0.6)',
+              font: { family: 'Poppins', size: 11 },
+            },
+          },
+          y: {
+            border: { display: false },
+            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+            ticks: {
+              color: 'rgba(245, 245, 243, 0.6)',
+              font: { family: 'Poppins', size: 11 },
+              maxTicksLimit: 6,
+            },
+          },
+        },
+      },
+    });
+
+    // ── Review script modal ────────────
+    const reviewModal     = document.getElementById('reviewModal');
+    const reviewScriptBtn = document.getElementById('reviewScriptBtn');
+    const modalClose      = document.getElementById('modalClose');
+    const copyScriptBtn   = document.getElementById('copyScriptBtn');
+    const copyBtnOrigHTML = copyScriptBtn.innerHTML;
+
+    function openModal() {
+      reviewModal.classList.add('open');
+      reviewModal.setAttribute('aria-hidden', 'false');
+      setTimeout(() => modalClose.focus(), 50);
+    }
+
+    function closeModal() {
+      reviewModal.classList.remove('open');
+      reviewModal.setAttribute('aria-hidden', 'true');
+      reviewScriptBtn.focus();
+    }
+
+    reviewScriptBtn.addEventListener('click', openModal);
+    modalClose.addEventListener('click', closeModal);
+
+    // Close on backdrop click
+    reviewModal.addEventListener('click', e => {
+      if (e.target === reviewModal) closeModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && reviewModal.classList.contains('open')) closeModal();
+    });
+
+    // Copy script
+    copyScriptBtn.addEventListener('click', () => {
+      const text = document.getElementById('scriptText').textContent.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        copyScriptBtn.textContent = 'Copied! ✓';
+        copyScriptBtn.classList.add('copied');
+        setTimeout(() => {
+          copyScriptBtn.innerHTML = copyBtnOrigHTML;
+          copyScriptBtn.classList.remove('copied');
+        }, 2000);
+      }).catch(() => {
+        // Fallback: select text for manual copy
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('scriptText'));
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+    });
+
+    // ── Keyword rankings trendline ─────
+    const rankCtx = document.getElementById('rankChart').getContext('2d');
+    new Chart(rankCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+        datasets: [
+          {
+            label: 'web design San Antonio',
+            data: [93, 88, 81, 75],
+            borderColor: '#2B5FA6',
+            backgroundColor: 'rgba(43, 95, 166, 0.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#2B5FA6',
+            pointBorderColor: '#2B5FA6',
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.4,
+            fill: false,
+          },
+          {
+            label: 'local SEO San Antonio',
+            data: [45, 38, 29, 22],
+            borderColor: '#C4922A',
+            backgroundColor: 'rgba(196, 146, 42, 0.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#C4922A',
+            pointBorderColor: '#C4922A',
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.4,
+            fill: false,
+          },
+          {
+            label: 'GBP optimization San Antonio',
+            data: [18, 16, 15, 14],
+            borderColor: 'rgba(245, 245, 243, 0.85)',
+            backgroundColor: 'rgba(245, 245, 243, 0.06)',
+            borderWidth: 2.5,
+            pointBackgroundColor: 'rgba(245, 245, 243, 0.85)',
+            pointBorderColor: 'rgba(245, 245, 243, 0.85)',
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.4,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 1100,
+          easing: 'easeInOutQuart',
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'start',
+            labels: {
+              color: 'rgba(245, 245, 243, 0.7)',
+              font: { family: 'Poppins', size: 11, weight: '500' },
+              boxWidth: 10,
+              boxHeight: 10,
+              borderRadius: 3,
+              useBorderRadius: true,
+              padding: 14,
+            },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(10, 10, 10, 0.93)',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            borderWidth: 1,
+            titleColor: '#F5F5F3',
+            bodyColor: 'rgba(245, 245, 243, 0.72)',
+            titleFont: { family: 'Poppins', size: 12, weight: '600' },
+            bodyFont: { family: 'Poppins', size: 12 },
+            padding: 11,
+            cornerRadius: 8,
+            callbacks: {
+              label: ctx => ` Position #${ctx.parsed.y} — ${ctx.dataset.label}`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            border: { display: false },
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: {
+              color: 'rgba(245, 245, 243, 0.6)',
+              font: { family: 'Poppins', size: 11 },
+            },
+          },
+          y: {
+            reverse: true,
+            border: { display: false },
+            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+            ticks: {
+              color: 'rgba(245, 245, 243, 0.6)',
+              font: { family: 'Poppins', size: 11 },
+              maxTicksLimit: 6,
+              callback: val => `#${val}`,
+            },
+          },
+        },
+      },
+    });
+
+    // ── Logout ──────────────────────────
+    logoutBtn.addEventListener('click', () => {
+      alert('Logged out successfully');
+      window.location.href = '/portal.html';
+    });
+  </script>
+
+</body>
+</html>
