@@ -1134,7 +1134,77 @@
         margin-top: 14px;
       }
     }
+
+    /* ═══════════════════════════════════════════════
+       MESSAGE BUBBLES
+    ═══════════════════════════════════════════════ */
+    .msg-bubble {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 75%;
+    }
+
+    .msg-bubble.client {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .msg-bubble.joseph {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .msg-text {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #F5F5F3;
+    }
+
+    .msg-bubble.client .msg-text {
+      background: #2B5FA6;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-bubble.joseph .msg-text {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-sender {
+      font-size: 11px;
+      color: rgba(245,245,243,0.4);
+      padding: 0 4px;
+    }
+
+    .msg-bubble.joseph .msg-sender {
+      color: #C4922A;
+      opacity: 0.8;
+    }
   </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
+      authDomain: "boringproject-portal.firebaseapp.com",
+      projectId: "boringproject-portal",
+      storageBucket: "boringproject-portal.firebasestorage.app",
+      messagingSenderId: "600234955305",
+      appId: "1:600234955305:web:eae786b70f861b05958238"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+    window.firestoreModules = { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp };
+  </script>
 </head>
 
 <body>
@@ -1478,11 +1548,102 @@
           <p class="chart-note">Position 1 = top of Google search</p>
         </div>
 
-        <!-- Right 40% — work completed (coming next) -->
-        <div id="row3-right"></div>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+          <!-- Work Completed Card -->
+          <div class="chart-card" style="flex:1;">
+            <div class="chart-title">Work Completed</div>
+            <div class="chart-subtitle">What we did for you this month</div>
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+              <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> GBP posts published <strong style="color:#F5F5F3; margin-left:auto;">4</strong>
+              </li>
+              <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Citations built <strong style="color:#F5F5F3; margin-left:auto;">12</strong>
+              </li>
+              <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Site updates made <strong style="color:#F5F5F3; margin-left:auto;">2</strong>
+              </li>
+              <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Review requests sent <strong style="color:#F5F5F3; margin-left:auto;">8</strong>
+              </li>
+              <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Monthly report generated <strong style="color:#F5F5F3; margin-left:auto;">✓</strong>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Message Joseph Card -->
+          <div class="chart-card" style="flex:1;">
+            <div class="chart-title">Message Joseph</div>
+            <div class="chart-subtitle">Questions? We respond same day.</div>
+            <textarea
+              id="msgInput"
+              placeholder="Type your message here..."
+              style="width:100%; min-height:80px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:12px; font-family:'Poppins',sans-serif; font-size:13px; color:#F5F5F3; resize:vertical; margin-top:4px; margin-bottom:12px; outline:none;"
+            ></textarea>
+            <button
+              id="sendMsgBtn"
+              style="display:inline-flex; align-items:center; justify-content:center; padding:10px 20px; background:#C4922A; color:#000; font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; border-radius:8px; border:none; cursor:pointer; letter-spacing:0.02em; transition:background 0.15s ease; width:100%;"
+              onmouseover="this.style.background='#d4a035'"
+              onmouseout="this.style.background='#C4922A'"
+            >
+              Send Message
+            </button>
+            <p id="msgConfirm" style="display:none; margin-top:10px; font-size:12px; color:#C4922A; text-align:center;">
+              Message sent — Joseph will respond within 24 hours.
+            </p>
+          </div>
+
+        </div>
 
       </div>
     </main>
+
+    <section
+      id="page-messages"
+      class="main-content"
+      style="display:none; flex-direction:column; height:100%;"
+      aria-label="Messages"
+    >
+      <div style="padding:24px; flex:1; display:flex; flex-direction:column; max-width:720px; margin:0 auto; width:100%; gap:16px;">
+
+        <div>
+          <div class="chart-title" style="font-size:20px;">Messages</div>
+          <div class="chart-subtitle">Direct line to Joseph — we respond same day.</div>
+        </div>
+
+        <!-- Message thread -->
+        <div
+          id="msg-thread"
+          style="flex:1; min-height:300px; max-height:460px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding:16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.12) transparent;"
+        >
+          <!-- Messages load here -->
+          <p id="msg-empty" style="color:rgba(245,245,243,0.35); font-size:13px; text-align:center; margin:auto;">
+            No messages yet. Send one below.
+          </p>
+        </div>
+
+        <!-- Input area -->
+        <div style="display:flex; gap:10px; align-items:flex-end;">
+          <textarea
+            id="msg-input"
+            placeholder="Type your message..."
+            rows="3"
+            style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:12px; font-family:'Poppins',sans-serif; font-size:13px; color:#F5F5F3; resize:none; outline:none; line-height:1.5;"
+          ></textarea>
+          <button
+            id="msg-send"
+            style="padding:12px 22px; background:#C4922A; color:#000; font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; border-radius:10px; border:none; cursor:pointer; flex-shrink:0; transition:background 0.15s ease;"
+            onmouseover="this.style.background='#d4a035'"
+            onmouseout="this.style.background='#C4922A'"
+          >
+            Send
+          </button>
+        </div>
+
+      </div>
+    </section>
 
   </div>
 
@@ -1578,6 +1739,8 @@ Thank you! — [Business Name]</div>
 
     // ── Sidebar nav active state ────────
     const navItems = document.querySelectorAll('.nav-item');
+    const mainContent = document.getElementById('main-content');
+    const messagesPage = document.getElementById('page-messages');
 
     navItems.forEach(item => {
       item.addEventListener('click', () => {
@@ -1588,8 +1751,83 @@ Thank you! — [Business Name]</div>
         item.classList.add('active');
         item.setAttribute('aria-current', 'page');
 
-        // Close mobile sidebar on nav click
+        const page = item.dataset.page;
+        if (page === 'messages') {
+          mainContent.style.display = 'none';
+          messagesPage.style.display = 'flex';
+        } else {
+          mainContent.style.display = '';
+          messagesPage.style.display = 'none';
+        }
+
         if (isMobile()) closeSidebar();
+      });
+    });
+
+    // Firebase messaging
+    window.addEventListener('load', () => {
+      const db = window.db;
+      if (!db) return;
+      const { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
+
+      const thread = document.getElementById('msg-thread');
+      const input = document.getElementById('msg-input');
+      const sendBtn = document.getElementById('msg-send');
+      const empty = document.getElementById('msg-empty');
+
+      const msgQuery = query(
+        collection(db, 'messages'),
+        orderBy('timestamp', 'asc')
+      );
+
+      onSnapshot(msgQuery, (snapshot) => {
+        const msgs = [];
+        snapshot.forEach(doc => msgs.push(doc.data()));
+
+        if (msgs.length === 0) {
+          empty.style.display = 'block';
+          return;
+        }
+
+        empty.style.display = 'none';
+        thread.innerHTML = '';
+
+        msgs.forEach(msg => {
+          const bubble = document.createElement('div');
+          bubble.className = `msg-bubble ${msg.sender}`;
+
+          const sender = document.createElement('span');
+          sender.className = 'msg-sender';
+          sender.textContent = msg.sender === 'joseph' ? 'boring project.' : 'You';
+
+          const text = document.createElement('div');
+          text.className = 'msg-text';
+          text.textContent = msg.text;
+
+          bubble.appendChild(sender);
+          bubble.appendChild(text);
+          thread.appendChild(bubble);
+        });
+
+        thread.scrollTop = thread.scrollHeight;
+      });
+
+      sendBtn.addEventListener('click', async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        await addDoc(collection(db, 'messages'), {
+          text,
+          sender: 'client',
+          timestamp: serverTimestamp()
+        });
+      });
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendBtn.click();
+        }
       });
     });
 
@@ -1872,6 +2110,17 @@ Thank you! — [Business Name]</div>
     logoutBtn.addEventListener('click', () => {
       alert('Logged out successfully');
       window.location.href = '/portal.html';
+    });
+
+    document.getElementById('sendMsgBtn').addEventListener('click', () => {
+      const input = document.getElementById('msgInput');
+      if (input.value.trim()) {
+        input.value = '';
+        document.getElementById('msgConfirm').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('msgConfirm').style.display = 'none';
+        }, 4000);
+      }
     });
   </script>
 
