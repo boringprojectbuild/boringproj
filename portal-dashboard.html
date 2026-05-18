@@ -2112,16 +2112,32 @@ Thank you! — [Business Name]</div>
       window.location.href = '/portal.html';
     });
 
-    document.getElementById('sendMsgBtn').addEventListener('click', () => {
+    function sendOverviewMessage() {
       const input = document.getElementById('msgInput');
-      if (input.value.trim()) {
+      const text = input.value.trim();
+      if (!text) return;
+
+      const db = window.db;
+      if (!db) return;
+
+      const { collection, addDoc, serverTimestamp } = window.firestoreModules;
+
+      addDoc(collection(db, 'messages'), {
+        text,
+        sender: 'client',
+        timestamp: serverTimestamp()
+      }).then(() => {
         input.value = '';
-        document.getElementById('msgConfirm').style.display = 'block';
+        const confirm = document.getElementById('msgConfirm');
+        confirm.style.display = 'block';
         setTimeout(() => {
-          document.getElementById('msgConfirm').style.display = 'none';
+          confirm.style.display = 'none';
         }, 4000);
-      }
-    });
+      });
+    }
+
+    document.getElementById('sendMsgBtn')
+      .addEventListener('click', sendOverviewMessage);
   </script>
 
 </body>
