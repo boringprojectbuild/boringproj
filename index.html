@@ -1305,6 +1305,7 @@
     gtag('js', new Date());
     gtag('config', 'G-RXHFVJS5JT');
   </script>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
 
@@ -1903,6 +1904,20 @@
 
       animate();
     })();
+  </script>
+
+  <script>
+    if (window.netlifyIdentity) {
+      netlifyIdentity.on('init', user => {
+        if (!user) {
+          netlifyIdentity.on('login', () => {
+            window.location.href = '/portal-dashboard.html';
+          });
+        } else {
+          window.location.href = '/portal-dashboard.html';
+        }
+      });
+    }
   </script>
 
 </body>
