@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | boring project.</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+    if (window.location.href.indexOf('#') !== -1) {
+      history.replaceState(null, null, window.location.pathname);
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; color: #F5F5F3; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    ul { list-style: none; }
+
+    :root {
+      --bg: #0D0D0D;
+      --blue: #2B5FA6;
+      --blue-light: #3a75c4;
+      --gold: #C4922A;
+      --gold-bright: #d4a035;
+      --white: #F5F5F3;
+      --muted: rgba(245,245,243,0.45);
+      --danger: #e05555;
+      --glass-bg: rgba(255,255,255,0.05);
+      --glass-border: 1px solid rgba(255,255,255,0.10);
+      --glass-blur: blur(12px);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      --glass-radius: 16px;
+      --header-h: 60px;
+      --sidebar-w: 220px;
+      --sidebar-w-c: 60px;
+      --t-fast: 0.15s ease;
+      --t-mid: 0.25s ease;
+      --t-slow: 0.35s ease;
+    }
+
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(-45deg, #0D0D0D 0%, #0a1628 15%, #112040 30%, #2B5FA6 50%, #1a3a70 65%, #0d1a30 80%, #0D0D0D 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 14s ease infinite;
+    }
+
+    @keyframes gradientFlow {
+      0%   { background-position: 0% 50%; }
+      25%  { background-position: 50% 0%; }
+      50%  { background-position: 100% 50%; }
+      75%  { background-position: 50% 100%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px 0 16px;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .header-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      color: var(--white);
+      transition: background var(--t-fast);
+      flex-shrink: 0;
+    }
+
+    .header-toggle:hover { background: rgba(255,255,255,0.08); }
+    .header-toggle svg { width: 20px; height: 20px; transition: transform var(--t-slow); }
+
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .header-brand {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    .header-brand .dot { color: var(--gold); }
+
+    .header-subtitle {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .logout-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--danger);
+      border: 1px solid rgba(224,85,85,0.3);
+      transition: background var(--t-fast), border-color var(--t-fast);
+      letter-spacing: 0.02em;
+    }
+
+    .logout-btn:hover {
+      background: rgba(224,85,85,0.12);
+      border-color: rgba(224,85,85,0.6);
+    }
+
+    .app-layout {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      height: 100vh;
+      padding-top: var(--header-h);
+    }
+
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      height: 100%;
+      overflow: hidden;
+      background: rgba(0,0,0,0.42);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255,255,255,0.07);
+      border-left: 3px solid var(--gold);
+      transition: width var(--t-slow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-layout.collapsed .sidebar { width: var(--sidebar-w-c); }
+
+    .sidebar-brand {
+      flex-shrink: 0;
+      padding: 18px 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .sidebar-wordmark {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1.3;
+      white-space: nowrap;
+      transition: opacity var(--t-mid);
+    }
+
+    .sidebar-wordmark .dot { color: var(--gold); }
+
+    .sidebar-tagline {
+      display: block;
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      transition: opacity var(--t-mid);
+      white-space: nowrap;
+    }
+
+    .app-layout.collapsed .sidebar-wordmark,
+    .app-layout.collapsed .sidebar-tagline { opacity: 0; pointer-events: none; }
+
+    .sidebar-nav { flex: 1; padding: 10px 8px; overflow: hidden; }
+    .sidebar-nav ul { display: flex; flex-direction: column; gap: 2px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 10px 10px;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(245,245,243,0.55);
+      background: none;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      text-align: left;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+
+    .nav-item:hover { color: var(--gold); background: rgba(196,146,42,0.08); }
+    .nav-item.active { color: var(--gold); background: rgba(196,146,42,0.13); }
+
+    .nav-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+    .nav-icon svg { width: 18px; height: 18px; }
+
+    .nav-label { flex: 1; overflow: hidden; max-width: 160px; transition: max-width var(--t-slow), opacity var(--t-mid); }
+    .app-layout.collapsed .nav-label { max-width: 0; opacity: 0; pointer-events: none; }
+    .app-layout.collapsed .nav-item { gap: 0; justify-content: center; padding: 10px 0; }
+    .app-layout.collapsed .header-toggle svg { transform: rotate(180deg); }
+
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-width: 0;
+      padding: 24px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.12) transparent;
+    }
+
+    .main-content::-webkit-scrollbar { width: 5px; }
+    .main-content::-webkit-scrollbar-track { background: transparent; }
+    .main-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+
+    .chart-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      padding: 22px 24px 18px;
+    }
+
+    .chart-title { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 3px; line-height: 1.3; }
+    .chart-subtitle { font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 18px; }
+
+    .page-section {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .page-section.active { display: flex; }
+
+    .page-header { margin-bottom: 4px; }
+    .page-title { font-size: 20px; font-weight: 700; color: var(--white); line-height: 1.3; }
+    .page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* Metric cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-left: 3px solid var(--gold);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      padding: 20px 20px 18px;
+      transition: transform var(--t-mid), box-shadow var(--t-mid);
+    }
+
+    .metric-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+    .card-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 14px; }
+    .card-number { font-size: 40px; font-weight: 700; color: var(--white); line-height: 1; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .card-subtext { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .card-trend { font-size: 13px; font-weight: 600; color: var(--gold); }
+
+    @media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 520px) { .metrics-grid { grid-template-columns: 1fr; } }
+
+    /* Client cards */
+    .clients-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+      gap: 16px;
+    }
+
+    .client-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-left: 3px solid var(--gold);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform var(--t-mid), box-shadow var(--t-mid);
+    }
+
+    .client-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+
+    .client-name { font-size: 16px; font-weight: 700; color: var(--white); }
+    .client-owner { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .client-plan {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .plan-foundation { background: rgba(43,95,166,0.2); color: #6fa3e0; border: 1px solid rgba(43,95,166,0.3); }
+    .plan-visibility { background: rgba(196,146,42,0.2); color: var(--gold); border: 1px solid rgba(196,146,42,0.3); }
+    .plan-dominate { background: rgba(76,175,130,0.2); color: #4caf82; border: 1px solid rgba(76,175,130,0.3); }
+
+    .client-meta { display: flex; flex-direction: column; gap: 6px; }
+    .client-meta-row { display: flex; justify-content: space-between; font-size: 12px; }
+    .client-meta-label { color: var(--muted); }
+    .client-meta-value { color: var(--white); font-weight: 500; }
+
+    .client-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-active .status-dot { background: #4caf82; }
+    .status-active { color: #4caf82; }
+    .status-pending .status-dot { background: var(--gold); }
+    .status-pending { color: var(--gold); }
+
+    /* Messages */
+    .msg-thread {
+      min-height: 300px;
+      max-height: 420px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.12) transparent;
+    }
+
+    .msg-bubble { display: flex; flex-direction: column; gap: 4px; max-width: 75%; }
+    .msg-bubble.client { align-self: flex-start; align-items: flex-start; }
+    .msg-bubble.joseph { align-self: flex-end; align-items: flex-end; }
+
+    .msg-text {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--white);
+    }
+
+    .msg-bubble.client .msg-text {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-bubble.joseph .msg-text {
+      background: var(--blue);
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-sender { font-size: 11px; color: var(--muted); padding: 0 4px; }
+    .msg-bubble.joseph .msg-sender { color: var(--gold); opacity: 0.8; }
+
+    .msg-empty { color: rgba(245,245,243,0.35); font-size: 13px; text-align: center; margin: auto; }
+
+    .msg-input-row { display: flex; gap: 10px; align-items: flex-end; }
+
+    .msg-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--white);
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+    }
+
+    .send-btn {
+      padding: 12px 22px;
+      background: var(--gold);
+      color: #000;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background var(--t-fast);
+    }
+
+    .send-btn:hover { background: var(--gold-bright); }
+
+    /* Admin badge */
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      background: rgba(196,146,42,0.15);
+      border: 1px solid rgba(196,146,42,0.3);
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .main-content { padding: 16px; }
+      .sidebar {
+        position: fixed;
+        top: var(--header-h);
+        left: 0; bottom: 0;
+        z-index: 90;
+        width: var(--sidebar-w) !important;
+        transform: translateX(-100%);
+        transition: transform var(--t-slow);
+      }
+      .app-layout.mobile-open .sidebar { transform: translateX(0); }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        top: var(--header-h);
+        z-index: 89;
+        background: rgba(0,0,0,0.5);
+      }
+      .app-layout.mobile-open .sidebar-overlay { display: block; }
+    }
+
+    @media (max-width: 480px) {
+      .header { padding: 0 10px; }
+      .header-icon-btn { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-layer" aria-hidden="true"></div>
+
+  <header class="header">
+    <button class="header-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="13 4 6 10 13 16"/>
+      </svg>
+    </button>
+
+    <div class="header-center">
+      <span class="header-brand">boring project<span class="dot">.</span></span>
+      <span class="header-subtitle">Admin Portal</span>
+    </div>
+
+    <div class="header-right">
+      <span class="admin-badge">Admin</span>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <div class="app-layout" id="appLayout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-wordmark">boring project<span class="dot">.</span></span>
+        <span class="sidebar-tagline">Admin Portal</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <button class="nav-item active" data-page="overview" title="Overview">
+              <span class="nav-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+                  <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+                  <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+                  <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+                </svg>
+              </span>
+              <span class="nav-label">Overview</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="clients" title="Clients">
+              <span class="nav-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8" cy="6" r="3"/>
+                  <path d="M2 18c0-3.3 2.7-6 6-6"/>
+                  <circle cx="15" cy="12" r="2.5"/>
+                  <path d="M12 18c0-1.7 1.3-3 3-3s3 1.3 3 3"/>
+                </svg>
+              </span>
+              <span class="nav-label">Clients</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="messages" title="Messages">
+              <span class="nav-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 9a6 6 0 0 0-10.4-4A6 6 0 0 0 4 9c0 1.4.5 2.7 1.3 3.7L4 17l3.7-1.3A6 6 0 1 0 17 9z"/>
+                </svg>
+              </span>
+              <span class="nav-label">Messages</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="reports" title="Reports">
+              <span class="nav-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z"/>
+                  <polyline points="12 2 12 6 16 6"/>
+                  <line x1="7" y1="10" x2="13" y2="10"/>
+                  <line x1="7" y1="13" x2="11" y2="13"/>
+                </svg>
+              </span>
+              <span class="nav-label">Reports</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+
+      <!-- OVERVIEW PAGE -->
+      <section class="page-section active" id="page-overview">
+        <div class="page-header">
+          <div class="page-title">Overview</div>
+          <div class="page-sub">boring project. — your own site performance. May 2026.</div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="card-label">Site Visitors</div>
+            <div class="card-number">847</div>
+            <div class="card-subtext">Total this month</div>
+            <div class="card-trend">↑ +34%</div>
+          </div>
+          <div class="metric-card">
+            <div class="card-label">GBP Views</div>
+            <div class="card-number">312</div>
+            <div class="card-subtext">Profile views this month</div>
+            <div class="card-trend">↑ +18%</div>
+          </div>
+          <div class="metric-card">
+            <div class="card-label">Active Clients</div>
+            <div class="card-number">1</div>
+            <div class="card-subtext">Currently onboarded</div>
+            <div class="card-trend">↑ Growing</div>
+          </div>
+          <div class="metric-card">
+            <div class="card-label">MRR</div>
+            <div class="card-number">$0</div>
+            <div class="card-subtext">Monthly recurring revenue</div>
+            <div class="card-trend" style="color:rgba(245,245,243,0.4);">First client pending</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:60fr 40fr; gap:16px;">
+          <div class="chart-card">
+            <div class="chart-title">Site Traffic</div>
+            <div class="chart-subtitle">Monthly visitors to boringproj.com</div>
+            <div style="position:relative; width:100%; height:220px;">
+              <canvas id="adminTrafficChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="chart-title">Quick Stats</div>
+            <div class="chart-subtitle">This month at a glance</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+              <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
+                <span style="font-size:13px; color:var(--muted);">Cold emails sent</span>
+                <span style="font-size:13px; color:var(--white); font-weight:600;">12</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
+                <span style="font-size:13px; color:var(--muted);">Leads in pipeline</span>
+                <span style="font-size:13px; color:var(--white); font-weight:600;">7</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
+                <span style="font-size:13px; color:var(--muted);">Proposals sent</span>
+                <span style="font-size:13px; color:var(--white); font-weight:600;">2</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
+                <span style="font-size:13px; color:var(--muted);">GBP posts live</span>
+                <span style="font-size:13px; color:var(--white); font-weight:600;">4</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
+                <span style="font-size:13px; color:var(--muted);">Blog posts live</span>
+                <span style="font-size:13px; color:var(--white); font-weight:600;">3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLIENTS PAGE -->
+      <section class="page-section" id="page-clients">
+        <div class="page-header">
+          <div class="page-title">Clients</div>
+          <div class="page-sub">All active and onboarded clients.</div>
+        </div>
+
+        <div class="clients-grid">
+          <div class="client-card">
+            <div>
+              <div class="client-name">Lumina Cleaning Service</div>
+              <div class="client-owner">Aislinn Venegas</div>
+            </div>
+            <span class="client-plan plan-foundation">Foundation</span>
+            <div class="client-meta">
+              <div class="client-meta-row">
+                <span class="client-meta-label">Email</span>
+                <span class="client-meta-value">luminaservices220@outlook.com</span>
+              </div>
+              <div class="client-meta-row">
+                <span class="client-meta-label">Phone</span>
+                <span class="client-meta-value">(254) 447-8622</span>
+              </div>
+              <div class="client-meta-row">
+                <span class="client-meta-label">Start date</span>
+                <span class="client-meta-value">May 2026</span>
+              </div>
+              <div class="client-meta-row">
+                <span class="client-meta-label">Monthly</span>
+                <span class="client-meta-value">$0 (test client)</span>
+              </div>
+            </div>
+            <div class="client-status status-pending">
+              <span class="status-dot"></span>
+              Site in progress
+            </div>
+          </div>
+
+          <div class="client-card" style="border-left-color:rgba(255,255,255,0.15); opacity:0.5;">
+            <div>
+              <div class="client-name">+ Add New Client</div>
+              <div class="client-owner">Onboard your next client</div>
+            </div>
+            <div style="font-size:13px; color:var(--muted); line-height:1.6; margin-top:4px;">
+              Invite a new client via Netlify Identity and add their details here.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MESSAGES PAGE -->
+      <section class="page-section" id="page-messages">
+        <div class="page-header">
+          <div class="page-title">Messages</div>
+          <div class="page-sub">All client messages — reply as boring project.</div>
+        </div>
+
+        <div class="chart-card" style="display:flex; flex-direction:column; gap:16px;">
+          <div>
+            <div class="chart-title">Lumina Cleaning Service</div>
+            <div class="chart-subtitle">Aislinn Venegas — active thread</div>
+          </div>
+
+          <div class="msg-thread" id="admin-msg-thread">
+            <p class="msg-empty" id="admin-msg-empty">No messages yet.</p>
+          </div>
+
+          <div class="msg-input-row">
+            <textarea
+              id="admin-msg-input"
+              class="msg-input"
+              placeholder="Reply as boring project..."
+              rows="3"
+            ></textarea>
+            <button class="send-btn" id="admin-send-btn">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- REPORTS PAGE -->
+      <section class="page-section" id="page-reports">
+        <div class="page-header">
+          <div class="page-title">Reports</div>
+          <div class="page-sub">Manage and upload monthly client reports.</div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">Lumina Cleaning Service</div>
+          <div class="chart-subtitle">Upload monthly performance reports</div>
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.07);">
+              <div>
+                <div style="font-size:14px; font-weight:600; color:var(--white);">May 2026 Report</div>
+                <div style="font-size:12px; color:var(--muted); margin-top:2px;">Not yet uploaded</div>
+              </div>
+              <button style="padding:8px 16px; background:var(--gold); color:#000; font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; border-radius:8px; border:none; cursor:pointer;">
+                Upload PDF
+              </button>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.07);">
+              <div>
+                <div style="font-size:14px; font-weight:600; color:var(--white);">April 2026 Report</div>
+                <div style="font-size:12px; color:#4caf82; margin-top:2px;">✓ Uploaded</div>
+              </div>
+              <button style="padding:8px 16px; background:rgba(255,255,255,0.07); color:var(--white); font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; border-radius:8px; border:1px solid rgba(255,255,255,0.10); cursor:pointer;">
+                Replace
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
+      authDomain: "boringproject-portal.firebaseapp.com",
+      projectId: "boringproject-portal",
+      storageBucket: "boringproject-portal.firebasestorage.app",
+      messagingSenderId: "600234955305",
+      appId: "1:600234955305:web:eae786b70f861b05958238"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const thread = document.getElementById('admin-msg-thread');
+    const input = document.getElementById('admin-msg-input');
+    const sendBtn = document.getElementById('admin-send-btn');
+    const empty = document.getElementById('admin-msg-empty');
+
+    const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
+
+    onSnapshot(msgQuery, (snapshot) => {
+      const msgs = [];
+      snapshot.forEach(doc => msgs.push(doc.data()));
+      if (msgs.length === 0) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      thread.innerHTML = '';
+      msgs.forEach(msg => {
+        const bubble = document.createElement('div');
+        bubble.className = `msg-bubble ${msg.sender}`;
+        const sender = document.createElement('span');
+        sender.className = 'msg-sender';
+        sender.textContent = msg.sender === 'joseph' ? 'You (boring project.)' : 'Client';
+        const text = document.createElement('div');
+        text.className = 'msg-text';
+        text.textContent = msg.text;
+        bubble.appendChild(sender);
+        bubble.appendChild(text);
+        thread.appendChild(bubble);
+      });
+      thread.scrollTop = thread.scrollHeight;
+    });
+
+    sendBtn.addEventListener('click', async () => {
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      await addDoc(collection(db, 'messages'), {
+        text,
+        sender: 'joseph',
+        timestamp: serverTimestamp()
+      });
+    });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+  </script>
+
+  <script>
+    // Netlify Identity protection
+    netlifyIdentity.on('init', user => {
+      if (!user) {
+        netlifyIdentity.on('login', () => {
+          document.location.href = '/admin.html';
+        });
+        netlifyIdentity.open();
+      }
+    });
+
+    // Sidebar toggle
+    const appLayout = document.getElementById('appLayout');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const overlay = document.getElementById('sidebarOverlay');
+    const isMobile = () => window.innerWidth <= 768;
+
+    toggleBtn.addEventListener('click', () => {
+      if (isMobile()) {
+        appLayout.classList.toggle('mobile-open');
+      } else {
+        appLayout.classList.toggle('collapsed');
+      }
+    });
+
+    overlay.addEventListener('click', () => appLayout.classList.remove('mobile-open'));
+
+    // Nav tab switching
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = {
+      overview: document.getElementById('page-overview'),
+      clients: document.getElementById('page-clients'),
+      messages: document.getElementById('page-messages'),
+      reports: document.getElementById('page-reports'),
+    };
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        Object.values(pages).forEach(p => p.classList.remove('active'));
+        const page = item.dataset.page;
+        if (pages[page]) pages[page].classList.add('active');
+        if (isMobile()) appLayout.classList.remove('mobile-open');
+      });
+    });
+
+    // Chart
+    window.addEventListener('load', () => {
+      const ctx = document.getElementById('adminTrafficChart');
+      if (ctx && window.Chart) {
+        new Chart(ctx.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ['Feb', 'Mar', 'Apr', 'May'],
+            datasets: [{
+              label: 'Site Visitors',
+              data: [420, 580, 710, 847],
+              backgroundColor: 'rgba(43,95,166,0.85)',
+              borderRadius: 6,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 900, easing: 'easeOutQuart' },
+            plugins: {
+              legend: { labels: { color: 'rgba(245,245,243,0.7)', font: { family: 'Poppins', size: 11 }, boxWidth: 10, boxHeight: 10 } },
+              tooltip: { backgroundColor: 'rgba(10,10,10,0.93)', titleColor: '#F5F5F3', bodyColor: 'rgba(245,245,243,0.72)', padding: 11, cornerRadius: 8 }
+            },
+            scales: {
+              x: { border: { display: false }, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(245,245,243,0.6)', font: { family: 'Poppins', size: 11 } } },
+              y: { border: { display: false }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: 'rgba(245,245,243,0.6)', font: { family: 'Poppins', size: 11 }, maxTicksLimit: 6 } }
+            }
+          }
+        });
+      }
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      netlifyIdentity.logout();
+    });
+
+    netlifyIdentity.on('logout', () => {
+      window.location.replace('/login.html');
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
