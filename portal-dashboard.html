@@ -2558,7 +2558,6 @@ Thank you! — [Business Name]</div>
     // ── Logout ──────────────────────────
     logoutBtn.addEventListener('click', () => {
       netlifyIdentity.logout();
-      window.location.href = '/portal.html';
     });
 
     function sendOverviewMessage() {
@@ -2858,7 +2857,7 @@ Thank you! — [Business Name]</div>
 
   <script>
     netlifyIdentity.on('logout', () => {
-      document.location.href = '/portal.html';
+      window.location.replace('/portal.html');
     });
   </script>
 </body>
