@@ -469,6 +469,49 @@
       color: var(--gold);
     }
 
+    /* Report slots */
+    .report-slot {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.07);
+      flex-wrap: wrap;
+    }
+    .report-slot-info { min-width: 140px; flex-shrink: 0; }
+    .report-slot-month { font-size: 14px; font-weight: 600; color: var(--white); }
+    .report-slot-status { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .report-slot-status.live { color: #4caf82; }
+    .report-slot-input {
+      flex: 1;
+      min-width: 180px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      color: var(--white);
+      outline: none;
+    }
+    .report-slot-input.invalid { border-color: #e05c5c; }
+    .report-slot-save {
+      padding: 8px 16px;
+      background: var(--gold);
+      color: #000;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background var(--t-fast);
+    }
+    .report-slot-save:hover { background: var(--gold-bright); }
+
     /* Admin badge */
     .admin-badge {
       display: inline-flex;
@@ -791,32 +834,19 @@
       <section class="page-section" id="page-reports">
         <div class="page-header">
           <div class="page-title">Reports</div>
-          <div class="page-sub">Manage and upload monthly client reports.</div>
+          <div class="page-sub">Paste Google Drive links to publish monthly client reports.</div>
         </div>
 
-        <div class="chart-card">
+        <div class="chart-card" id="reports-lumina" style="margin-bottom:16px;">
           <div class="chart-title">Lumina Cleaning Service</div>
-          <div class="chart-subtitle">Upload monthly performance reports</div>
-          <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.07);">
-              <div>
-                <div style="font-size:14px; font-weight:600; color:var(--white);">May 2026 Report</div>
-                <div style="font-size:12px; color:var(--muted); margin-top:2px;">Not yet uploaded</div>
-              </div>
-              <button style="padding:8px 16px; background:var(--gold); color:#000; font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; border-radius:8px; border:none; cursor:pointer;">
-                Upload PDF
-              </button>
-            </div>
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.07);">
-              <div>
-                <div style="font-size:14px; font-weight:600; color:var(--white);">April 2026 Report</div>
-                <div style="font-size:12px; color:#4caf82; margin-top:2px;">✓ Uploaded</div>
-              </div>
-              <button style="padding:8px 16px; background:rgba(255,255,255,0.07); color:var(--white); font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; border-radius:8px; border:1px solid rgba(255,255,255,0.10); cursor:pointer;">
-                Replace
-              </button>
-            </div>
-          </div>
+          <div class="chart-subtitle">Paste the shareable Google Drive link for each month's report</div>
+          <div class="report-slots" id="report-slots-lumina" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
+        </div>
+
+        <div class="chart-card" id="reports-boringprj">
+          <div class="chart-title">boring project.</div>
+          <div class="chart-subtitle">Paste the shareable Google Drive link for each month's report</div>
+          <div class="report-slots" id="report-slots-boringprj" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
         </div>
       </section>
 
@@ -825,7 +855,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
@@ -841,8 +871,8 @@
 
     // ── Client registry — matches the client cards on the Clients tab ──
     const CLIENTS = {
-      'luminaservices220@outlook.com': { name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
-      'boringprj210@gmail.com':        { name: 'boring project.',         contact: 'Joseph Gutierrez' }
+      'luminaservices220@outlook.com': { key: 'lumina',     name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
+      'boringprj210@gmail.com':        { key: 'boringprj',  name: 'boring project.',         contact: 'Joseph Gutierrez' }
     };
     // Messages sent before per-client tagging existed belong to the original client
     const DEFAULT_CLIENT_EMAIL = 'luminaservices220@outlook.com';
@@ -923,6 +953,96 @@
         e.preventDefault();
         sendBtn.click();
       }
+    });
+
+    // ── Reports (Google Drive links) ──
+    const REPORT_CLIENTS = Object.entries(CLIENTS).map(([email, info]) => ({ email, ...info }));
+
+    function getRecentMonths(count) {
+      const months = [];
+      const now = new Date();
+      for (let i = 0; i < count; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push({
+          key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+          label: d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+        });
+      }
+      return months;
+    }
+
+    const RECENT_MONTHS = getRecentMonths(3);
+    const isValidDriveLink = link => typeof link === 'string' && /^https:\/\//i.test(link.trim());
+    const reportDocId = (clientKey, monthKey) => `${clientKey}_${monthKey}`;
+    let reportsData = {};
+
+    function renderReportSlots(client) {
+      const container = document.getElementById(`report-slots-${client.key}`);
+      if (!container) return;
+      container.innerHTML = '';
+
+      RECENT_MONTHS.forEach(month => {
+        const existing = (reportsData[client.key] || {})[month.key];
+        const hasLink = !!(existing && existing.driveLink);
+
+        const slot = document.createElement('div');
+        slot.className = 'report-slot';
+
+        const info = document.createElement('div');
+        info.className = 'report-slot-info';
+        const monthEl = document.createElement('div');
+        monthEl.className = 'report-slot-month';
+        monthEl.textContent = month.label;
+        const statusEl = document.createElement('div');
+        statusEl.className = 'report-slot-status' + (hasLink ? ' live' : '');
+        statusEl.textContent = hasLink ? '● Live' : 'Not yet saved';
+        info.appendChild(monthEl);
+        info.appendChild(statusEl);
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'report-slot-input';
+        input.placeholder = 'Paste Google Drive share link…';
+        input.value = hasLink ? existing.driveLink : '';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'report-slot-save';
+        saveBtn.textContent = hasLink ? 'Replace' : 'Save';
+
+        saveBtn.addEventListener('click', async () => {
+          const link = input.value.trim();
+          if (!isValidDriveLink(link)) {
+            input.classList.add('invalid');
+            input.placeholder = 'Link must start with https://';
+            return;
+          }
+          input.classList.remove('invalid');
+          await setDoc(doc(db, 'reports', reportDocId(client.key, month.key)), {
+            clientEmail: client.email,
+            clientKey: client.key,
+            clientName: client.name,
+            month: month.key,
+            monthLabel: month.label,
+            driveLink: link,
+            updatedAt: serverTimestamp()
+          });
+        });
+
+        slot.appendChild(info);
+        slot.appendChild(input);
+        slot.appendChild(saveBtn);
+        container.appendChild(slot);
+      });
+    }
+
+    onSnapshot(collection(db, 'reports'), (snapshot) => {
+      reportsData = {};
+      REPORT_CLIENTS.forEach(c => { reportsData[c.key] = {}; });
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (reportsData[data.clientKey]) reportsData[data.clientKey][data.month] = data;
+      });
+      REPORT_CLIENTS.forEach(renderReportSlots);
     });
   </script>
 
