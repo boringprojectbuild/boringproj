@@ -499,47 +499,38 @@
     .report-client-sub { font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.03em; margin-top: 3px; }
     .report-chevron { width: 14px; height: 14px; color: var(--muted); flex-shrink: 0; transition: transform var(--t-fast); }
     .report-client-card.expanded .report-chevron { transform: rotate(180deg); color: var(--gold); }
+    /* Body is hidden unless the card carries .expanded — this must be the
+       only rule controlling display so JS toggling stays reliable. */
     .report-client-body {
-      padding: 0 24px 22px;
-      display: flex;
+      display: none;
       flex-direction: column;
-      gap: 12px;
+      padding: 6px 24px 22px;
+      background: rgba(0,0,0,0.18);
+      border-top: 1px solid rgba(255,255,255,0.08);
     }
+    .report-client-card.expanded .report-client-body { display: flex; }
 
     /* Report month slots */
-    .report-slot {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 16px;
-      background: rgba(255,255,255,0.04);
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.07);
-    }
-    .report-slot-top { display: flex; align-items: center; gap: 8px; }
-    .report-slot-month { font-size: 13px; font-weight: 600; color: var(--white); }
-    .report-slot-current-badge {
-      font-size: 10px; font-weight: 600; color: var(--gold);
-      background: rgba(196,146,42,0.15); border: 1px solid rgba(196,146,42,0.3);
-      border-radius: 20px; padding: 2px 8px; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .report-slot-label { font-size: 11px; color: var(--muted); letter-spacing: 0.02em; }
+    .report-slot { padding: 18px 0; }
+    .report-slot + .report-slot { border-top: 1px solid rgba(255,255,255,0.08); }
+    .report-slot-month { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 12px; }
     .report-slot-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .report-slot-input {
       flex: 1;
-      min-width: 180px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.10);
+      min-width: 200px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
       border-radius: 8px;
-      padding: 9px 12px;
+      padding: 10px 12px;
       font-family: 'Poppins', sans-serif;
       font-size: 12px;
       color: var(--white);
       outline: none;
     }
+    .report-slot-input::placeholder { color: rgba(245,245,243,0.35); }
     .report-slot-input.invalid { border-color: #e05c5c; }
     .report-slot-save {
-      padding: 8px 16px;
+      padding: 9px 18px;
       background: var(--gold);
       color: #000;
       font-family: 'Poppins', sans-serif;
@@ -552,15 +543,27 @@
       transition: background var(--t-fast);
     }
     .report-slot-save:hover { background: var(--gold-bright); }
-    .report-slot-confirm {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #4caf82;
-      font-weight: 500;
+    .report-slot-live-row { display: flex; align-items: center; gap: 12px; }
+    .report-slot-live { font-size: 13px; font-weight: 600; color: #4caf82; }
+    .report-slot-replace {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.08);
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.14);
+      cursor: pointer;
+      transition: background var(--t-fast);
     }
-    .report-slot-confirm svg { flex-shrink: 0; }
+    .report-slot-replace:hover { background: rgba(255,255,255,0.14); }
+    .report-slot-link-text {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-all;
+    }
 
     /* Admin badge */
     .admin-badge {
@@ -897,7 +900,7 @@
               <polyline points="2 4 6 8 10 4"/>
             </svg>
           </button>
-          <div class="report-client-body" id="report-body-lumina" hidden>
+          <div class="report-client-body" id="report-body-lumina">
             <div class="report-slots" id="report-slots-lumina"></div>
           </div>
         </div>
@@ -912,7 +915,7 @@
               <polyline points="2 4 6 8 10 4"/>
             </svg>
           </button>
-          <div class="report-client-body" id="report-body-boringproject" hidden>
+          <div class="report-client-body" id="report-body-boringproject">
             <div class="report-slots" id="report-slots-boringproject"></div>
           </div>
         </div>
@@ -1044,64 +1047,48 @@
 
     const RECENT_MONTHS = getRecentMonths(3);
     const isValidDriveLink = link => typeof link === 'string' && /^https:\/\//i.test(link.trim());
-    let reportsData = {};
 
-    function renderReportSlots(client) {
-      const container = document.getElementById(`report-slots-${client.key}`);
-      if (!container) return;
-      container.innerHTML = '';
+    // Each slot renders synchronously (no Firestore round-trip required to
+    // appear), then a per-document listener flips it to the "Live" view
+    // once/if a saved link exists — this keeps other in-progress slots
+    // untouched instead of re-rendering the whole card on every write.
+    function buildReportSlot(client, month) {
+      const slot = document.createElement('div');
+      slot.className = 'report-slot';
 
-      RECENT_MONTHS.forEach((month, i) => {
-        const existing = (reportsData[client.key] || {})[month.key];
-        const hasLink = !!(existing && existing.driveLink);
+      const monthEl = document.createElement('div');
+      monthEl.className = 'report-slot-month';
+      monthEl.textContent = month.label;
+      slot.appendChild(monthEl);
 
-        const slot = document.createElement('div');
-        slot.className = 'report-slot';
+      const body = document.createElement('div');
+      slot.appendChild(body);
 
-        const top = document.createElement('div');
-        top.className = 'report-slot-top';
-        const monthEl = document.createElement('span');
-        monthEl.className = 'report-slot-month';
-        monthEl.textContent = month.label;
-        top.appendChild(monthEl);
-        if (i === 0) {
-          const badge = document.createElement('span');
-          badge.className = 'report-slot-current-badge';
-          badge.textContent = 'Current';
-          top.appendChild(badge);
-        }
-
-        const label = document.createElement('label');
-        label.className = 'report-slot-label';
-        label.textContent = 'Paste Google Drive link';
-
+      function renderEditing(prefill) {
+        body.innerHTML = '';
         const row = document.createElement('div');
         row.className = 'report-slot-row';
 
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'report-slot-input';
-        input.placeholder = 'https://drive.google.com/…';
-        input.value = hasLink ? existing.driveLink : '';
+        input.placeholder = 'Paste Google Drive link here...';
+        input.setAttribute('aria-label', `Google Drive link for ${month.label}`);
+        input.value = prefill || '';
 
         const saveBtn = document.createElement('button');
         saveBtn.className = 'report-slot-save';
-        saveBtn.textContent = hasLink ? 'Replace' : 'Save';
-
-        const confirm = document.createElement('div');
-        confirm.className = 'report-slot-confirm';
-        confirm.hidden = !hasLink;
-        confirm.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Link saved';
+        saveBtn.textContent = 'Save';
 
         saveBtn.addEventListener('click', async () => {
           const link = input.value.trim();
           if (!isValidDriveLink(link)) {
             input.classList.add('invalid');
             input.placeholder = 'Link must start with https://';
-            confirm.hidden = true;
             return;
           }
           input.classList.remove('invalid');
+          saveBtn.disabled = true;
           await setDoc(doc(db, 'reports', client.key, 'months', month.key), {
             clientEmail: client.email,
             clientKey: client.key,
@@ -1111,37 +1098,61 @@
             driveLink: link,
             updatedAt: serverTimestamp()
           });
-          saveBtn.textContent = 'Replace';
-          confirm.hidden = false;
+          renderSaved(link);
         });
 
         row.appendChild(input);
         row.appendChild(saveBtn);
-        slot.appendChild(top);
-        slot.appendChild(label);
-        slot.appendChild(row);
-        slot.appendChild(confirm);
-        container.appendChild(slot);
+        body.appendChild(row);
+      }
+
+      function renderSaved(link) {
+        body.innerHTML = '';
+        const row = document.createElement('div');
+        row.className = 'report-slot-live-row';
+
+        const liveText = document.createElement('span');
+        liveText.className = 'report-slot-live';
+        liveText.textContent = '✓ Live';
+
+        const replaceBtn = document.createElement('button');
+        replaceBtn.className = 'report-slot-replace';
+        replaceBtn.textContent = 'Replace';
+        replaceBtn.addEventListener('click', () => renderEditing(link));
+
+        row.appendChild(liveText);
+        row.appendChild(replaceBtn);
+
+        const linkText = document.createElement('div');
+        linkText.className = 'report-slot-link-text';
+        linkText.textContent = link;
+
+        body.appendChild(row);
+        body.appendChild(linkText);
+      }
+
+      renderEditing('');
+
+      onSnapshot(doc(db, 'reports', client.key, 'months', month.key), (docSnap) => {
+        const data = docSnap.data();
+        if (data && isValidDriveLink(data.driveLink)) renderSaved(data.driveLink);
       });
+
+      return slot;
     }
 
     REPORT_CLIENTS.forEach(client => {
-      reportsData[client.key] = {};
-      onSnapshot(collection(db, 'reports', client.key, 'months'), (snapshot) => {
-        reportsData[client.key] = {};
-        snapshot.forEach(docSnap => { reportsData[client.key][docSnap.id] = docSnap.data(); });
-        renderReportSlots(client);
-      });
+      const container = document.getElementById(`report-slots-${client.key}`);
+      if (!container) return;
+      RECENT_MONTHS.forEach(month => container.appendChild(buildReportSlot(client, month)));
     });
 
     // ── Expand / collapse client report cards ──
     document.querySelectorAll('.report-client-header').forEach(header => {
       header.addEventListener('click', () => {
         const card = header.closest('.report-client-card');
-        const body = document.getElementById(header.getAttribute('aria-controls'));
         const expanded = card.classList.toggle('expanded');
         header.setAttribute('aria-expanded', String(expanded));
-        body.hidden = !expanded;
       });
     });
   </script>
