@@ -1181,8 +1181,9 @@
       min-height: 16px;
       margin: 2px 0 4px;
     }
-    .data-status.unavailable { color: #e0806c; }
+    .data-status.unavailable { color: rgba(245,245,243,0.32); }
     .data-status.success { color: rgba(76,175,130,0.85); }
+    body.light-mode .data-status.unavailable { color: rgba(13,13,13,0.32); }
     .data-spinner {
       width: 11px;
       height: 11px;
@@ -1821,6 +1822,8 @@
           <div class="chart-subtitle">Your Google Business Profile activity — updated monthly.</div>
         </div>
 
+        <div class="data-status">GBP data updated monthly</div>
+
         <!-- 3 metric cards -->
         <div class="gbp-metrics" style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
 
@@ -2396,7 +2399,7 @@ Thank you! — [Business Name]</div>
         el.innerHTML = '<span class="data-spinner" aria-hidden="true"></span> Loading live data…';
       } else if (state === 'unavailable') {
         el.classList.add('unavailable');
-        el.textContent = 'Data unavailable';
+        el.textContent = 'Not connected';
       } else {
         el.classList.add('success');
         const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -2417,6 +2420,27 @@ Thank you! — [Business Name]</div>
       if (articleEl) {
         const label = articleEl.querySelector('.card-label');
         if (label) articleEl.setAttribute('aria-label', `${label.textContent}: ${display}`);
+      }
+    }
+
+    // Shown when a metric has no live data yet — a neutral dash, never a
+    // red error, since this renders directly in front of clients.
+    function setMetricCardUnavailable(key) {
+      const numEl = document.getElementById(`cardnum-${key}`);
+      const trendEl = document.getElementById(`trend-${key}`);
+      const articleEl = document.getElementById(`metric-${key}`);
+      if (!numEl) return;
+      numEl.textContent = '—';
+      numEl.removeAttribute('data-target');
+      numEl.setAttribute('aria-label', 'Not connected');
+      if (trendEl) {
+        trendEl.innerHTML = '';
+        trendEl.textContent = 'Not connected';
+        trendEl.style.color = 'rgba(245,245,243,0.35)';
+      }
+      if (articleEl) {
+        const label = articleEl.querySelector('.card-label');
+        if (label) articleEl.setAttribute('aria-label', `${label.textContent}: not connected`);
       }
     }
 
@@ -2480,7 +2504,6 @@ Thank you! — [Business Name]</div>
       tr.appendChild(cell(q.query));
       tr.appendChild(cell(q.clicks.toLocaleString('en-US'), { align: 'center', weight: '600' }));
       tr.appendChild(cell(q.impressions.toLocaleString('en-US'), { align: 'center', color: 'rgba(245,245,243,0.5)' }));
-      tr.appendChild(cell(`${q.ctr.toFixed(1)}%`, { align: 'center', color: 'rgba(245,245,243,0.5)' }));
       tr.appendChild(cell(q.position.toFixed(1), { align: 'center', color: 'rgba(245,245,243,0.5)' }));
       return tr;
     }
@@ -2490,7 +2513,7 @@ Thank you! — [Business Name]</div>
       const tbody = document.getElementById('rankings-tbody');
       if (!thead || !tbody || !topQueries || !topQueries.length) return;
 
-      const headers = ['Query', 'Clicks', 'Impressions', 'CTR', 'Position'];
+      const headers = ['Query', 'Clicks', 'Impressions', 'Position'];
       thead.innerHTML = '';
       const tr = document.createElement('tr');
       tr.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
@@ -2574,13 +2597,15 @@ Thank you! — [Business Name]</div>
       });
 
       Promise.all([analyticsPromise, searchConsolePromise]).then(([, gsc]) => {
-        let anySuccess = false;
         if (gsc && gsc.available) {
           setMetricCard('website-clicks', gsc.totals.clicks, 0);
           setMetricCard('avg-position', gsc.totals.position, 1);
-          anySuccess = true;
+          setDataStatus('status-overview', 'success');
+        } else {
+          setMetricCardUnavailable('website-clicks');
+          setMetricCardUnavailable('avg-position');
+          setDataStatus('status-overview', 'unavailable');
         }
-        setDataStatus('status-overview', anySuccess ? 'success' : 'unavailable');
       });
     });
 
