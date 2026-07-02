@@ -2076,8 +2076,8 @@ Thank you! — [Business Name]</div>
 
     // ── Client registry — maps logged-in email to business identity ──
     const CLIENTS = {
-      'luminaservices220@outlook.com': { key: 'lumina',    name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
-      'boringprj210@gmail.com':        { key: 'boringprj', name: 'boring project.',         contact: 'Joseph Gutierrez' }
+      'luminaservices220@outlook.com': { key: 'lumina',        name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
+      'boringprj210@gmail.com':        { key: 'boringproject', name: 'boring project.',         contact: 'Joseph Gutierrez' }
     };
     // Messages sent before per-client tagging existed belong to the original client
     const DEFAULT_CLIENT_EMAIL = 'luminaservices220@outlook.com';
@@ -2265,14 +2265,17 @@ Thank you! — [Business Name]</div>
     });
 
     // ── Reports (Google Drive links) ────
+    // Month keys are lowercase "month-year", e.g. "july-2026" — matches
+    // the reports/{clientKey}/months/{month-year} document path.
     function getRecentMonths(count) {
       const months = [];
       const now = new Date();
       for (let i = 0; i < count; i++) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = d.toLocaleString('en-US', { month: 'long' });
         months.push({
-          key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-          label: d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+          key: `${monthName.toLowerCase()}-${d.getFullYear()}`,
+          label: `${monthName} ${d.getFullYear()}`
         });
       }
       return months;
@@ -2345,13 +2348,11 @@ Thank you! — [Business Name]</div>
 
       const clientEmail = currentClientEmail();
       const clientInfo = getClientInfo(clientEmail);
+      if (!clientInfo.key) return;
 
-      onSnapshot(collection(db, 'reports'), (snapshot) => {
+      onSnapshot(collection(db, 'reports', clientInfo.key, 'months'), (snapshot) => {
         const reports = {};
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          if (data.clientKey === clientInfo.key) reports[data.month] = data;
-        });
+        snapshot.forEach(docSnap => { reports[docSnap.id] = docSnap.data(); });
 
         list.innerHTML = '';
         RECENT_MONTHS.forEach((month, i) => {

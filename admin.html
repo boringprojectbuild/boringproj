@@ -469,21 +469,62 @@
       color: var(--gold);
     }
 
-    /* Report slots */
-    .report-slot {
+    /* Report client cards — expandable */
+    .report-client-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .report-client-header {
+      width: 100%;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
+      padding: 20px 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'Poppins', sans-serif;
+      transition: background var(--t-fast);
+    }
+    .report-client-header:hover { background: rgba(255,255,255,0.03); }
+    .report-client-name { font-size: 15px; font-weight: 600; color: var(--white); line-height: 1.3; }
+    .report-client-sub { font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.03em; margin-top: 3px; }
+    .report-chevron { width: 14px; height: 14px; color: var(--muted); flex-shrink: 0; transition: transform var(--t-fast); }
+    .report-client-card.expanded .report-chevron { transform: rotate(180deg); color: var(--gold); }
+    .report-client-body {
+      padding: 0 24px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Report month slots */
+    .report-slot {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
       background: rgba(255,255,255,0.04);
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.07);
-      flex-wrap: wrap;
     }
-    .report-slot-info { min-width: 140px; flex-shrink: 0; }
-    .report-slot-month { font-size: 14px; font-weight: 600; color: var(--white); }
-    .report-slot-status { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .report-slot-status.live { color: #4caf82; }
+    .report-slot-top { display: flex; align-items: center; gap: 8px; }
+    .report-slot-month { font-size: 13px; font-weight: 600; color: var(--white); }
+    .report-slot-current-badge {
+      font-size: 10px; font-weight: 600; color: var(--gold);
+      background: rgba(196,146,42,0.15); border: 1px solid rgba(196,146,42,0.3);
+      border-radius: 20px; padding: 2px 8px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .report-slot-label { font-size: 11px; color: var(--muted); letter-spacing: 0.02em; }
+    .report-slot-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .report-slot-input {
       flex: 1;
       min-width: 180px;
@@ -511,6 +552,15 @@
       transition: background var(--t-fast);
     }
     .report-slot-save:hover { background: var(--gold-bright); }
+    .report-slot-confirm {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #4caf82;
+      font-weight: 500;
+    }
+    .report-slot-confirm svg { flex-shrink: 0; }
 
     /* Admin badge */
     .admin-badge {
@@ -837,16 +887,34 @@
           <div class="page-sub">Paste Google Drive links to publish monthly client reports.</div>
         </div>
 
-        <div class="chart-card" id="reports-lumina" style="margin-bottom:16px;">
-          <div class="chart-title">Lumina Cleaning Service</div>
-          <div class="chart-subtitle">Paste the shareable Google Drive link for each month's report</div>
-          <div class="report-slots" id="report-slots-lumina" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
+        <div class="report-client-card" id="reports-lumina" data-client="lumina">
+          <button class="report-client-header" type="button" aria-expanded="false" aria-controls="report-body-lumina">
+            <div>
+              <div class="report-client-name">Lumina Cleaning Service</div>
+              <div class="report-client-sub">Click to manage monthly report links</div>
+            </div>
+            <svg class="report-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="2 4 6 8 10 4"/>
+            </svg>
+          </button>
+          <div class="report-client-body" id="report-body-lumina" hidden>
+            <div class="report-slots" id="report-slots-lumina"></div>
+          </div>
         </div>
 
-        <div class="chart-card" id="reports-boringprj">
-          <div class="chart-title">boring project.</div>
-          <div class="chart-subtitle">Paste the shareable Google Drive link for each month's report</div>
-          <div class="report-slots" id="report-slots-boringprj" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
+        <div class="report-client-card" id="reports-boringproject" data-client="boringproject">
+          <button class="report-client-header" type="button" aria-expanded="false" aria-controls="report-body-boringproject">
+            <div>
+              <div class="report-client-name">boring project.</div>
+              <div class="report-client-sub">Click to manage monthly report links</div>
+            </div>
+            <svg class="report-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="2 4 6 8 10 4"/>
+            </svg>
+          </button>
+          <div class="report-client-body" id="report-body-boringproject" hidden>
+            <div class="report-slots" id="report-slots-boringproject"></div>
+          </div>
         </div>
       </section>
 
@@ -871,8 +939,8 @@
 
     // ── Client registry — matches the client cards on the Clients tab ──
     const CLIENTS = {
-      'luminaservices220@outlook.com': { key: 'lumina',     name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
-      'boringprj210@gmail.com':        { key: 'boringprj',  name: 'boring project.',         contact: 'Joseph Gutierrez' }
+      'luminaservices220@outlook.com': { key: 'lumina',        name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
+      'boringprj210@gmail.com':        { key: 'boringproject', name: 'boring project.',         contact: 'Joseph Gutierrez' }
     };
     // Messages sent before per-client tagging existed belong to the original client
     const DEFAULT_CLIENT_EMAIL = 'luminaservices220@outlook.com';
@@ -958,14 +1026,17 @@
     // ── Reports (Google Drive links) ──
     const REPORT_CLIENTS = Object.entries(CLIENTS).map(([email, info]) => ({ email, ...info }));
 
+    // Month keys are lowercase "month-year", e.g. "july-2026" — matches
+    // the reports/{clientKey}/months/{month-year} document path.
     function getRecentMonths(count) {
       const months = [];
       const now = new Date();
       for (let i = 0; i < count; i++) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = d.toLocaleString('en-US', { month: 'long' });
         months.push({
-          key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-          label: d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+          key: `${monthName.toLowerCase()}-${d.getFullYear()}`,
+          label: `${monthName} ${d.getFullYear()}`
         });
       }
       return months;
@@ -973,7 +1044,6 @@
 
     const RECENT_MONTHS = getRecentMonths(3);
     const isValidDriveLink = link => typeof link === 'string' && /^https:\/\//i.test(link.trim());
-    const reportDocId = (clientKey, monthKey) => `${clientKey}_${monthKey}`;
     let reportsData = {};
 
     function renderReportSlots(client) {
@@ -981,43 +1051,58 @@
       if (!container) return;
       container.innerHTML = '';
 
-      RECENT_MONTHS.forEach(month => {
+      RECENT_MONTHS.forEach((month, i) => {
         const existing = (reportsData[client.key] || {})[month.key];
         const hasLink = !!(existing && existing.driveLink);
 
         const slot = document.createElement('div');
         slot.className = 'report-slot';
 
-        const info = document.createElement('div');
-        info.className = 'report-slot-info';
-        const monthEl = document.createElement('div');
+        const top = document.createElement('div');
+        top.className = 'report-slot-top';
+        const monthEl = document.createElement('span');
         monthEl.className = 'report-slot-month';
         monthEl.textContent = month.label;
-        const statusEl = document.createElement('div');
-        statusEl.className = 'report-slot-status' + (hasLink ? ' live' : '');
-        statusEl.textContent = hasLink ? '● Live' : 'Not yet saved';
-        info.appendChild(monthEl);
-        info.appendChild(statusEl);
+        top.appendChild(monthEl);
+        if (i === 0) {
+          const badge = document.createElement('span');
+          badge.className = 'report-slot-current-badge';
+          badge.textContent = 'Current';
+          top.appendChild(badge);
+        }
+
+        const label = document.createElement('label');
+        label.className = 'report-slot-label';
+        label.textContent = 'Paste Google Drive link';
+
+        const row = document.createElement('div');
+        row.className = 'report-slot-row';
 
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'report-slot-input';
-        input.placeholder = 'Paste Google Drive share link…';
+        input.placeholder = 'https://drive.google.com/…';
         input.value = hasLink ? existing.driveLink : '';
 
         const saveBtn = document.createElement('button');
         saveBtn.className = 'report-slot-save';
         saveBtn.textContent = hasLink ? 'Replace' : 'Save';
 
+        const confirm = document.createElement('div');
+        confirm.className = 'report-slot-confirm';
+        confirm.hidden = !hasLink;
+        confirm.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Link saved';
+
         saveBtn.addEventListener('click', async () => {
           const link = input.value.trim();
           if (!isValidDriveLink(link)) {
             input.classList.add('invalid');
             input.placeholder = 'Link must start with https://';
+            confirm.hidden = true;
             return;
           }
           input.classList.remove('invalid');
-          await setDoc(doc(db, 'reports', reportDocId(client.key, month.key)), {
+          await setDoc(doc(db, 'reports', client.key, 'months', month.key), {
             clientEmail: client.email,
             clientKey: client.key,
             clientName: client.name,
@@ -1026,23 +1111,38 @@
             driveLink: link,
             updatedAt: serverTimestamp()
           });
+          saveBtn.textContent = 'Replace';
+          confirm.hidden = false;
         });
 
-        slot.appendChild(info);
-        slot.appendChild(input);
-        slot.appendChild(saveBtn);
+        row.appendChild(input);
+        row.appendChild(saveBtn);
+        slot.appendChild(top);
+        slot.appendChild(label);
+        slot.appendChild(row);
+        slot.appendChild(confirm);
         container.appendChild(slot);
       });
     }
 
-    onSnapshot(collection(db, 'reports'), (snapshot) => {
-      reportsData = {};
-      REPORT_CLIENTS.forEach(c => { reportsData[c.key] = {}; });
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        if (reportsData[data.clientKey]) reportsData[data.clientKey][data.month] = data;
+    REPORT_CLIENTS.forEach(client => {
+      reportsData[client.key] = {};
+      onSnapshot(collection(db, 'reports', client.key, 'months'), (snapshot) => {
+        reportsData[client.key] = {};
+        snapshot.forEach(docSnap => { reportsData[client.key][docSnap.id] = docSnap.data(); });
+        renderReportSlots(client);
       });
-      REPORT_CLIENTS.forEach(renderReportSlots);
+    });
+
+    // ── Expand / collapse client report cards ──
+    document.querySelectorAll('.report-client-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const card = header.closest('.report-client-card');
+        const body = document.getElementById(header.getAttribute('aria-controls'));
+        const expanded = card.classList.toggle('expanded');
+        header.setAttribute('aria-expanded', String(expanded));
+        body.hidden = !expanded;
+      });
     });
   </script>
 
