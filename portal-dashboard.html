@@ -1171,6 +1171,30 @@
       color: rgba(13, 13, 13, 0.38);
     }
 
+    /* Live data status — loading / updated / unavailable */
+    .data-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: rgba(245,245,243,0.4);
+      min-height: 16px;
+      margin: 2px 0 4px;
+    }
+    .data-status.unavailable { color: #e0806c; }
+    .data-status.success { color: rgba(76,175,130,0.85); }
+    .data-spinner {
+      width: 11px;
+      height: 11px;
+      border: 2px solid rgba(196,146,42,0.25);
+      border-top-color: #C4922A;
+      border-radius: 50%;
+      animation: data-spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes data-spin { to { transform: rotate(360deg); } }
+    body.light-mode .data-status { color: rgba(13,13,13,0.4); }
+
     @media (max-width: 768px) {
       .row-3 {
         grid-template-columns: 1fr;
@@ -1462,6 +1486,8 @@
       aria-label="Dashboard content"
       tabindex="-1"
     >
+      <div class="data-status" id="status-overview" aria-live="polite"></div>
+
       <!-- ── Row 1: Metric cards ── -->
       <section class="metrics-grid" aria-label="Key performance metrics">
 
@@ -1510,7 +1536,7 @@
         </article>
 
         <!-- Card 3: Website Clicks -->
-        <article class="metric-card" aria-label="Website Clicks: 47">
+        <article class="metric-card" id="metric-website-clicks" aria-label="Website Clicks: 47">
           <div class="card-header">
             <span class="card-label">Website Clicks</span>
             <button class="info-btn" aria-label="What are Website Clicks?" tabindex="0">
@@ -1520,19 +1546,19 @@
                 <circle cx="10" cy="6.5" r="0.6" fill="currentColor" stroke="none"/>
               </svg>
               <span class="info-tooltip" role="tooltip" id="tooltip-clicks">
-                Visitors who clicked through to your website from your Google listing. These are high-intent people already searching for what you offer.
+                Visitors who clicked through to your website from Google Search results — measured over the last 30 days.
               </span>
             </button>
           </div>
-          <div class="card-number" data-target="47" aria-label="47">0</div>
+          <div class="card-number" id="cardnum-website-clicks" data-target="47" aria-label="47">0</div>
           <div class="card-subtext">Clicks to your website</div>
-          <div class="card-trend" aria-label="Up 8 clicks from last month">
+          <div class="card-trend" id="trend-website-clicks" aria-label="Up 8 clicks from last month">
             <span aria-hidden="true">↑</span> +8
           </div>
         </article>
 
         <!-- Card 4: Avg. Google Position -->
-        <article class="metric-card" aria-label="Average Google Position: 14.3">
+        <article class="metric-card" id="metric-avg-position" aria-label="Average Google Position: 14.3">
           <div class="card-header">
             <span class="card-label">Avg. Google Position</span>
             <button class="info-btn" aria-label="What is Average Google Position?" tabindex="0">
@@ -1546,9 +1572,9 @@
               </span>
             </button>
           </div>
-          <div class="card-number" data-target="14.3" data-decimals="1" aria-label="14.3">0</div>
+          <div class="card-number" id="cardnum-avg-position" data-target="14.3" data-decimals="1" aria-label="14.3">0</div>
           <div class="card-subtext">Average search ranking</div>
-          <div class="card-trend" aria-label="Improved by 2.1 positions — lower number is better">
+          <div class="card-trend" id="trend-avg-position" aria-label="Improved by 2.1 positions — lower number is better">
             <span aria-hidden="true">↓</span> -2.1
             <span class="trend-note">· Lower is better</span>
           </div>
@@ -1702,36 +1728,38 @@
           <div class="chart-subtitle">How people are finding and using your site — updated monthly.</div>
         </div>
 
+        <div class="data-status" id="status-traffic" aria-live="polite"></div>
+
         <!-- 3 metric cards -->
         <div class="traffic-metrics" style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
 
           <div class="chart-card" style="border-left:3px solid #C4922A;">
             <div class="card-label" style="font-size:11px; font-weight:600; color:rgba(245,245,243,0.45); letter-spacing:0.07em; text-transform:uppercase; margin-bottom:10px;">Total Visitors</div>
-            <div style="font-size:40px; font-weight:700; color:#F5F5F3; line-height:1; letter-spacing:-0.02em; margin-bottom:6px;">312</div>
+            <div id="value-total-visitors" style="font-size:40px; font-weight:700; color:#F5F5F3; line-height:1; letter-spacing:-0.02em; margin-bottom:6px;">312</div>
             <div style="font-size:12px; color:rgba(245,245,243,0.5); margin-bottom:10px;">Unique visitors this month</div>
-            <div style="font-size:13px; font-weight:600; color:#C4922A;">↑ +22% vs last month</div>
+            <div id="trend-total-visitors" style="font-size:13px; font-weight:600; color:#C4922A;">↑ +22% vs last month</div>
           </div>
 
           <div class="chart-card" style="border-left:3px solid #2B5FA6;">
             <div class="card-label" style="font-size:11px; font-weight:600; color:rgba(245,245,243,0.45); letter-spacing:0.07em; text-transform:uppercase; margin-bottom:10px;">Avg. Session Duration</div>
-            <div style="font-size:40px; font-weight:700; color:#F5F5F3; line-height:1; letter-spacing:-0.02em; margin-bottom:6px;">2m 14s</div>
+            <div id="value-avg-session-duration" style="font-size:40px; font-weight:700; color:#F5F5F3; line-height:1; letter-spacing:-0.02em; margin-bottom:6px;">2m 14s</div>
             <div style="font-size:12px; color:rgba(245,245,243,0.5); margin-bottom:10px;">Average time spent on site</div>
-            <div style="font-size:13px; font-weight:600; color:#C4922A;">↑ +18s vs last month</div>
+            <div id="trend-avg-session-duration" style="font-size:13px; font-weight:600; color:#C4922A;">↑ +18s vs last month</div>
           </div>
 
           <div class="chart-card" style="border-left:3px solid rgba(245,245,243,0.4);">
             <div class="card-label" style="font-size:11px; font-weight:600; color:rgba(245,245,243,0.45); letter-spacing:0.07em; text-transform:uppercase; margin-bottom:10px;">Bounce Rate</div>
-            <div style="font-size:40px; font-weight:700; color:#F5F5F3; line-height:1; letter-spacing:-0.02em; margin-bottom:6px;">48%</div>
+            <div id="value-bounce-rate" style="font-size:40px; font-weight:700; color:#F5F5F3; line-height:1; letter-spacing:-0.02em; margin-bottom:6px;">48%</div>
             <div style="font-size:12px; color:rgba(245,245,243,0.5); margin-bottom:10px;">Visitors who viewed one page</div>
-            <div style="font-size:13px; font-weight:600; color:#4caf82;">↓ -6% vs last month</div>
+            <div id="trend-bounce-rate" style="font-size:13px; font-weight:600; color:#4caf82;">↓ -6% vs last month</div>
           </div>
 
         </div>
 
-        <!-- Weekly visitors line chart -->
+        <!-- Sessions line chart -->
         <div class="chart-card">
-          <div class="chart-title">Weekly Visitors</div>
-          <div class="chart-subtitle">Visitor trend over the last 4 months</div>
+          <div class="chart-title" id="trafficChart-title">Weekly Visitors</div>
+          <div class="chart-subtitle" id="trafficChart-subtitle">Visitor trend over the last 4 months</div>
           <div style="position:relative; width:100%; height:260px;">
             <canvas id="trafficChart" aria-label="Weekly website visitors" role="img"></canvas>
           </div>
@@ -1746,40 +1774,30 @@
             <div>
               <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                 <span style="font-size:13px; color:#F5F5F3; font-weight:500;">Organic Search</span>
-                <span style="font-size:13px; color:#C4922A; font-weight:600;">58%</span>
+                <span id="src-organic-pct" style="font-size:13px; color:#C4922A; font-weight:600;">58%</span>
               </div>
               <div style="height:8px; background:rgba(255,255,255,0.07); border-radius:20px; overflow:hidden;">
-                <div style="height:100%; width:58%; background:#C4922A; border-radius:20px; transition:width 1s ease;"></div>
+                <div id="src-organic-bar" style="height:100%; width:58%; background:#C4922A; border-radius:20px; transition:width 1s ease;"></div>
               </div>
             </div>
 
             <div>
               <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                 <span style="font-size:13px; color:#F5F5F3; font-weight:500;">Direct</span>
-                <span style="font-size:13px; color:#2B5FA6; font-weight:600;">22%</span>
+                <span id="src-direct-pct" style="font-size:13px; color:#2B5FA6; font-weight:600;">22%</span>
               </div>
               <div style="height:8px; background:rgba(255,255,255,0.07); border-radius:20px; overflow:hidden;">
-                <div style="height:100%; width:22%; background:#2B5FA6; border-radius:20px; transition:width 1s ease;"></div>
+                <div id="src-direct-bar" style="height:100%; width:22%; background:#2B5FA6; border-radius:20px; transition:width 1s ease;"></div>
               </div>
             </div>
 
             <div>
               <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                 <span style="font-size:13px; color:#F5F5F3; font-weight:500;">Referral</span>
-                <span style="font-size:13px; color:rgba(245,245,243,0.7); font-weight:600;">12%</span>
+                <span id="src-referral-pct" style="font-size:13px; color:rgba(245,245,243,0.7); font-weight:600;">12%</span>
               </div>
               <div style="height:8px; background:rgba(255,255,255,0.07); border-radius:20px; overflow:hidden;">
-                <div style="height:100%; width:12%; background:rgba(245,245,243,0.5); border-radius:20px; transition:width 1s ease;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                <span style="font-size:13px; color:#F5F5F3; font-weight:500;">Social</span>
-                <span style="font-size:13px; color:#4caf82; font-weight:600;">8%</span>
-              </div>
-              <div style="height:8px; background:rgba(255,255,255,0.07); border-radius:20px; overflow:hidden;">
-                <div style="height:100%; width:8%; background:#4caf82; border-radius:20px; transition:width 1s ease;"></div>
+                <div id="src-referral-bar" style="height:100%; width:12%; background:rgba(245,245,243,0.5); border-radius:20px; transition:width 1s ease;"></div>
               </div>
             </div>
 
@@ -1883,10 +1901,12 @@
           <div class="chart-subtitle">Your position on Google search — updated monthly. Lower number = higher on Google.</div>
         </div>
 
+        <div class="data-status" id="status-rankings" aria-live="polite"></div>
+
         <!-- Large trendline chart -->
         <div class="chart-card">
-          <div class="chart-title">Ranking Trends</div>
-          <div class="chart-subtitle">6-month keyword position history</div>
+          <div class="chart-title" id="rankChartFull-title">Ranking Trends</div>
+          <div class="chart-subtitle" id="rankChartFull-subtitle">6-month keyword position history</div>
           <div style="position:relative; width:100%; height:320px;">
             <canvas id="rankChartFull" aria-label="Keyword ranking trends" role="img"></canvas>
           </div>
@@ -1895,11 +1915,11 @@
 
         <!-- Rankings table -->
         <div class="chart-card">
-          <div class="chart-title">Keyword Breakdown</div>
-          <div class="chart-subtitle">Current positions vs last month</div>
+          <div class="chart-title" id="rankings-table-title">Keyword Breakdown</div>
+          <div class="chart-subtitle" id="rankings-table-subtitle">Current positions vs last month</div>
           <div style="overflow-x:auto; margin-top:8px;">
             <table style="width:100%; border-collapse:collapse; font-size:13px;">
-              <thead>
+              <thead id="rankings-thead">
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
                   <th style="text-align:left; padding:10px 12px; color:rgba(245,245,243,0.45); font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Keyword</th>
                   <th style="text-align:center; padding:10px 12px; color:rgba(245,245,243,0.45); font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Current</th>
@@ -1908,7 +1928,7 @@
                   <th style="text-align:center; padding:10px 12px; color:rgba(245,245,243,0.45); font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Trend</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="rankings-tbody">
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                   <td style="padding:12px; color:#F5F5F3;">web design San Antonio</td>
                   <td style="padding:12px; text-align:center; color:#F5F5F3; font-weight:600;">#18</td>
@@ -2361,6 +2381,209 @@ Thank you! — [Business Name]</div>
       });
     });
 
+    // ── Live Analytics / Search Console data ────
+    const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dayLabel = isoDate => {
+      const [, m, d] = isoDate.split('-');
+      return `${MONTH_ABBR[Number(m) - 1]} ${Number(d)}`;
+    };
+
+    function setDataStatus(id, state) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('unavailable', 'success');
+      if (state === 'loading') {
+        el.innerHTML = '<span class="data-spinner" aria-hidden="true"></span> Loading live data…';
+      } else if (state === 'unavailable') {
+        el.classList.add('unavailable');
+        el.textContent = 'Data unavailable';
+      } else {
+        el.classList.add('success');
+        const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        el.textContent = `Updated ${time}`;
+      }
+    }
+
+    function setMetricCard(key, value, decimals) {
+      const numEl = document.getElementById(`cardnum-${key}`);
+      const trendEl = document.getElementById(`trend-${key}`);
+      const articleEl = document.getElementById(`metric-${key}`);
+      if (!numEl) return;
+      const display = decimals ? Number(value).toFixed(decimals) : Math.round(value).toLocaleString('en-US');
+      numEl.textContent = display;
+      numEl.setAttribute('aria-label', String(display));
+      numEl.dataset.target = value;
+      if (trendEl) trendEl.innerHTML = '<span aria-hidden="true">●</span> Live · last 30 days';
+      if (articleEl) {
+        const label = articleEl.querySelector('.card-label');
+        if (label) articleEl.setAttribute('aria-label', `${label.textContent}: ${display}`);
+      }
+    }
+
+    function formatDuration(totalSeconds) {
+      const s = Math.max(0, Math.round(totalSeconds || 0));
+      return `${Math.floor(s / 60)}m ${s % 60}s`;
+    }
+
+    function applyTrafficSources(bySource) {
+      if (!bySource) return;
+      [['organic', bySource.organic], ['direct', bySource.direct], ['referral', bySource.referral]].forEach(([key, pct]) => {
+        const pctEl = document.getElementById(`src-${key}-pct`);
+        const barEl = document.getElementById(`src-${key}-bar`);
+        if (pctEl) pctEl.textContent = `${pct}%`;
+        if (barEl) barEl.style.width = `${pct}%`;
+      });
+    }
+
+    function applyTrafficChart(sessionsByDay) {
+      const chart = window.trafficChartInstance;
+      if (!chart || !sessionsByDay || !sessionsByDay.length) return;
+      chart.data.labels = sessionsByDay.map(d => dayLabel(d.date));
+      chart.data.datasets[0].label = 'Sessions';
+      chart.data.datasets[0].data = sessionsByDay.map(d => d.sessions);
+      chart.update();
+      const titleEl = document.getElementById('trafficChart-title');
+      const subEl = document.getElementById('trafficChart-subtitle');
+      if (titleEl) titleEl.textContent = 'Sessions';
+      if (subEl) subEl.textContent = 'Daily sessions — last 30 days';
+    }
+
+    function applyAnalyticsData(data) {
+      const totalsEl = document.getElementById('value-total-visitors');
+      if (totalsEl) totalsEl.textContent = Math.round(data.totals.users).toLocaleString('en-US');
+      const durationEl = document.getElementById('value-avg-session-duration');
+      if (durationEl) durationEl.textContent = formatDuration(data.totals.avgSessionDurationSeconds);
+      const bounceEl = document.getElementById('value-bounce-rate');
+      if (bounceEl) bounceEl.textContent = `${Math.round(data.totals.bounceRate)}%`;
+
+      ['total-visitors', 'avg-session-duration', 'bounce-rate'].forEach(key => {
+        const trendEl = document.getElementById(`trend-${key}`);
+        if (trendEl) { trendEl.textContent = 'Live · last 30 days'; trendEl.style.color = '#C4922A'; }
+      });
+
+      applyTrafficSources(data.trafficBySource);
+      applyTrafficChart(data.sessionsByDay);
+    }
+
+    function buildQueryRow(q) {
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      const cell = (text, opts = {}) => {
+        const td = document.createElement('td');
+        td.style.padding = '12px';
+        td.style.textAlign = opts.align || 'left';
+        td.style.color = opts.color || '#F5F5F3';
+        if (opts.weight) td.style.fontWeight = opts.weight;
+        td.textContent = text;
+        return td;
+      };
+      tr.appendChild(cell(q.query));
+      tr.appendChild(cell(q.clicks.toLocaleString('en-US'), { align: 'center', weight: '600' }));
+      tr.appendChild(cell(q.impressions.toLocaleString('en-US'), { align: 'center', color: 'rgba(245,245,243,0.5)' }));
+      tr.appendChild(cell(`${q.ctr.toFixed(1)}%`, { align: 'center', color: 'rgba(245,245,243,0.5)' }));
+      tr.appendChild(cell(q.position.toFixed(1), { align: 'center', color: 'rgba(245,245,243,0.5)' }));
+      return tr;
+    }
+
+    function applyRankingsTable(topQueries) {
+      const thead = document.getElementById('rankings-thead');
+      const tbody = document.getElementById('rankings-tbody');
+      if (!thead || !tbody || !topQueries || !topQueries.length) return;
+
+      const headers = ['Query', 'Clicks', 'Impressions', 'CTR', 'Position'];
+      thead.innerHTML = '';
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+      headers.forEach((h, i) => {
+        const th = document.createElement('th');
+        th.style.cssText = `text-align:${i === 0 ? 'left' : 'center'}; padding:10px 12px; color:rgba(245,245,243,0.45); font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase;`;
+        th.textContent = h;
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+
+      tbody.innerHTML = '';
+      topQueries.forEach(q => tbody.appendChild(buildQueryRow(q)));
+
+      const titleEl = document.getElementById('rankings-table-title');
+      const subEl = document.getElementById('rankings-table-subtitle');
+      if (titleEl) titleEl.textContent = 'Top Search Queries';
+      if (subEl) subEl.textContent = 'Real queries from Google Search Console — last 30 days';
+    }
+
+    function applyRankingsChart(clicksByDay) {
+      const chart = window.rankTrendChartInstance;
+      if (!chart || !clicksByDay || !clicksByDay.length) return;
+      chart.data.labels = clicksByDay.map(d => dayLabel(d.date));
+      chart.data.datasets = [{
+        label: 'Search clicks',
+        data: clicksByDay.map(d => d.clicks),
+        borderColor: '#C4922A',
+        backgroundColor: 'rgba(196,146,42,0.10)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#C4922A',
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        tension: 0.4,
+        fill: true,
+      }];
+      chart.update();
+      const titleEl = document.getElementById('rankChartFull-title');
+      const subEl = document.getElementById('rankChartFull-subtitle');
+      if (titleEl) titleEl.textContent = 'Search Clicks';
+      if (subEl) subEl.textContent = 'Daily clicks from Google Search — last 30 days';
+    }
+
+    function applySearchConsoleData(data) {
+      applyRankingsTable(data.topQueries);
+      applyRankingsChart(data.clicksByDay);
+    }
+
+    window.addEventListener('load', () => {
+      const clientEmail = currentClientEmail();
+      const clientInfo = getClientInfo(clientEmail);
+      if (!clientInfo.key) return;
+
+      setDataStatus('status-overview', 'loading');
+      setDataStatus('status-traffic', 'loading');
+      setDataStatus('status-rankings', 'loading');
+
+      const fetchJson = url => fetch(url)
+        .then(res => { if (!res.ok) throw new Error(`${url} → ${res.status}`); return res.json(); })
+        .catch(err => { console.error('live data fetch failed:', err); return null; });
+
+      const analyticsPromise = fetchJson(`/api/analytics?client=${encodeURIComponent(clientInfo.key)}`);
+      const searchConsolePromise = fetchJson(`/api/searchconsole?client=${encodeURIComponent(clientInfo.key)}`);
+
+      analyticsPromise.then(data => {
+        if (data && data.available) {
+          applyAnalyticsData(data);
+          setDataStatus('status-traffic', 'success');
+        } else {
+          setDataStatus('status-traffic', 'unavailable');
+        }
+      });
+
+      searchConsolePromise.then(data => {
+        if (data && data.available) {
+          applySearchConsoleData(data);
+          setDataStatus('status-rankings', 'success');
+        } else {
+          setDataStatus('status-rankings', 'unavailable');
+        }
+      });
+
+      Promise.all([analyticsPromise, searchConsolePromise]).then(([, gsc]) => {
+        let anySuccess = false;
+        if (gsc && gsc.available) {
+          setMetricCard('website-clicks', gsc.totals.clicks, 0);
+          setMetricCard('avg-position', gsc.totals.position, 1);
+          anySuccess = true;
+        }
+        setDataStatus('status-overview', anySuccess ? 'success' : 'unavailable');
+      });
+    });
+
     // ── Metric card count-up ───────────
     function animateCount(el) {
       const target   = parseFloat(el.dataset.target);
@@ -2674,7 +2897,7 @@ Thank you! — [Business Name]</div>
 
     const trafficCtx = document.getElementById('trafficChart');
     if (trafficCtx) {
-      new Chart(trafficCtx.getContext('2d'), {
+      window.trafficChartInstance = new Chart(trafficCtx.getContext('2d'), {
         type: 'line',
         data: {
           labels: ['Jan W1','Jan W2','Jan W3','Jan W4','Feb W1','Feb W2','Feb W3','Feb W4','Mar W1','Mar W2','Mar W3','Mar W4','Apr W1','Apr W2','Apr W3','Apr W4'],
@@ -2829,7 +3052,7 @@ Thank you! — [Business Name]</div>
 
     const rankCtxFull = document.getElementById('rankChartFull');
     if (rankCtxFull) {
-      new Chart(rankCtxFull.getContext('2d'), {
+      window.rankTrendChartInstance = new Chart(rankCtxFull.getContext('2d'), {
         type: 'line',
         data: {
           labels: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'],

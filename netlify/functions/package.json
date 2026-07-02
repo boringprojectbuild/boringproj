@@ -1,0 +1,10 @@
+{
+  "name": "boringproj-functions",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "google-auth-library": "^9.14.1",
+    "@google-analytics/data": "^4.9.0",
+    "@googleapis/searchconsole": "^5.0.0"
+  }
+}
