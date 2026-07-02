@@ -1,5 +1,4 @@
-const { GoogleAuth } = require('google-auth-library');
-const { searchconsole } = require('@googleapis/searchconsole');
+const { google } = require('googleapis');
 
 // Maps the ?client= query value to a verified Search Console property.
 // Only "boringproject" is wired up today (GSC_SITE_URL); add the matching
@@ -81,9 +80,9 @@ exports.handler = async (event) => {
 
   let webmasters;
   try {
-    const auth = new GoogleAuth({ credentials, scopes: SCOPES });
+    const auth = new google.auth.GoogleAuth({ credentials, scopes: SCOPES });
     const authClient = await auth.getClient();
-    webmasters = searchconsole({ version: 'v1', auth: authClient });
+    webmasters = google.searchconsole({ version: 'v1', auth: authClient });
   } catch (err) {
     console.error('searchconsole: auth setup failed', err);
     return jsonResponse(500, { available: false, error: 'Failed to authenticate with Google.', debugMessage: googleErrorMessage(err) });
