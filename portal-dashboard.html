@@ -1258,7 +1258,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
@@ -1273,7 +1273,7 @@
     const db = getFirestore(app);
 
     window.db = db;
-    window.firestoreModules = { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp };
+    window.firestoreModules = { collection, doc, getDoc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp };
   </script>
 </head>
 
@@ -1341,14 +1341,15 @@
       <!-- Notification bell -->
       <button
         class="header-icon-btn notif-wrap"
-        aria-label="Notifications — 1 unread"
+        id="notifBell"
+        aria-label="Notifications — no unread messages"
         title="Notifications"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
-        <span class="notif-badge" aria-hidden="true"></span>
+        <span class="notif-badge" id="notifBadge" aria-hidden="true" style="display:none;"></span>
       </button>
 
       <!-- Profile -->
@@ -2285,6 +2286,73 @@ Thank you! — [Business Name]</div>
           sendBtn.click();
         }
       });
+    });
+
+    // ── Notification bell — unread admin replies ────
+    window.addEventListener('load', () => {
+      const db = window.db;
+      const bell = document.getElementById('notifBell');
+      const badge = document.getElementById('notifBadge');
+      if (!db || !bell || !badge) return;
+      const { collection, doc, getDoc, setDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
+
+      const clientEmail = currentClientEmail();
+      if (!clientEmail) return;
+      const userRef = doc(db, 'users', clientEmail);
+
+      let lastReadMillis = 0;
+      let hasUnread = false;
+
+      function setUnread(state) {
+        hasUnread = state;
+        badge.style.display = state ? '' : 'none';
+        bell.setAttribute('aria-label', state ? 'Notifications — new message from boring project.' : 'Notifications — no unread messages');
+      }
+
+      async function markMessagesRead() {
+        setUnread(false);
+        lastReadMillis = Date.now();
+        try {
+          await setDoc(userRef, { lastReadMessages: serverTimestamp() }, { merge: true });
+        } catch (err) {
+          console.error('notifications: failed to update lastReadMessages', err);
+        }
+      }
+
+      const messagesNavItem = document.querySelector('.nav-item[data-page="messages"]');
+
+      // Clicking the bell only does something once there's an unread badge —
+      // reuses the sidebar nav-item's own click handler (tab switch), which
+      // also triggers the "mark read" listener attached below.
+      bell.addEventListener('click', () => {
+        if (!hasUnread || !messagesNavItem) return;
+        messagesNavItem.click();
+      });
+
+      if (messagesNavItem) messagesNavItem.addEventListener('click', markMessagesRead);
+
+      (async () => {
+        try {
+          const snap = await getDoc(userRef);
+          const stored = snap.exists() ? snap.data().lastReadMessages : null;
+          lastReadMillis = stored && stored.toMillis ? stored.toMillis() : 0;
+        } catch (err) {
+          console.error('notifications: failed to load lastReadMessages', err);
+        }
+
+        const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
+        onSnapshot(msgQuery, (snapshot) => {
+          let unread = false;
+          snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if ((data.clientEmail || DEFAULT_CLIENT_EMAIL) !== clientEmail) return;
+            if (data.sender !== 'joseph') return;
+            const ts = data.timestamp && data.timestamp.toMillis ? data.timestamp.toMillis() : 0;
+            if (ts > lastReadMillis) unread = true;
+          });
+          setUnread(unread);
+        });
+      })();
     });
 
     // ── Reports (Google Drive links) ────
