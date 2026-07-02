@@ -448,6 +448,27 @@
 
     .send-btn:hover { background: var(--gold-bright); }
 
+    /* Message client tabs */
+    .msg-client-tabs { display: flex; gap: 8px; margin-bottom: 4px; }
+    .msg-client-tab {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+    }
+    .msg-client-tab:hover { color: var(--white); }
+    .msg-client-tab.active {
+      background: rgba(196,146,42,0.13);
+      border-color: rgba(196,146,42,0.3);
+      color: var(--gold);
+    }
+
     /* Admin badge */
     .admin-badge {
       display: inline-flex;
@@ -690,6 +711,36 @@
             </div>
           </div>
 
+          <div class="client-card">
+            <div>
+              <div class="client-name">boring project.</div>
+              <div class="client-owner">Joseph Gutierrez</div>
+            </div>
+            <span class="client-plan plan-foundation">Foundation</span>
+            <div class="client-meta">
+              <div class="client-meta-row">
+                <span class="client-meta-label">Email</span>
+                <span class="client-meta-value">boringprj210@gmail.com</span>
+              </div>
+              <div class="client-meta-row">
+                <span class="client-meta-label">Phone</span>
+                <span class="client-meta-value">(210) 862-8837</span>
+              </div>
+              <div class="client-meta-row">
+                <span class="client-meta-label">Start date</span>
+                <span class="client-meta-value">July 2026</span>
+              </div>
+              <div class="client-meta-row">
+                <span class="client-meta-label">Monthly</span>
+                <span class="client-meta-value">$0 (internal test)</span>
+              </div>
+            </div>
+            <div class="client-status status-active">
+              <span class="status-dot"></span>
+              Active
+            </div>
+          </div>
+
           <div class="client-card" style="border-left-color:rgba(255,255,255,0.15); opacity:0.5;">
             <div>
               <div class="client-name">+ Add New Client</div>
@@ -709,10 +760,15 @@
           <div class="page-sub">All client messages — reply as boring project.</div>
         </div>
 
+        <div class="msg-client-tabs" id="msgClientTabs">
+          <button class="msg-client-tab active" data-email="luminaservices220@outlook.com">Lumina Cleaning Service</button>
+          <button class="msg-client-tab" data-email="boringprj210@gmail.com">boring project.</button>
+        </div>
+
         <div class="chart-card" style="display:flex; flex-direction:column; gap:16px;">
           <div>
-            <div class="chart-title">Lumina Cleaning Service</div>
-            <div class="chart-subtitle">Aislinn Venegas — active thread</div>
+            <div class="chart-title" id="admin-msg-client-name">Lumina Cleaning Service</div>
+            <div class="chart-subtitle" id="admin-msg-client-contact">Aislinn Venegas — active thread</div>
           </div>
 
           <div class="msg-thread" id="admin-msg-thread">
@@ -783,34 +839,72 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // ── Client registry — matches the client cards on the Clients tab ──
+    const CLIENTS = {
+      'luminaservices220@outlook.com': { name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
+      'boringprj210@gmail.com':        { name: 'boring project.',         contact: 'Joseph Gutierrez' }
+    };
+    // Messages sent before per-client tagging existed belong to the original client
+    const DEFAULT_CLIENT_EMAIL = 'luminaservices220@outlook.com';
+
     const thread = document.getElementById('admin-msg-thread');
     const input = document.getElementById('admin-msg-input');
     const sendBtn = document.getElementById('admin-send-btn');
     const empty = document.getElementById('admin-msg-empty');
+    const clientNameEl = document.getElementById('admin-msg-client-name');
+    const clientContactEl = document.getElementById('admin-msg-client-contact');
+    const tabs = document.querySelectorAll('.msg-client-tab');
 
-    const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
+    let activeClientEmail = DEFAULT_CLIENT_EMAIL;
+    let unsubscribe = null;
 
-    onSnapshot(msgQuery, (snapshot) => {
-      const msgs = [];
-      snapshot.forEach(doc => msgs.push(doc.data()));
-      if (msgs.length === 0) { empty.style.display = 'block'; return; }
-      empty.style.display = 'none';
-      thread.innerHTML = '';
-      msgs.forEach(msg => {
-        const bubble = document.createElement('div');
-        bubble.className = `msg-bubble ${msg.sender}`;
-        const sender = document.createElement('span');
-        sender.className = 'msg-sender';
-        sender.textContent = msg.sender === 'joseph' ? 'You (boring project.)' : 'Client';
-        const text = document.createElement('div');
-        text.className = 'msg-text';
-        text.textContent = msg.text;
-        bubble.appendChild(sender);
-        bubble.appendChild(text);
-        thread.appendChild(bubble);
+    function renderClientHeader(email) {
+      const info = CLIENTS[email];
+      clientNameEl.textContent = info.name;
+      clientContactEl.textContent = `${info.contact} — active thread`;
+    }
+
+    function subscribeToClient(email) {
+      if (unsubscribe) unsubscribe();
+      const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
+      unsubscribe = onSnapshot(msgQuery, (snapshot) => {
+        const msgs = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if ((data.clientEmail || DEFAULT_CLIENT_EMAIL) === email) msgs.push(data);
+        });
+        if (msgs.length === 0) { empty.style.display = 'block'; thread.innerHTML = ''; thread.appendChild(empty); return; }
+        empty.style.display = 'none';
+        thread.innerHTML = '';
+        msgs.forEach(msg => {
+          const bubble = document.createElement('div');
+          bubble.className = `msg-bubble ${msg.sender}`;
+          const sender = document.createElement('span');
+          sender.className = 'msg-sender';
+          sender.textContent = msg.sender === 'joseph' ? 'You (boring project.)' : CLIENTS[email].name;
+          const text = document.createElement('div');
+          text.className = 'msg-text';
+          text.textContent = msg.text;
+          bubble.appendChild(sender);
+          bubble.appendChild(text);
+          thread.appendChild(bubble);
+        });
+        thread.scrollTop = thread.scrollHeight;
       });
-      thread.scrollTop = thread.scrollHeight;
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        activeClientEmail = tab.dataset.email;
+        renderClientHeader(activeClientEmail);
+        subscribeToClient(activeClientEmail);
+      });
     });
+
+    renderClientHeader(activeClientEmail);
+    subscribeToClient(activeClientEmail);
 
     sendBtn.addEventListener('click', async () => {
       const text = input.value.trim();
@@ -819,6 +913,7 @@
       await addDoc(collection(db, 'messages'), {
         text,
         sender: 'joseph',
+        clientEmail: activeClientEmail,
         timestamp: serverTimestamp()
       });
     });

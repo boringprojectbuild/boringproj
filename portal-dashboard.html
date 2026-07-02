@@ -2131,6 +2131,39 @@ Thank you! — [Business Name]</div>
     const logoutBtn    = document.getElementById('logoutBtn');
     const isMobile     = () => window.innerWidth <= 768;
 
+    // ── Client registry — maps logged-in email to business identity ──
+    const CLIENTS = {
+      'luminaservices220@outlook.com': { name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
+      'boringprj210@gmail.com':        { name: 'boring project.',         contact: 'Joseph Gutierrez' }
+    };
+    // Messages sent before per-client tagging existed belong to the original client
+    const DEFAULT_CLIENT_EMAIL = 'luminaservices220@outlook.com';
+
+    function getClientInfo(email) {
+      const key = (email || '').toLowerCase();
+      return CLIENTS[key] || { name: 'Client', contact: '' };
+    }
+
+    function currentClientEmail() {
+      const user = netlifyIdentity.currentUser();
+      return user ? user.email : null;
+    }
+
+    // ── Personalize header profile pill for whoever is logged in ──
+    function applyClientIdentity() {
+      const info = getClientInfo(currentClientEmail());
+      const nameEl   = document.querySelector('.profile-name');
+      const avatarEl = document.querySelector('.profile-avatar');
+      const pillEl   = document.querySelector('.profile-pill');
+      if (nameEl)   nameEl.textContent = info.name;
+      if (avatarEl) avatarEl.textContent = info.name.charAt(0).toUpperCase();
+      if (pillEl)   pillEl.setAttribute('aria-label', `Account menu for ${info.name}`);
+    }
+
+    applyClientIdentity();
+    netlifyIdentity.on('login', applyClientIdentity);
+    netlifyIdentity.on('init', user => { if (user) applyClientIdentity(); });
+
     // ── Sidebar toggle ──────────────────
     function openSidebar() {
       appLayout.classList.add('mobile-open');
@@ -2224,6 +2257,9 @@ Thank you! — [Business Name]</div>
       const sendBtn = document.getElementById('msg-send');
       const empty = document.getElementById('msg-empty');
 
+      const clientEmail = currentClientEmail();
+      const clientInfo = getClientInfo(clientEmail);
+
       const msgQuery = query(
         collection(db, 'messages'),
         orderBy('timestamp', 'asc')
@@ -2231,7 +2267,10 @@ Thank you! — [Business Name]</div>
 
       onSnapshot(msgQuery, (snapshot) => {
         const msgs = [];
-        snapshot.forEach(doc => msgs.push(doc.data()));
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if ((data.clientEmail || DEFAULT_CLIENT_EMAIL) === clientEmail) msgs.push(data);
+        });
 
         if (msgs.length === 0) {
           empty.style.display = 'block';
@@ -2268,6 +2307,8 @@ Thank you! — [Business Name]</div>
         await addDoc(collection(db, 'messages'), {
           text,
           sender: 'client',
+          clientEmail,
+          clientName: clientInfo.name,
           timestamp: serverTimestamp()
         });
       });
@@ -2569,10 +2610,14 @@ Thank you! — [Business Name]</div>
       if (!db) return;
 
       const { collection, addDoc, serverTimestamp } = window.firestoreModules;
+      const clientEmail = currentClientEmail();
+      const clientInfo = getClientInfo(clientEmail);
 
       addDoc(collection(db, 'messages'), {
         text,
         sender: 'client',
+        clientEmail,
+        clientName: clientInfo.name,
         timestamp: serverTimestamp()
       }).then(() => {
         input.value = '';
