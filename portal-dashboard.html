@@ -1639,21 +1639,21 @@
           <div class="chart-card" style="flex:1;">
             <div class="chart-title">Work Completed</div>
             <div class="chart-subtitle">What we did for you this month</div>
-            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; margin-top:4px;" id="wc-list">
               <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
-                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> GBP posts published <strong style="color:#F5F5F3; margin-left:auto;">4</strong>
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> GBP posts published <strong style="color:#F5F5F3; margin-left:auto;" id="wc-gbp">—</strong>
               </li>
               <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
-                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Citations built <strong style="color:#F5F5F3; margin-left:auto;">12</strong>
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Citations built <strong style="color:#F5F5F3; margin-left:auto;" id="wc-citations">—</strong>
               </li>
               <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
-                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Site updates made <strong style="color:#F5F5F3; margin-left:auto;">2</strong>
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Site updates made <strong style="color:#F5F5F3; margin-left:auto;" id="wc-siteupdates">—</strong>
               </li>
               <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
-                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Review requests sent <strong style="color:#F5F5F3; margin-left:auto;">8</strong>
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Review requests sent <strong style="color:#F5F5F3; margin-left:auto;" id="wc-reviews">—</strong>
               </li>
               <li style="display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);">
-                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Monthly report generated <strong style="color:#F5F5F3; margin-left:auto;">✓</strong>
+                <span style="color:#C4922A; font-size:15px; flex-shrink:0;">✓</span> Monthly report generated <strong style="color:#F5F5F3; margin-left:auto;" id="wc-report">—</strong>
               </li>
             </ul>
           </div>
@@ -2468,6 +2468,61 @@ Thank you! — [Business Name]</div>
         RECENT_MONTHS.forEach((month, i) => {
           list.appendChild(renderReportCard(month, i === 0, reports[month.key]));
         });
+      });
+    });
+
+    // ── Work Completed — current month, real data or "—" ────
+    window.addEventListener('load', () => {
+      const db = window.db;
+      if (!db) return;
+      const { doc, onSnapshot } = window.firestoreModules;
+
+      const clientEmail = currentClientEmail();
+      const clientInfo = getClientInfo(clientEmail);
+      if (!clientInfo.key) return;
+
+      const currentMonth = RECENT_MONTHS[0];
+      const fixedIds = { gbpPosts: 'wc-gbp', citationsBuilt: 'wc-citations', siteUpdates: 'wc-siteupdates', reviewRequests: 'wc-reviews' };
+
+      function renderWorkCompleted(data) {
+        Object.entries(fixedIds).forEach(([field, id]) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = (data && Number.isFinite(data[field])) ? String(data[field]) : '—';
+        });
+
+        const reportEl = document.getElementById('wc-report');
+        if (reportEl) reportEl.textContent = data ? (data.reportGenerated ? '✓' : '—') : '—';
+
+        const list = document.getElementById('wc-list');
+        if (list) {
+          list.querySelectorAll('.wc-custom-li').forEach(li => li.remove());
+          const customItems = (data && Array.isArray(data.customItems)) ? data.customItems : [];
+          customItems.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'wc-custom-li';
+            li.style.cssText = 'display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(245,245,243,0.82);';
+
+            const check = document.createElement('span');
+            check.style.cssText = 'color:#C4922A; font-size:15px; flex-shrink:0;';
+            check.textContent = '✓';
+
+            const value = document.createElement('strong');
+            value.style.cssText = 'color:#F5F5F3; margin-left:auto;';
+            value.textContent = Number.isFinite(item.value) ? String(item.value) : '—';
+
+            li.appendChild(check);
+            li.appendChild(document.createTextNode(` ${item.label} `));
+            li.appendChild(value);
+            list.appendChild(li);
+          });
+        }
+      }
+
+      renderWorkCompleted(null);
+
+      const wcRef = doc(db, 'workcompleted', clientInfo.key, 'months', currentMonth.key);
+      onSnapshot(wcRef, (docSnap) => {
+        renderWorkCompleted(docSnap.exists() ? docSnap.data() : null);
       });
     });
 

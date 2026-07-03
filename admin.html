@@ -372,6 +372,113 @@
     .status-pending .status-dot { background: var(--gold); }
     .status-pending { color: var(--gold); }
 
+    /* Work Completed — per-client expandable editor */
+    .wc-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 0 0;
+      margin-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      color: var(--muted);
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .wc-toggle:hover { color: var(--white); }
+    .wc-chevron { width: 12px; height: 12px; flex-shrink: 0; transition: transform var(--t-fast); }
+    .wc-card.expanded .wc-chevron { transform: rotate(180deg); color: var(--gold); }
+    .wc-panel {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 12px;
+    }
+    .wc-card.expanded .wc-panel { display: flex; }
+    .wc-field-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .wc-field-row label { font-size: 12px; color: rgba(245,245,243,0.75); }
+    .wc-input {
+      width: 72px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      color: var(--white);
+      text-align: right;
+      outline: none;
+    }
+    .wc-yn-toggle {
+      padding: 5px 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 20px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .wc-yn-toggle.on { background: rgba(76,175,130,0.15); border-color: rgba(76,175,130,0.35); color: #4caf82; }
+    .wc-custom-list { display: flex; flex-direction: column; gap: 8px; }
+    .wc-custom-item { display: flex; align-items: center; gap: 8px; }
+    .wc-custom-item .wc-custom-label {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      color: var(--white);
+      outline: none;
+    }
+    .wc-custom-item .wc-custom-value { width: 56px; }
+    .wc-custom-remove {
+      width: 24px; height: 24px; flex-shrink: 0;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+    }
+    .wc-custom-remove:hover { color: #e05c5c; border-color: rgba(224,92,92,0.4); }
+    .wc-add-btn {
+      align-self: flex-start;
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+    .wc-save-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .wc-save-btn {
+      padding: 7px 16px;
+      background: var(--gold);
+      color: #000;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      transition: background var(--t-fast);
+    }
+    .wc-save-btn:hover { background: var(--gold-bright); }
+    .wc-save-status { font-size: 11px; color: #4caf82; }
+
     /* Messages */
     .msg-thread {
       min-height: 300px;
@@ -805,6 +912,45 @@
               <span class="status-dot"></span>
               Site in progress
             </div>
+
+            <div class="wc-card" id="wc-card-lumina" data-client="lumina">
+              <button class="wc-toggle" type="button" aria-expanded="false" aria-controls="wc-panel-lumina">
+                <span>Work Completed — <span id="wc-month-label-lumina"></span></span>
+                <svg class="wc-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="2 4 6 8 10 4"/>
+                </svg>
+              </button>
+              <div class="wc-panel" id="wc-panel-lumina">
+                <div class="wc-field-row">
+                  <label for="wc-gbp-lumina">GBP posts published</label>
+                  <input type="number" min="0" class="wc-input" id="wc-gbp-lumina" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label for="wc-citations-lumina">Citations built</label>
+                  <input type="number" min="0" class="wc-input" id="wc-citations-lumina" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label for="wc-siteupdates-lumina">Site updates made</label>
+                  <input type="number" min="0" class="wc-input" id="wc-siteupdates-lumina" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label for="wc-reviews-lumina">Review requests sent</label>
+                  <input type="number" min="0" class="wc-input" id="wc-reviews-lumina" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label id="wc-report-label-lumina">Monthly report generated</label>
+                  <button type="button" class="wc-yn-toggle" id="wc-report-lumina" data-value="false" aria-labelledby="wc-report-label-lumina">No</button>
+                </div>
+
+                <div class="wc-custom-list" id="wc-custom-list-lumina"></div>
+                <button type="button" class="wc-add-btn" id="wc-add-custom-lumina">+ Add custom item</button>
+
+                <div class="wc-save-row">
+                  <button type="button" class="wc-save-btn" id="wc-save-lumina">Save</button>
+                  <span class="wc-save-status" id="wc-save-status-lumina"></span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="client-card">
@@ -834,6 +980,45 @@
             <div class="client-status status-active">
               <span class="status-dot"></span>
               Active
+            </div>
+
+            <div class="wc-card" id="wc-card-boringproject" data-client="boringproject">
+              <button class="wc-toggle" type="button" aria-expanded="false" aria-controls="wc-panel-boringproject">
+                <span>Work Completed — <span id="wc-month-label-boringproject"></span></span>
+                <svg class="wc-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="2 4 6 8 10 4"/>
+                </svg>
+              </button>
+              <div class="wc-panel" id="wc-panel-boringproject">
+                <div class="wc-field-row">
+                  <label for="wc-gbp-boringproject">GBP posts published</label>
+                  <input type="number" min="0" class="wc-input" id="wc-gbp-boringproject" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label for="wc-citations-boringproject">Citations built</label>
+                  <input type="number" min="0" class="wc-input" id="wc-citations-boringproject" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label for="wc-siteupdates-boringproject">Site updates made</label>
+                  <input type="number" min="0" class="wc-input" id="wc-siteupdates-boringproject" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label for="wc-reviews-boringproject">Review requests sent</label>
+                  <input type="number" min="0" class="wc-input" id="wc-reviews-boringproject" value="0">
+                </div>
+                <div class="wc-field-row">
+                  <label id="wc-report-label-boringproject">Monthly report generated</label>
+                  <button type="button" class="wc-yn-toggle" id="wc-report-boringproject" data-value="false" aria-labelledby="wc-report-label-boringproject">No</button>
+                </div>
+
+                <div class="wc-custom-list" id="wc-custom-list-boringproject"></div>
+                <button type="button" class="wc-add-btn" id="wc-add-custom-boringproject">+ Add custom item</button>
+
+                <div class="wc-save-row">
+                  <button type="button" class="wc-save-btn" id="wc-save-boringproject">Save</button>
+                  <span class="wc-save-status" id="wc-save-status-boringproject"></span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1154,6 +1339,137 @@
         const expanded = card.classList.toggle('expanded');
         header.setAttribute('aria-expanded', String(expanded));
       });
+    });
+
+    // ── Work Completed — per-client, current month only ──
+    const CURRENT_MONTH = getRecentMonths(1)[0];
+
+    function wcDocRef(clientKey) {
+      return doc(db, 'workcompleted', clientKey, 'months', CURRENT_MONTH.key);
+    }
+
+    function addCustomItemRow(clientKey, item) {
+      const list = document.getElementById(`wc-custom-list-${clientKey}`);
+      if (!list) return;
+      const row = document.createElement('div');
+      row.className = 'wc-custom-item';
+
+      const label = document.createElement('input');
+      label.type = 'text';
+      label.className = 'wc-custom-label';
+      label.placeholder = 'Custom line item…';
+      label.value = (item && item.label) || '';
+
+      const value = document.createElement('input');
+      value.type = 'number';
+      value.min = '0';
+      value.className = 'wc-input wc-custom-value';
+      value.value = (item && item.value) || 0;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'wc-custom-remove';
+      removeBtn.setAttribute('aria-label', 'Remove this line item');
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', () => row.remove());
+
+      row.appendChild(label);
+      row.appendChild(value);
+      row.appendChild(removeBtn);
+      list.appendChild(row);
+    }
+
+    function readCustomItems(clientKey) {
+      const list = document.getElementById(`wc-custom-list-${clientKey}`);
+      if (!list) return [];
+      return Array.from(list.querySelectorAll('.wc-custom-item'))
+        .map(row => ({
+          label: row.querySelector('.wc-custom-label').value.trim(),
+          value: Number(row.querySelector('.wc-custom-value').value) || 0
+        }))
+        .filter(item => item.label);
+    }
+
+    function applyWorkCompletedData(clientKey, data) {
+      const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value; };
+      set(`wc-gbp-${clientKey}`, (data && data.gbpPosts) || 0);
+      set(`wc-citations-${clientKey}`, (data && data.citationsBuilt) || 0);
+      set(`wc-siteupdates-${clientKey}`, (data && data.siteUpdates) || 0);
+      set(`wc-reviews-${clientKey}`, (data && data.reviewRequests) || 0);
+
+      const reportBtn = document.getElementById(`wc-report-${clientKey}`);
+      if (reportBtn) {
+        const on = !!(data && data.reportGenerated);
+        reportBtn.dataset.value = String(on);
+        reportBtn.textContent = on ? 'Yes' : 'No';
+        reportBtn.classList.toggle('on', on);
+      }
+
+      const list = document.getElementById(`wc-custom-list-${clientKey}`);
+      if (list) {
+        list.innerHTML = '';
+        ((data && data.customItems) || []).forEach(item => addCustomItemRow(clientKey, item));
+      }
+    }
+
+    REPORT_CLIENTS.forEach(client => {
+      const key = client.key;
+      const monthLabelEl = document.getElementById(`wc-month-label-${key}`);
+      if (monthLabelEl) monthLabelEl.textContent = CURRENT_MONTH.label;
+
+      const toggleBtn = document.querySelector(`#wc-card-${key} .wc-toggle`);
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const card = document.getElementById(`wc-card-${key}`);
+          const expanded = card.classList.toggle('expanded');
+          toggleBtn.setAttribute('aria-expanded', String(expanded));
+        });
+      }
+
+      const reportBtn = document.getElementById(`wc-report-${key}`);
+      if (reportBtn) {
+        reportBtn.addEventListener('click', () => {
+          const on = reportBtn.dataset.value !== 'true';
+          reportBtn.dataset.value = String(on);
+          reportBtn.textContent = on ? 'Yes' : 'No';
+          reportBtn.classList.toggle('on', on);
+        });
+      }
+
+      const addCustomBtn = document.getElementById(`wc-add-custom-${key}`);
+      if (addCustomBtn) {
+        addCustomBtn.addEventListener('click', () => addCustomItemRow(key, null));
+      }
+
+      onSnapshot(wcDocRef(key), (docSnap) => {
+        applyWorkCompletedData(key, docSnap.exists() ? docSnap.data() : null);
+      });
+
+      const saveBtn = document.getElementById(`wc-save-${key}`);
+      const saveStatus = document.getElementById(`wc-save-status-${key}`);
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+          const num = id => Number(document.getElementById(id).value) || 0;
+          await setDoc(wcDocRef(key), {
+            clientKey: key,
+            clientEmail: client.email,
+            clientName: client.name,
+            month: CURRENT_MONTH.key,
+            monthLabel: CURRENT_MONTH.label,
+            gbpPosts: num(`wc-gbp-${key}`),
+            citationsBuilt: num(`wc-citations-${key}`),
+            siteUpdates: num(`wc-siteupdates-${key}`),
+            reviewRequests: num(`wc-reviews-${key}`),
+            reportGenerated: document.getElementById(`wc-report-${key}`).dataset.value === 'true',
+            customItems: readCustomItems(key),
+            updatedAt: serverTimestamp()
+          });
+          if (saveStatus) {
+            saveStatus.textContent = 'Saved';
+            setTimeout(() => { saveStatus.textContent = ''; }, 2500);
+          }
+        });
+      }
     });
   </script>
 
