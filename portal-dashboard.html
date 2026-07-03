@@ -1314,9 +1314,9 @@
     </button>
 
     <!-- Center: brand + date -->
-    <div class="header-center" aria-label="Client: boring project. — April 2026">
+    <div class="header-center" id="headerCenter" aria-label="Client: boring project.">
       <span class="header-brand">boring project<span class="dot">.</span></span>
-      <span class="header-date">April 2026</span>
+      <span class="header-date" id="headerDateTime"></span>
     </div>
 
     <!-- Right: actions -->
@@ -2097,6 +2097,25 @@ Thank you! — [Business Name]</div>
     const themeToggle  = document.getElementById('themeToggle');
     const logoutBtn    = document.getElementById('logoutBtn');
     const isMobile     = () => window.innerWidth <= 768;
+
+    // ── Live header date/time — client's local timezone, no seconds ──
+    function formatHeaderDateTime(d) {
+      const dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      return `${dateStr} · ${timeStr}`;
+    }
+
+    function updateHeaderDateTime() {
+      const dateTimeEl = document.getElementById('headerDateTime');
+      const wrapEl = document.getElementById('headerCenter');
+      if (!dateTimeEl) return;
+      const formatted = formatHeaderDateTime(new Date());
+      dateTimeEl.textContent = formatted;
+      if (wrapEl) wrapEl.setAttribute('aria-label', `Client: boring project. — ${formatted}`);
+    }
+
+    updateHeaderDateTime();
+    setInterval(updateHeaderDateTime, 1000);
 
     // ── Client registry — maps logged-in email to business identity ──
     const CLIENTS = {
