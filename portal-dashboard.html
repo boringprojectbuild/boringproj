@@ -1597,13 +1597,14 @@
               role="img"
             ></canvas>
           </div>
+          <p style="font-size:10px; font-style:italic; color:rgba(245,245,243,0.32); margin-top:8px; letter-spacing:0.02em;">GBP data updated manually each month by boring project.</p>
         </div>
 
         <!-- Reviews card — right 40% -->
         <div class="reviews-card">
           <div class="reviews-title">Google Reviews</div>
-          <div class="reviews-count" aria-label="0 reviews">0</div>
-          <div class="reviews-stars" role="img" aria-label="0 out of 5 stars">☆☆☆☆☆</div>
+          <div class="reviews-count" id="reviewsCount" aria-label="0 reviews">0</div>
+          <div class="reviews-stars" id="reviewsStars" role="img" aria-label="0 out of 5 stars">☆☆☆☆☆</div>
           <p class="reviews-subtext">Reviews help you rank higher and build trust with new customers.</p>
           <button
             class="reviews-btn"
@@ -1631,6 +1632,7 @@
             ></canvas>
           </div>
           <p class="chart-note">Position 1 = top of Google search</p>
+          <p style="font-size:10px; font-style:italic; color:rgba(245,245,243,0.32); margin-top:8px; letter-spacing:0.02em;">Keyword data updated manually each month by boring project.</p>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:16px;">
@@ -2116,6 +2118,30 @@ Thank you! — [Business Name]</div>
 
     updateHeaderDateTime();
     setInterval(updateHeaderDateTime, 1000);
+
+    // ── Google Reviews card — no live reviews source yet, defaults to 0 ──
+    const REVIEW_COUNT = 0;
+    function renderReviews(count) {
+      const countEl = document.getElementById('reviewsCount');
+      const starsEl = document.getElementById('reviewsStars');
+      if (!countEl || !starsEl) return;
+      if (count > 0) {
+        countEl.textContent = String(count);
+        countEl.style.fontSize = '';
+        countEl.style.fontWeight = '';
+        countEl.style.color = '';
+        countEl.setAttribute('aria-label', `${count} review${count === 1 ? '' : 's'}`);
+        starsEl.style.display = '';
+      } else {
+        countEl.textContent = 'No reviews yet';
+        countEl.style.fontSize = '18px';
+        countEl.style.fontWeight = '600';
+        countEl.style.color = 'var(--muted)';
+        countEl.setAttribute('aria-label', 'No reviews yet');
+        starsEl.style.display = 'none';
+      }
+    }
+    renderReviews(REVIEW_COUNT);
 
     // ── Client registry — maps logged-in email to business identity ──
     const CLIENTS = {
