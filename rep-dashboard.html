@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rep Dashboard | boring project.</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; color: #F5F5F3; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    ul { list-style: none; }
+
+    :root {
+      --bg: #0D0D0D;
+      --blue: #2B5FA6;
+      --blue-light: #3a75c4;
+      --gold: #C4922A;
+      --gold-bright: #d4a035;
+      --white: #F5F5F3;
+      --muted: rgba(245, 245, 243, 0.45);
+      --danger: #e05555;
+      --success: #4caf82;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: 1px solid rgba(255, 255, 255, 0.10);
+      --glass-blur: blur(12px);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      --glass-radius: 16px;
+      --header-h: 60px;
+      --sidebar-w: 220px;
+      --sidebar-w-c: 60px;
+      --t-fast: 0.15s ease;
+      --t-mid: 0.25s ease;
+      --t-slow: 0.35s ease;
+    }
+
+    body.light-mode {
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: 1px solid rgba(0, 0, 0, 0.08);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --white: #0D0D0D;
+      --muted: rgba(13, 13, 13, 0.5);
+    }
+
+    .bg-layer {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(-45deg, #0D0D0D 0%, #0a1628 15%, #112040 30%, #2B5FA6 50%, #1a3a70 65%, #0d1a30 80%, #0D0D0D 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 14s ease infinite;
+    }
+    body.light-mode .bg-layer {
+      background: linear-gradient(-45deg, #e8f0fa 0%, #d0e2f7 20%, #EBF2FB 45%, #c8d8f0 60%, #ddeaf8 80%, #F5F5F3 100%);
+      background-size: 400% 400%;
+    }
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; } 25% { background-position: 50% 0%; }
+      50% { background-position: 100% 50%; } 75% { background-position: 50% 100%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .glass {
+      background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+      border: var(--glass-border); border-radius: var(--glass-radius); box-shadow: var(--glass-shadow);
+    }
+
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: var(--header-h);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 16px;
+      background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    body.light-mode .header { background: rgba(255, 255, 255, 0.55); border-bottom: 1px solid rgba(0, 0, 0, 0.07); }
+
+    .header-toggle {
+      display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+      border-radius: 10px; color: var(--white); transition: background var(--t-fast); flex-shrink: 0;
+    }
+    .header-toggle:hover { background: rgba(255, 255, 255, 0.08); }
+    .header-toggle svg { width: 20px; height: 20px; transition: transform var(--t-slow); }
+
+    .header-center { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+    .header-brand { display: block; font-size: 15px; font-weight: 700; color: var(--white); letter-spacing: 0.02em; line-height: 1.2; }
+    .header-brand .dot { color: var(--gold); }
+    .header-date { display: block; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 1px; }
+
+    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .header-icon-btn {
+      display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+      border-radius: 8px; color: var(--muted); transition: background var(--t-fast), color var(--t-fast);
+    }
+    .header-icon-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--white); }
+    .header-icon-btn svg { width: 18px; height: 18px; }
+
+    .notif-wrap { position: relative; }
+    .notif-badge {
+      position: absolute; top: 4px; right: 4px; width: 7px; height: 7px;
+      background: var(--gold); border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.4);
+    }
+
+    .profile-pill {
+      display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 20px;
+      color: var(--white); font-size: 13px; font-weight: 500; transition: background var(--t-fast); cursor: pointer;
+    }
+    .profile-pill:hover { background: rgba(255, 255, 255, 0.08); }
+    .profile-avatar {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--blue);
+      display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .profile-chevron { width: 12px; height: 12px; opacity: 0.6; }
+
+    .logout-btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--danger);
+      border: 1px solid rgba(224, 85, 85, 0.3); transition: background var(--t-fast), border-color var(--t-fast); letter-spacing: 0.02em;
+    }
+    .logout-btn:hover { background: rgba(224, 85, 85, 0.12); border-color: rgba(224, 85, 85, 0.6); }
+
+    .app-layout { position: relative; z-index: 1; display: flex; height: 100vh; padding-top: var(--header-h); }
+
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0; height: 100%; overflow: hidden;
+      background: rgba(0, 0, 0, 0.42); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.07); border-left: 3px solid var(--gold);
+      transition: width var(--t-slow); display: flex; flex-direction: column;
+    }
+    body.light-mode .sidebar { background: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(0, 0, 0, 0.07); }
+    .app-layout.collapsed .sidebar { width: var(--sidebar-w-c); }
+
+    .main-content {
+      flex: 1; overflow-y: auto; overflow-x: hidden; min-width: 0; padding: 24px;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent;
+    }
+    .main-content::-webkit-scrollbar { width: 5px; }
+    .main-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+
+    @media (max-width: 768px) {
+      .main-content { padding: 16px; }
+      .sidebar {
+        position: fixed; top: var(--header-h); left: 0; bottom: 0; z-index: 90;
+        width: var(--sidebar-w) !important; transform: translateX(-100%); transition: transform var(--t-slow);
+      }
+      .app-layout.mobile-open .sidebar { transform: translateX(0); }
+      .sidebar-overlay {
+        display: none; position: fixed; inset: 0; top: var(--header-h); z-index: 89; background: rgba(0, 0, 0, 0.5);
+      }
+      .app-layout.mobile-open .sidebar-overlay { display: block; }
+      .profile-name { display: none; }
+      .leads-layout { grid-template-columns: 1fr !important; }
+      .thread-rail { max-height: 400px; }
+    }
+
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .skip-link {
+      position: absolute; top: -100px; left: 16px; background: var(--gold); color: #000;
+      padding: 8px 16px; border-radius: 0 0 8px 8px; font-weight: 600; font-size: 13px; z-index: 9999; transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; outline: none; }
+
+    .sidebar-brand {
+      flex-shrink: 0; padding: 18px 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      overflow: hidden; white-space: nowrap;
+    }
+    body.light-mode .sidebar-brand { border-bottom-color: rgba(0, 0, 0, 0.07); }
+    .sidebar-wordmark { display: block; font-size: 14px; font-weight: 700; color: var(--white); letter-spacing: 0.02em; line-height: 1.3; }
+    .sidebar-wordmark .dot { color: var(--gold); }
+    .sidebar-tagline {
+      display: block; font-size: 9px; font-weight: 500; color: var(--gold);
+      letter-spacing: 0.22em; text-transform: uppercase; margin-top: 4px;
+    }
+    .app-layout.collapsed .sidebar-wordmark, .app-layout.collapsed .sidebar-tagline { opacity: 0; pointer-events: none; }
+
+    .sidebar-nav { flex: 1; padding: 10px 8px; overflow: hidden; }
+    .sidebar-nav ul { display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 10px; border-radius: 10px;
+      font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; color: rgba(245, 245, 243, 0.55);
+      white-space: nowrap; text-align: left; transition: background var(--t-fast), color var(--t-fast);
+    }
+    .nav-item:hover { color: var(--gold); background: rgba(196, 146, 42, 0.08); }
+    .nav-item.active { color: var(--gold); background: rgba(196, 146, 42, 0.13); }
+    body.light-mode .nav-item { color: rgba(13, 13, 13, 0.5); }
+    body.light-mode .nav-item:hover, body.light-mode .nav-item.active { color: var(--gold); background: rgba(196, 146, 42, 0.1); }
+    .nav-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+    .nav-icon svg { width: 18px; height: 18px; }
+    .nav-label { flex: 1; overflow: hidden; max-width: 160px; transition: max-width var(--t-slow), opacity var(--t-mid); }
+    .app-layout.collapsed .nav-label { max-width: 0; opacity: 0; pointer-events: none; }
+    .app-layout.collapsed .nav-item { gap: 0; justify-content: center; padding: 10px 0; }
+
+    .chart-card {
+      background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      padding: 22px 24px 18px;
+    }
+    body.light-mode .chart-card { background: rgba(255, 255, 255, 0.6); border-color: rgba(0, 0, 0, 0.08); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10); }
+    .chart-title { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 3px; line-height: 1.3; }
+    .chart-subtitle { font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 18px; }
+
+    .leads-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      align-items: start;
+      height: calc(100vh - var(--header-h) - 48px);
+    }
+
+    .leads-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; height: 100%; }
+    .leads-table-card { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .leads-table-scroll { flex: 1; overflow: auto; margin-top: 8px; }
+    .leads-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+    .leads-table thead th {
+      text-align: left; padding: 10px 12px; color: rgba(245,245,243,0.45); font-weight: 600;
+      font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: sticky; top: 0; background: rgba(20,20,20,0.92); backdrop-filter: blur(6px); z-index: 2;
+    }
+    .leads-table tbody td { padding: 11px 12px; color: #F5F5F3; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .leads-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    .stage-select {
+      background: rgba(255,255,255,0.06); color: #F5F5F3; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 6px 10px; font-family: inherit; font-size: 12px; cursor: pointer;
+    }
+    .stage-select:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .owner-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(245,245,243,0.65); }
+    .owner-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+    .notes-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(245,245,243,0.6); }
+
+    .comment-btn {
+      display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--blue-light);
+      padding: 5px 10px; border-radius: 7px; border: 1px solid rgba(43,95,166,0.35); transition: background var(--t-fast);
+    }
+    .comment-btn:hover { background: rgba(43,95,166,0.15); }
+
+    .add-lead-form { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 12px; }
+    .add-lead-form input, .add-lead-form select {
+      background: rgba(255,255,255,0.06); color: #F5F5F3; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 9px 11px; font-family: inherit; font-size: 12.5px; outline: none; width: 100%;
+    }
+    .add-lead-form input::placeholder { color: rgba(245,245,243,0.35); }
+    .add-lead-form .full-span { grid-column: span 2; }
+    .add-lead-submit {
+      grid-column: span 6; background: var(--gold); color: #000; font-weight: 600; font-size: 13px;
+      border-radius: 8px; padding: 10px; transition: background var(--t-fast);
+    }
+    .add-lead-submit:hover { background: var(--gold-bright); }
+    .add-lead-error {
+      grid-column: span 6; display: none; background: rgba(224,85,85,0.12); border: 1px solid rgba(224,85,85,0.35);
+      color: #ff9f9f; border-radius: 8px; padding: 10px 12px; font-size: 12.5px;
+    }
+
+    @media (max-width: 900px) {
+      .add-lead-form { grid-template-columns: repeat(2, 1fr); }
+      .add-lead-form .full-span { grid-column: span 2; }
+      .add-lead-submit { grid-column: span 2; }
+      .add-lead-error { grid-column: span 2; }
+    }
+
+    .thread-rail { display: flex; flex-direction: column; height: 100%; }
+    .thread-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .thread-live-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--success);
+      box-shadow: 0 0 0 3px rgba(76,175,130,0.18); display: inline-block; margin-right: 6px;
+    }
+    .thread-messages {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin: 10px 0;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent;
+    }
+    .thread-msg { display: flex; flex-direction: column; gap: 2px; }
+    .thread-msg-meta { display: flex; align-items: baseline; gap: 6px; }
+    .thread-msg-author { font-size: 12px; font-weight: 600; color: var(--gold); }
+    .thread-msg-time { font-size: 10px; color: rgba(245,245,243,0.35); }
+    .thread-msg-text {
+      font-size: 12.5px; color: #F5F5F3; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 8px 11px; line-height: 1.5; word-break: break-word;
+    }
+    .thread-empty { color: rgba(245,245,243,0.35); font-size: 12.5px; text-align: center; margin: auto; }
+    .thread-input-row { display: flex; gap: 8px; }
+    .thread-input-row textarea {
+      flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px;
+      padding: 10px; font-family: inherit; font-size: 12.5px; color: #F5F5F3; resize: none; outline: none; min-height: 44px;
+    }
+    .thread-send-btn { background: var(--gold); color: #000; font-weight: 600; font-size: 12.5px; border-radius: 10px; padding: 0 16px; flex-shrink: 0; }
+    .thread-send-btn:hover { background: var(--gold-bright); }
+
+    #authGate {
+      position: fixed; inset: 0; z-index: 999; background: #0D0D0D; display: flex; align-items: center;
+      justify-content: center; flex-direction: column; gap: 12px;
+    }
+    #authGate .spinner {
+      width: 26px; height: 26px; border: 3px solid rgba(196,146,42,0.25); border-top-color: #C4922A;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #authGate p { color: rgba(245,245,243,0.5); font-size: 13px; }
+    #authGateError { display: none; color: #ff9f9f; font-size: 13px; max-width: 320px; text-align: center; }
+  </style>
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot,
+      orderBy, query, serverTimestamp, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getAuth, signInWithCustomToken
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
+      authDomain: "boringproject-portal.firebaseapp.com",
+      projectId: "boringproject-portal",
+      storageBucket: "boringproject-portal.firebasestorage.app",
+      messagingSenderId: "600234955305",
+      appId: "1:600234955305:web:eae786b70f861b05958238"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    window.db = db;
+    window.fbAuth = auth;
+    window.firestoreModules = {
+      collection, doc, getDoc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc
+    };
+    window.authModules = { signInWithCustomToken };
+  </script>
+</head>
+
+<body>
+  <div id="authGate">
+    <div class="spinner" aria-hidden="true"></div>
+    <p id="authGateMsg">Signing you in...</p>
+    <p id="authGateError"></p>
+  </div>
+
+  <script>
+    netlifyIdentity.on('init', user => {
+      if (!user) {
+        netlifyIdentity.on('login', () => { document.location.href = '/rep-dashboard.html'; });
+        netlifyIdentity.open();
+      }
+    });
+  </script>
+
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <div class="bg-layer" aria-hidden="true"></div>
+
+  <header class="header" role="banner">
+    <button class="header-toggle" id="sidebarToggle" aria-label="Toggle sidebar navigation" aria-expanded="true">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 4 6 10 13 16"/></svg>
+    </button>
+
+    <div class="header-center" id="headerCenter">
+      <span class="header-brand">boring project<span class="dot">.</span></span>
+      <span class="header-date" id="headerDateTime"></span>
+    </div>
+
+    <div class="header-right">
+      <button class="header-icon-btn" id="themeToggle" aria-label="Toggle light mode">
+        <svg id="themeIconDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg id="themeIconLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+
+      <button class="header-icon-btn notif-wrap" id="notifBell" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+      </button>
+
+      <button class="profile-pill" aria-label="Account menu" aria-haspopup="true">
+        <span class="profile-avatar" id="profileAvatar">R</span>
+        <span class="profile-name" id="profileName">Rep</span>
+        <svg class="profile-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 6 8 10 4"/></svg>
+      </button>
+
+      <button class="logout-btn" id="logoutBtn" aria-label="Log out">Log out</button>
+    </div>
+  </header>
+
+  <div class="app-layout" id="appLayout">
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+    <aside class="sidebar" id="sidebar" aria-label="Dashboard navigation">
+      <div class="sidebar-brand">
+        <span class="sidebar-wordmark">boring project<span class="dot">.</span></span>
+        <span class="sidebar-tagline">Finally found.</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Dashboard sections">
+        <ul role="list">
+          <li>
+            <button class="nav-item active" data-page="leads" aria-current="page" title="Leads">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="16" height="14" rx="1.5"/><line x1="2" y1="7.5" x2="18" y2="7.5"/><line x1="6" y1="11" x2="14" y2="11"/></svg>
+              </span>
+              <span class="nav-label">Leads</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="reports" title="Reports">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z"/><polyline points="12 2 12 6 16 6"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="11" y2="13"/></svg>
+              </span>
+              <span class="nav-label">Reports</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="messages" title="Messages">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 9a6 6 0 0 0-10.4-4A6 6 0 0 0 4 9c0 1.4.5 2.7 1.3 3.7L4 17l3.7-1.3A6 6 0 1 0 17 9z"/></svg>
+              </span>
+              <span class="nav-label">Messages</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content" aria-label="Leads" tabindex="-1">
+      <div class="leads-layout">
+
+        <div class="leads-main">
+          <div class="chart-card leads-table-card">
+            <div class="chart-title">Leads - Shared Team Table</div>
+            <div class="chart-subtitle">Everyone sees everyone's leads - avoid double-working the same business.</div>
+
+            <div class="leads-table-scroll">
+              <table class="leads-table">
+                <thead>
+                  <tr>
+                    <th>Business Name</th>
+                    <th>Industry</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Stage</th>
+                    <th>Notes</th>
+                    <th>Added By</th>
+                    <th>Date Added</th>
+                    <th>Comments</th>
+                  </tr>
+                </thead>
+                <tbody id="leadsTableBody">
+                  <tr><td colspan="9" style="text-align:center; color:rgba(245,245,243,0.35); padding:24px;">Loading leads...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <form class="add-lead-form" id="addLeadForm">
+              <input type="text" id="newBusinessName" placeholder="Business name" required class="full-span">
+              <input type="text" id="newIndustry" placeholder="Industry">
+              <input type="text" id="newPhone" placeholder="Phone">
+              <input type="email" id="newEmail" placeholder="Email">
+              <select id="newStage">
+                <option>Not Contacted</option>
+                <option>Reached Out</option>
+                <option>Interested</option>
+                <option>Proposal Sent</option>
+                <option>Won</option>
+                <option>Dead</option>
+              </select>
+              <input type="text" id="newNotes" placeholder="Notes" class="full-span">
+              <div class="add-lead-error" id="addLeadError"></div>
+              <button type="submit" class="add-lead-submit">+ Add Lead</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="chart-card thread-rail">
+          <div class="thread-header">
+            <div>
+              <div class="chart-title" style="margin-bottom:2px;"><span class="thread-live-dot"></span>Team Thread</div>
+              <div class="chart-subtitle" id="threadMonthLabel" style="margin-bottom:0;">This month</div>
+            </div>
+          </div>
+
+          <div class="thread-messages" id="threadMessages">
+            <p class="thread-empty" id="threadEmpty">No messages yet this month. Say something.</p>
+          </div>
+
+          <div class="thread-input-row">
+            <textarea id="threadInput" placeholder="Post to the team..."></textarea>
+            <button class="thread-send-btn" id="threadSendBtn">Post</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <section id="page-reports" class="main-content" style="display:none;" aria-label="Reports">
+      <div style="padding:24px; max-width:960px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:38px; height:38px; border-radius:10px; background:rgba(196,146,42,0.15); display:flex; align-items:center; justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4922A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <h2 style="font-size:18px; font-weight:600; color:#F5F5F3; margin:0;">Monthly Archives</h2>
+            <p style="font-size:12px; color:rgba(245,245,243,0.45); margin:0;">Past months are read-only - this month's board is under Leads.</p>
+          </div>
+        </div>
+        <div id="archive-list" style="display:flex; flex-direction:column; gap:16px;"></div>
+      </div>
+    </section>
+
+    <section id="page-messages" class="main-content" style="display:none; flex-direction:column; height:100%;" aria-label="Messages">
+      <div style="padding:24px; flex:1; display:flex; flex-direction:column; max-width:720px; margin:0 auto; width:100%; gap:16px;">
+        <div>
+          <div class="chart-title" style="font-size:20px;">Message Joseph</div>
+          <div class="chart-subtitle">Private line, just between you two.</div>
+        </div>
+
+        <div id="msg-thread" style="flex:1; min-height:300px; max-height:460px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding:16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px;">
+          <p id="msg-empty" style="color:rgba(245,245,243,0.35); font-size:13px; text-align:center; margin:auto;">No messages yet. Send one below.</p>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:flex-end;">
+          <textarea id="msg-input" placeholder="Type your message..." rows="3" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:12px; font-family:'Poppins',sans-serif; font-size:13px; color:#F5F5F3; resize:none; outline:none; line-height:1.5;"></textarea>
+          <button id="msg-send" style="padding:12px 22px; background:#C4922A; color:#000; font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; border-radius:10px; flex-shrink:0;">Send</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let CURRENT_ROLE = null;
+    let CURRENT_EMAIL = null;
+    let CURRENT_NAME = null;
+
+    function showAuthError(message) {
+      document.getElementById('authGateMsg').style.display = 'none';
+      const errEl = document.getElementById('authGateError');
+      errEl.textContent = message;
+      errEl.style.display = 'block';
+    }
+
+    async function bridgeToFirebase(netlifyUser) {
+      try {
+        const res = await fetch('/.netlify/functions/mint-firebase-token', {
+          headers: { Authorization: 'Bearer ' + netlifyUser.token.access_token }
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showAuthError(data.message || 'Not authorized for the rep dashboard. Contact Joseph.');
+          return;
+        }
+
+        const { signInWithCustomToken } = window.authModules;
+        await signInWithCustomToken(window.fbAuth, data.token);
+
+        CURRENT_ROLE = data.role;
+        CURRENT_EMAIL = netlifyUser.email;
+        CURRENT_NAME = data.name;
+
+        document.getElementById('profileName').textContent = CURRENT_NAME;
+        document.getElementById('profileAvatar').textContent = CURRENT_NAME.charAt(0).toUpperCase();
+
+        document.getElementById('authGate').style.display = 'none';
+        initDashboard();
+      } catch (err) {
+        console.error('Firebase bridge failed:', err);
+        showAuthError('Something went wrong signing you in. Refresh to try again.');
+      }
+    }
+
+    netlifyIdentity.on('init', user => { if (user) bridgeToFirebase(user); });
+    netlifyIdentity.on('login', user => { bridgeToFirebase(user); });
+
+    const appLayout = document.getElementById('appLayout');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const overlay = document.getElementById('sidebarOverlay');
+    const themeToggle = document.getElementById('themeToggle');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const isMobile = () => window.innerWidth <= 768;
+
+    function formatHeaderDateTime(d) {
+      const dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      return dateStr + ' \u00b7 ' + timeStr;
+    }
+    function updateHeaderDateTime() {
+      const el = document.getElementById('headerDateTime');
+      if (el) el.textContent = formatHeaderDateTime(new Date());
+    }
+    updateHeaderDateTime();
+    setInterval(updateHeaderDateTime, 1000);
+
+    function openSidebar() { appLayout.classList.add('mobile-open'); }
+    function closeSidebar() { appLayout.classList.remove('mobile-open'); }
+    toggleBtn.addEventListener('click', () => {
+      if (isMobile()) { appLayout.classList.contains('mobile-open') ? closeSidebar() : openSidebar(); }
+      else { appLayout.classList.toggle('collapsed'); }
+    });
+    overlay.addEventListener('click', closeSidebar);
+    window.addEventListener('resize', () => { if (!isMobile()) closeSidebar(); });
+
+    themeToggle.addEventListener('click', () => {
+      const isLight = document.body.classList.toggle('light-mode');
+      document.getElementById('themeIconDark').style.display = isLight ? 'none' : '';
+      document.getElementById('themeIconLight').style.display = isLight ? '' : 'none';
+    });
+
+    const navItems = document.querySelectorAll('.nav-item');
+    const mainContent = document.getElementById('main-content');
+    const reportsPage = document.getElementById('page-reports');
+    const messagesPage = document.getElementById('page-messages');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navItems.forEach(n => { n.classList.remove('active'); n.removeAttribute('aria-current'); });
+        item.classList.add('active');
+        item.setAttribute('aria-current', 'page');
+
+        mainContent.style.display = 'none';
+        reportsPage.style.display = 'none';
+        messagesPage.style.display = 'none';
+
+        const page = item.dataset.page;
+        if (page === 'leads') mainContent.style.display = '';
+        else if (page === 'reports') reportsPage.style.display = '';
+        else if (page === 'messages') messagesPage.style.display = 'flex';
+
+        if (isMobile()) closeSidebar();
+      });
+    });
+
+    logoutBtn.addEventListener('click', () => { netlifyIdentity.logout(); });
+    netlifyIdentity.on('logout', () => { window.location.replace('/login.html'); });
+
+    function slugify(name) {
+      return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+    function currentMonthKey(d) {
+      d = d || new Date();
+      return d.toLocaleString('en-US', { month: 'long' }).toLowerCase() + '-' + d.getFullYear();
+    }
+    function formatTimestamp(ts) {
+      if (!ts || !ts.toDate) return '';
+      const d = ts.toDate();
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' \u00b7 ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function initLeadsTable() {
+      const { collection, onSnapshot } = window.firestoreModules;
+      const db = window.db;
+      const tbody = document.getElementById('leadsTableBody');
+
+      onSnapshot(collection(db, 'leads'), (snapshot) => {
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:rgba(245,245,243,0.35); padding:24px;">No leads yet - add the first one below.</td></tr>';
+          return;
+        }
+
+        const rows = [];
+        snapshot.forEach(docSnap => rows.push(Object.assign({ id: docSnap.id }, docSnap.data())));
+        rows.sort((a, b) => (b.dateAdded || '').localeCompare(a.dateAdded || ''));
+
+        tbody.innerHTML = '';
+        rows.forEach(lead => {
+          const isOwner = lead.addedByEmail === CURRENT_EMAIL;
+          const canEdit = isOwner || CURRENT_ROLE === 'admin';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td style="font-weight:600;">' + (lead.businessName || '') + '</td>' +
+            '<td>' + (lead.industry || '') + '</td>' +
+            '<td>' + (lead.phone || '') + '</td>' +
+            '<td>' + (lead.email || '') + '</td>' +
+            '<td></td>' +
+            '<td class="notes-cell" title="' + (lead.notes || '').replace(/"/g, '&quot;') + '">' + (lead.notes || '') + '</td>' +
+            '<td><span class="owner-pill"><span class="owner-dot"></span>' + (lead.addedByName || lead.addedByEmail || '') + '</span></td>' +
+            '<td>' + (lead.dateAdded || '') + '</td>' +
+            '<td></td>';
+
+          const stageTd = tr.children[4];
+          const select = document.createElement('select');
+          select.className = 'stage-select';
+          ['Not Contacted', 'Reached Out', 'Interested', 'Proposal Sent', 'Won', 'Dead'].forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s; opt.textContent = s;
+            if (lead.stage === s) opt.selected = true;
+            select.appendChild(opt);
+          });
+          select.disabled = !canEdit;
+          select.addEventListener('change', () => updateLeadStage(lead.id, select.value));
+          stageTd.appendChild(select);
+
+          const commentsTd = tr.children[8];
+          const btn = document.createElement('button');
+          btn.className = 'comment-btn';
+          btn.innerHTML = '\ud83d\udcac';
+          btn.addEventListener('click', () => alert('Per-lead comment threads are next on the build list. Use the Team Thread on the right for now.'));
+          commentsTd.appendChild(btn);
+
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    async function updateLeadStage(leadId, newStage) {
+      const { doc, updateDoc } = window.firestoreModules;
+      try {
+        await updateDoc(doc(window.db, 'leads', leadId), { stage: newStage });
+      } catch (err) {
+        console.error('Failed to update stage:', err);
+        alert('Could not update - you may not be the owner of this lead.');
+      }
+    }
+
+    document.getElementById('addLeadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('addLeadError');
+      errEl.style.display = 'none';
+
+      const businessName = document.getElementById('newBusinessName').value.trim();
+      if (!businessName) return;
+
+      const leadId = slugify(businessName);
+      const { doc, getDoc, setDoc } = window.firestoreModules;
+      const leadRef = doc(window.db, 'leads', leadId);
+
+      try {
+        const existing = await getDoc(leadRef);
+        if (existing.exists()) {
+          const data = existing.data();
+          errEl.textContent = 'Already added by ' + (data.addedByName || data.addedByEmail) + ' on ' + data.dateAdded + ' - Stage: ' + data.stage;
+          errEl.style.display = 'block';
+          return;
+        }
+
+        await setDoc(leadRef, {
+          businessName: businessName,
+          industry: document.getElementById('newIndustry').value.trim(),
+          phone: document.getElementById('newPhone').value.trim(),
+          email: document.getElementById('newEmail').value.trim(),
+          stage: document.getElementById('newStage').value,
+          notes: document.getElementById('newNotes').value.trim(),
+          dateAdded: new Date().toISOString().slice(0, 10),
+          addedByEmail: CURRENT_EMAIL,
+          addedByName: CURRENT_NAME,
+          activeRep: CURRENT_NAME
+        });
+
+        document.getElementById('addLeadForm').reset();
+      } catch (err) {
+        console.error('Failed to add lead:', err);
+        errEl.textContent = 'Could not add lead - check your connection and try again.';
+        errEl.style.display = 'block';
+      }
+    });
+
+    function initTeamThread() {
+      const { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
+      const db = window.db;
+      const monthKey = currentMonthKey();
+
+      document.getElementById('threadMonthLabel').textContent =
+        new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      const threadRef = collection(db, 'teamThread', monthKey, 'messages');
+      const messagesEl = document.getElementById('threadMessages');
+      const emptyEl = document.getElementById('threadEmpty');
+
+      onSnapshot(query(threadRef, orderBy('timestamp', 'asc')), (snapshot) => {
+        if (snapshot.empty) { emptyEl.style.display = 'block'; return; }
+        emptyEl.style.display = 'none';
+        messagesEl.innerHTML = '';
+
+        snapshot.forEach(docSnap => {
+          const m = docSnap.data();
+          const div = document.createElement('div');
+          div.className = 'thread-msg';
+          div.innerHTML =
+            '<div class="thread-msg-meta">' +
+            '<span class="thread-msg-author">' + (m.authorName || m.authorEmail || 'Rep') + '</span>' +
+            '<span class="thread-msg-time">' + formatTimestamp(m.timestamp) + '</span>' +
+            '</div>' +
+            '<div class="thread-msg-text"></div>';
+          div.querySelector('.thread-msg-text').textContent = m.text || '';
+          messagesEl.appendChild(div);
+        });
+
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+
+      document.getElementById('threadSendBtn').addEventListener('click', async () => {
+        const input = document.getElementById('threadInput');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        await addDoc(threadRef, {
+          text: text, authorEmail: CURRENT_EMAIL, authorName: CURRENT_NAME, timestamp: serverTimestamp()
+        });
+      });
+
+      document.getElementById('threadInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById('threadSendBtn').click();
+        }
+      });
+    }
+
+    function initRepMessages() {
+      const { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
+      const db = window.db;
+      const thread = document.getElementById('msg-thread');
+      const input = document.getElementById('msg-input');
+      const sendBtn = document.getElementById('msg-send');
+      const empty = document.getElementById('msg-empty');
+
+      const msgQuery = query(collection(db, 'repMessages'), orderBy('timestamp', 'asc'));
+
+      onSnapshot(msgQuery, (snapshot) => {
+        const msgs = [];
+        snapshot.forEach(d => {
+          const data = d.data();
+          if (data.repEmail === CURRENT_EMAIL) msgs.push(data);
+        });
+
+        if (msgs.length === 0) { empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        thread.innerHTML = '';
+
+        msgs.forEach(msg => {
+          const bubble = document.createElement('div');
+          bubble.style.cssText = 'max-width:75%; align-self:' + (msg.sender === 'rep' ? 'flex-end' : 'flex-start') + ';';
+          bubble.innerHTML =
+            '<div style="font-size:11px; color:' + (msg.sender === 'joseph' ? '#C4922A' : 'rgba(245,245,243,0.4)') + '; padding:0 4px; margin-bottom:2px;">' +
+            (msg.sender === 'joseph' ? 'Joseph' : 'You') +
+            '</div>' +
+            '<div style="padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.6; background:' + (msg.sender === 'rep' ? '#2B5FA6' : 'rgba(255,255,255,0.08)') + '; border:' + (msg.sender === 'rep' ? 'none' : '1px solid rgba(255,255,255,0.10)') + ';"></div>';
+          bubble.querySelector('div:last-child').textContent = msg.text;
+          thread.appendChild(bubble);
+        });
+        thread.scrollTop = thread.scrollHeight;
+      });
+
+      sendBtn.addEventListener('click', async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        await addDoc(collection(db, 'repMessages'), {
+          text: text, sender: 'rep', repEmail: CURRENT_EMAIL, repName: CURRENT_NAME, timestamp: serverTimestamp()
+        });
+      });
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
+      });
+    }
+
+    function initArchives() {
+      const list = document.getElementById('archive-list');
+      list.innerHTML = '<div class="chart-card"><p style="font-size:13px; color:rgba(245,245,243,0.45);">Monthly archives will appear here starting next month\u2019s rollover.</p></div>';
+    }
+
+    function initDashboard() {
+      initLeadsTable();
+      initTeamThread();
+      initRepMessages();
+      initArchives();
+    }
+  </script>
+</body>
+</html>

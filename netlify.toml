@@ -4,6 +4,12 @@
 [[plugins]]
 package = "@netlify/plugin-functions-install-core"
 
+[[plugins]]
+  package = "netlify-plugin-inline-functions-env"
+
+  [plugins.inputs]
+  include = ["FIREBASE_SERVICE_ACCOUNT_KEY", "GOOGLE_SERVICE_ACCOUNT_KEY"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
