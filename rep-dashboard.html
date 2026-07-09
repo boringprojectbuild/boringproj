@@ -543,9 +543,9 @@
 
     async function bridgeToFirebase(netlifyUser) {
       try {
-        const res = await fetch('/.netlify/functions/mint-firebase-token', {
-          headers: { Authorization: 'Bearer ' + netlifyUser.token.access_token }
-        });
+        const res = await fetch('https://mintfirebasetoken-pu4cnee5tq-uc.a.run.app', {
+  headers: { Authorization: `Bearer ${netlifyUser.token.access_token}` }
+});
         const data = await res.json();
 
         if (!res.ok) {

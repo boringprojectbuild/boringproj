@@ -1,79 +1,41 @@
-// firestore.rules
-//
-// Add the "leads" section below into your existing Firestore rules file
-// (alongside whatever rules already govern "messages", "reports", etc.).
-// These rules only work because of the Netlify Identity → Firebase Auth
-// bridge (mint-firebase-token.js) — request.auth.token.role and
-// request.auth.token.email are the custom claims that function embeds.
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Existing rules for messages, reports, workcompleted, users ──
-    // (keep whatever is already here — not shown, not being touched)
-
-    // ── Team Discussion (live monthly thread, all reps + admin) ──
-    match /teamDiscussion/{msgId} {
-      allow read: if request.auth != null
-                  && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin');
-
-      allow create: if request.auth != null
-                    && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin')
-                    && request.resource.data.author == request.auth.token.email;
-
-      allow update, delete: if false; // permanent once posted
+    // ── Existing collections — unchanged from what's currently live ──
+    // Left exactly as permissive as before so the client portal keeps
+    // working with zero changes. (Worth tightening later by extending
+    // the same Netlify Identity -> Firebase Auth bridge to clients too,
+    // but that's a separate project from tonight's rep dashboard work.)
+    match /messages/{messageId} {
+      allow read, write: if true;
+    }
+    match /reports/{clientKey}/months/{monthId} {
+      allow read, write: if true;
+    }
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    match /workcompleted/{clientKey}/months/{monthId} {
+      allow read, write: if true;
     }
 
-    // ── Rep-to-Joseph private messages ──
-    // Each rep can only read/write their own thread (repEmail match);
-    // admin can read all threads.
-    match /repMessages/{msgId} {
-      allow read: if request.auth != null
-                  && (request.auth.token.role == 'admin'
-                      || resource.data.repEmail == request.auth.token.email);
-
-      allow create: if request.auth != null
-                    && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin')
-                    && request.resource.data.repEmail == request.auth.token.email;
-
-      allow update, delete: if false;
-    }
-
-    // ── Leads table ──
-    // Document ID = a normalized slug of the business name
-    // (e.g. "luxury-outdoor-tx"). Using the business name as the doc ID
-    // is what makes duplicate-blocking real: Firestore treats writing to
-    // an ID that already exists as an "update", not a "create" — so the
-    // rules below can allow create (new businesses) while blocking
-    // anyone but the owner/admin from touching an existing one.
+    // ── Leads table — real enforcement, via the Netlify -> Firebase
+    // custom-token auth bridge (mint-firebase-token) ──
     match /leads/{leadId} {
-
-      // Any logged-in rep or admin can view the full shared table —
-      // that visibility is the whole point (avoiding duplicate outreach).
       allow read: if request.auth != null
                   && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin');
 
-      // Creating a brand-new lead (this ID doesn't exist yet):
-      // any rep/admin can do this, but the addedByEmail field must match
-      // whoever is actually logged in — no impersonating another rep.
       allow create: if request.auth != null
                     && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin')
                     && request.resource.data.addedByEmail == request.auth.token.email;
 
-      // Updating an EXISTING lead's stage/notes/activeRep:
-      // only the original owner or an admin. This is the real
-      // "can't edit someone else's lead" enforcement — it can't be
-      // bypassed from the browser since Firestore checks this itself.
       allow update: if request.auth != null
                     && (request.auth.token.role == 'admin'
                         || resource.data.addedByEmail == request.auth.token.email);
 
       allow delete: if request.auth != null && request.auth.token.role == 'admin';
 
-      // ── Comments subcollection ──
-      // Open to any rep/admin regardless of who owns the parent lead —
-      // this is the "leave notes for each other" mechanism.
       match /comments/{commentId} {
         allow read: if request.auth != null
                     && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin');
@@ -82,10 +44,38 @@ service cloud.firestore {
                       && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin')
                       && request.resource.data.author == request.auth.token.email;
 
-        // Comments are permanent once posted — no edit/delete for now.
-        // (Easy to loosen later if you want authors to delete their own.)
         allow update, delete: if false;
       }
+    }
+
+    // ── Team discussion thread — any rep/admin can read and post ──
+    match /teamThread/{monthKey}/messages/{msgId} {
+      allow read: if request.auth != null
+                  && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin');
+
+      allow create: if request.auth != null
+                    && (request.auth.token.role == 'sales_rep' || request.auth.token.role == 'admin')
+                    && request.resource.data.authorEmail == request.auth.token.email;
+
+      allow update, delete: if false;
+    }
+
+    // ── Private rep <-> Joseph messages ──
+    match /repMessages/{msgId} {
+      // Reps can only see their own thread; admin sees all
+      allow read: if request.auth != null
+                  && (request.auth.token.role == 'admin'
+                      || resource.data.repEmail == request.auth.token.email);
+
+      allow create: if request.auth != null
+                    && (
+                      // Rep sending their own message
+                      (request.auth.token.role == 'sales_rep' && request.resource.data.repEmail == request.auth.token.email)
+                      // Admin replying into any rep's thread
+                      || request.auth.token.role == 'admin'
+                    );
+
+      allow update, delete: if false;
     }
   }
 }
