@@ -316,6 +316,16 @@
       bridgeToFirebase(user);
       document.location.href = '/rep-dashboard.html';
     });
+
+    netlifyIdentity.on('open', () => {
+      document.getElementById('authGate').style.display = 'none';
+    });
+
+    netlifyIdentity.on('close', () => {
+      if (!netlifyIdentity.currentUser()) {
+        document.getElementById('authGate').style.display = 'flex';
+      }
+    });
   </script>
 
   <script type="module">
