@@ -314,7 +314,6 @@
 
     netlifyIdentity.on('login', user => {
       bridgeToFirebase(user);
-      document.location.href = '/rep-dashboard.html';
     });
 
     netlifyIdentity.on('open', () => {
