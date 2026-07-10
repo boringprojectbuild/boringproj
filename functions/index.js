@@ -45,7 +45,7 @@ const USER_REGISTRY = {
 };
 
 exports.mintFirebaseToken = onRequest(
-    {cors: [SITE_URL]},
+    {cors: true},
     async (req, res) => {
       const authHeader = req.headers.authorization || "";
       const token = authHeader.startsWith("Bearer ") ?
