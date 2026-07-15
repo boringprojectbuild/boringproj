@@ -1151,11 +1151,30 @@
           return;
         }
         await signInWithCustomToken(auth, data.token);
+        startRepMessagesListener();
       } catch (err) {
         console.error('Reps auth bridge failed:', err);
       }
     }
-    window.bridgeRepsAuth = bridgeRepsAuth;
+
+    // ── Netlify Identity protection — gates the whole page, and bridges
+    // into Firebase Auth for the Reps view above. Lives here (rather than
+    // in the plain <script> below) so there's no cross-script timing
+    // dependency: module scripts are deferred and always run after classic
+    // scripts, so a handler in the bottom script calling into this one via
+    // window.* could fire before this code had defined anything. ──
+    netlifyIdentity.on('init', user => {
+      if (user) {
+        bridgeRepsAuth(user);
+      } else {
+        netlifyIdentity.open();
+      }
+    });
+
+    netlifyIdentity.on('login', user => {
+      bridgeRepsAuth(user);
+      document.location.href = '/admin.html';
+    });
 
     // ── Client registry — matches the client cards on the Clients tab ──
     const CLIENTS = {
@@ -1345,21 +1364,29 @@
       thread.scrollTop = thread.scrollHeight;
     }
 
-    const repMsgQuery = query(collection(db, 'repMessages'), orderBy('timestamp', 'asc'));
-    onSnapshot(repMsgQuery, (snapshot) => {
-      repMessagesCache = [];
-      for (const key in repsIndex) delete repsIndex[key];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        repMessagesCache.push(data);
-        if (data.repEmail && !repsIndex[data.repEmail]) repsIndex[data.repEmail] = data.repName || data.repEmail;
+    // Only attached once bridgeRepsAuth has actually signed us into Firebase
+    // Auth — attaching earlier races the async sign-in and Firestore rules
+    // reject the listener with permission-denied.
+    let repMessagesListenerStarted = false;
+    function startRepMessagesListener() {
+      if (repMessagesListenerStarted) return;
+      repMessagesListenerStarted = true;
+      const repMsgQuery = query(collection(db, 'repMessages'), orderBy('timestamp', 'asc'));
+      onSnapshot(repMsgQuery, (snapshot) => {
+        repMessagesCache = [];
+        for (const key in repsIndex) delete repsIndex[key];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          repMessagesCache.push(data);
+          if (data.repEmail && !repsIndex[data.repEmail]) repsIndex[data.repEmail] = data.repName || data.repEmail;
+        });
+        if (activeView === 'reps') {
+          renderRepTabs();
+          renderRepHeader();
+          renderRepThread();
+        }
       });
-      if (activeView === 'reps') {
-        renderRepTabs();
-        renderRepHeader();
-        renderRepThread();
-      }
-    });
+    }
 
     // ── Reports (Google Drive links) ──
     const REPORT_CLIENTS = Object.entries(CLIENTS).map(([email, info]) => ({ email, ...info }));
@@ -1624,20 +1651,6 @@
   </script>
 
   <script>
-    // Netlify Identity protection
-    netlifyIdentity.on('init', user => {
-      if (user) {
-        window.bridgeRepsAuth(user);
-      } else {
-        netlifyIdentity.open();
-      }
-    });
-
-    netlifyIdentity.on('login', user => {
-      window.bridgeRepsAuth(user);
-      document.location.href = '/admin.html';
-    });
-
     // Sidebar toggle
     const appLayout = document.getElementById('appLayout');
     const toggleBtn = document.getElementById('sidebarToggle');
