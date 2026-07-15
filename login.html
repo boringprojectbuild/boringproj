@@ -161,14 +161,41 @@
   </div>
 
   <script>
+    // Checks the logged-in user's role via mintFirebaseToken and routes to
+    // the matching portal. Clients aren't in USER_REGISTRY, so the function
+    // correctly returns a non-ok response for them — that (and any other
+    // failure) falls back to the client portal, fail-safe.
+    async function routeAfterAuth() {
+      try {
+        const freshToken = await netlifyIdentity.refresh();
+        const res = await fetch('https://mintfirebasetoken-pu4cnee5tq-uc.a.run.app', {
+          headers: { Authorization: `Bearer ${freshToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.role === 'admin') {
+            window.location.replace('/admin.html');
+            return;
+          }
+          if (data.role === 'sales_rep') {
+            window.location.replace('/rep-dashboard.html');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Role check failed, defaulting to client portal:', err);
+      }
+      window.location.replace('/portal-dashboard.html');
+    }
+
     netlifyIdentity.on('init', user => {
       if (user) {
-        window.location.replace('/portal-dashboard.html');
+        routeAfterAuth();
       }
     });
 
     netlifyIdentity.on('login', () => {
-      window.location.replace('/portal-dashboard.html');
+      routeAfterAuth();
     });
 
     document.getElementById('loginBtn').addEventListener('click', () => {
