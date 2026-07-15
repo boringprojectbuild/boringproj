@@ -39,6 +39,7 @@ const SITE_URL = "https://boringproj.com";
 // browser code. Add new reps here as they're onboarded.
 const USER_REGISTRY = {
   "boringprj210@gmail.com": {role: "admin", name: "Joseph Gutierrez"},
+  "gabeguti2020@gmail.com": {role: "sales_rep", name: "Gabriel Gutierrez"},
   // "rep1@example.com": { role: "sales_rep", name: "Rep One" },
   // "rep2@example.com": { role: "sales_rep", name: "Rep Two" },
   // "rep3@example.com": { role: "sales_rep", name: "Rep Three" },
