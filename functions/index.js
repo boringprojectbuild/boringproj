@@ -103,6 +103,7 @@ exports.mintFirebaseToken = onRequest(
           token: customToken,
           role: registryEntry.role,
           name: registryEntry.name,
+          email,
         });
       } catch (err) {
         console.error("mintFirebaseToken error:", err);

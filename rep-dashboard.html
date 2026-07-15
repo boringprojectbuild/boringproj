@@ -573,7 +573,7 @@
         await signInWithCustomToken(window.fbAuth, data.token);
 
         CURRENT_ROLE = data.role;
-        CURRENT_EMAIL = netlifyUser.email;
+        CURRENT_EMAIL = data.email;
         CURRENT_NAME = data.name;
 
         document.getElementById('profileName').textContent = CURRENT_NAME;
