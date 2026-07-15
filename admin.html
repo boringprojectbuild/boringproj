@@ -557,7 +557,7 @@
 
     /* Message client tabs */
     .msg-client-tabs { display: flex; gap: 8px; margin-bottom: 4px; }
-    .msg-client-tab {
+    .msg-client-tab, .msg-view-tab {
       padding: 8px 14px;
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
@@ -569,8 +569,8 @@
       cursor: pointer;
       transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
     }
-    .msg-client-tab:hover { color: var(--white); }
-    .msg-client-tab.active {
+    .msg-client-tab:hover, .msg-view-tab:hover { color: var(--white); }
+    .msg-client-tab.active, .msg-view-tab.active {
       background: rgba(196,146,42,0.13);
       border-color: rgba(196,146,42,0.3);
       color: var(--gold);
@@ -1041,10 +1041,18 @@
           <div class="page-sub">All client messages — reply as boring project.</div>
         </div>
 
+        <div class="msg-client-tabs" id="msgViewToggle">
+          <button class="msg-view-tab active" type="button" data-view="clients">Clients</button>
+          <button class="msg-view-tab" type="button" data-view="reps">Reps</button>
+        </div>
+
         <div class="msg-client-tabs" id="msgClientTabs">
           <button class="msg-client-tab active" data-email="luminaservices220@outlook.com">Lumina Cleaning Service</button>
           <button class="msg-client-tab" data-email="boringprj210@gmail.com">boring project.</button>
         </div>
+
+        <div class="msg-client-tabs" id="repClientTabs" style="display:none;"></div>
+        <p id="repTabsEmpty" style="display:none; font-size:12px; color:var(--muted); margin-bottom:4px;">No rep messages yet.</p>
 
         <div class="chart-card" style="display:flex; flex-direction:column; gap:16px;">
           <div>
@@ -1112,6 +1120,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
@@ -1124,6 +1133,29 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // ── Netlify Identity → Firebase Auth bridge, needed only to satisfy
+    // Firestore rules for the Reps view below. Independent of the page's
+    // own Netlify Identity gating further down — if this fails, only the
+    // Reps tab is affected; clients/reports/work-completed are untouched
+    // and keep working exactly as before. ──
+    async function bridgeRepsAuth(netlifyUser) {
+      try {
+        const res = await fetch('https://mintfirebasetoken-pu4cnee5tq-uc.a.run.app', {
+          headers: { Authorization: `Bearer ${netlifyUser.token.access_token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          console.error('Reps auth bridge: not authorized —', data.message);
+          return;
+        }
+        await signInWithCustomToken(auth, data.token);
+      } catch (err) {
+        console.error('Reps auth bridge failed:', err);
+      }
+    }
+    window.bridgeRepsAuth = bridgeRepsAuth;
 
     // ── Client registry — matches the client cards on the Clients tab ──
     const CLIENTS = {
@@ -1140,9 +1172,13 @@
     const clientNameEl = document.getElementById('admin-msg-client-name');
     const clientContactEl = document.getElementById('admin-msg-client-contact');
     const tabs = document.querySelectorAll('.msg-client-tab');
+    const msgClientTabsEl = document.getElementById('msgClientTabs');
+    const repTabsEl = document.getElementById('repClientTabs');
+    const repTabsEmptyEl = document.getElementById('repTabsEmpty');
 
     let activeClientEmail = DEFAULT_CLIENT_EMAIL;
     let unsubscribe = null;
+    let activeView = 'clients'; // 'clients' | 'reps'
 
     function renderClientHeader(email) {
       const info = CLIENTS[email];
@@ -1196,6 +1232,19 @@
       const text = input.value.trim();
       if (!text) return;
       input.value = '';
+
+      if (activeView === 'reps') {
+        if (!activeRepEmail) return;
+        await addDoc(collection(db, 'repMessages'), {
+          text,
+          sender: 'joseph',
+          repEmail: activeRepEmail,
+          repName: repsIndex[activeRepEmail] || activeRepEmail,
+          timestamp: serverTimestamp()
+        });
+        return;
+      }
+
       await addDoc(collection(db, 'messages'), {
         text,
         sender: 'joseph',
@@ -1208,6 +1257,107 @@
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendBtn.click();
+      }
+    });
+
+    // ── Messages view toggle: Clients (existing) vs Reps ──
+    document.querySelectorAll('#msgViewToggle .msg-view-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#msgViewToggle .msg-view-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeView = btn.dataset.view;
+
+        if (activeView === 'clients') {
+          msgClientTabsEl.style.display = 'flex';
+          repTabsEl.style.display = 'none';
+          repTabsEmptyEl.style.display = 'none';
+          renderClientHeader(activeClientEmail);
+          subscribeToClient(activeClientEmail);
+        } else {
+          if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+          msgClientTabsEl.style.display = 'none';
+          renderRepTabs();
+          renderRepHeader();
+          renderRepThread();
+        }
+      });
+    });
+
+    // ── Rep messages — tabs are built live from repMessages, not hardcoded ──
+    let activeRepEmail = null;
+    let repMessagesCache = [];
+    const repsIndex = {}; // repEmail -> repName
+
+    function renderRepTabs() {
+      const emails = Object.keys(repsIndex);
+      if (emails.length === 0) {
+        repTabsEl.style.display = 'none';
+        repTabsEmptyEl.style.display = 'block';
+        return;
+      }
+      repTabsEmptyEl.style.display = 'none';
+      repTabsEl.style.display = 'flex';
+      if (!activeRepEmail || !repsIndex[activeRepEmail]) activeRepEmail = emails[0];
+
+      repTabsEl.innerHTML = '';
+      emails.forEach(email => {
+        const btn = document.createElement('button');
+        btn.className = 'msg-client-tab' + (email === activeRepEmail ? ' active' : '');
+        btn.textContent = repsIndex[email];
+        btn.addEventListener('click', () => {
+          activeRepEmail = email;
+          renderRepTabs();
+          renderRepHeader();
+          renderRepThread();
+        });
+        repTabsEl.appendChild(btn);
+      });
+    }
+
+    function renderRepHeader() {
+      if (!activeRepEmail) {
+        clientNameEl.textContent = 'Reps';
+        clientContactEl.textContent = 'No rep messages yet.';
+        return;
+      }
+      clientNameEl.textContent = repsIndex[activeRepEmail];
+      clientContactEl.textContent = `${activeRepEmail} — active thread`;
+    }
+
+    function renderRepThread() {
+      const msgs = repMessagesCache.filter(m => m.repEmail === activeRepEmail);
+      if (msgs.length === 0) { empty.style.display = 'block'; thread.innerHTML = ''; thread.appendChild(empty); return; }
+      empty.style.display = 'none';
+      thread.innerHTML = '';
+      msgs.forEach(msg => {
+        const bubble = document.createElement('div');
+        bubble.className = `msg-bubble ${msg.sender === 'joseph' ? 'joseph' : 'client'}`;
+        const sender = document.createElement('span');
+        sender.className = 'msg-sender';
+        sender.textContent = msg.sender === 'joseph' ? 'You (boring project.)' : (repsIndex[activeRepEmail] || msg.repName || 'Rep');
+        const text = document.createElement('div');
+        text.className = 'msg-text';
+        text.textContent = msg.text;
+        bubble.appendChild(sender);
+        bubble.appendChild(text);
+        thread.appendChild(bubble);
+      });
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    const repMsgQuery = query(collection(db, 'repMessages'), orderBy('timestamp', 'asc'));
+    onSnapshot(repMsgQuery, (snapshot) => {
+      repMessagesCache = [];
+      for (const key in repsIndex) delete repsIndex[key];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        repMessagesCache.push(data);
+        if (data.repEmail && !repsIndex[data.repEmail]) repsIndex[data.repEmail] = data.repName || data.repEmail;
+      });
+      if (activeView === 'reps') {
+        renderRepTabs();
+        renderRepHeader();
+        renderRepThread();
       }
     });
 
@@ -1476,12 +1626,16 @@
   <script>
     // Netlify Identity protection
     netlifyIdentity.on('init', user => {
-      if (!user) {
-        netlifyIdentity.on('login', () => {
-          document.location.href = '/admin.html';
-        });
+      if (user) {
+        window.bridgeRepsAuth(user);
+      } else {
         netlifyIdentity.open();
       }
+    });
+
+    netlifyIdentity.on('login', user => {
+      window.bridgeRepsAuth(user);
+      document.location.href = '/admin.html';
     });
 
     // Sidebar toggle
