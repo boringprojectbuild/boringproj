@@ -331,7 +331,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot,
-      orderBy, query, serverTimestamp, updateDoc
+      orderBy, query, serverTimestamp, updateDoc, where
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithCustomToken
@@ -353,7 +353,7 @@
     window.db = db;
     window.fbAuth = auth;
     window.firestoreModules = {
-      collection, doc, getDoc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc
+      collection, doc, getDoc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where
     };
     window.authModules = { signInWithCustomToken };
   </script>
@@ -823,21 +823,22 @@
     }
 
     function initRepMessages() {
-      const { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
+      const { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp, where } = window.firestoreModules;
       const db = window.db;
       const thread = document.getElementById('msg-thread');
       const input = document.getElementById('msg-input');
       const sendBtn = document.getElementById('msg-send');
       const empty = document.getElementById('msg-empty');
 
-      const msgQuery = query(collection(db, 'repMessages'), orderBy('timestamp', 'asc'));
+      const msgQuery = query(
+        collection(db, 'repMessages'),
+        where('repEmail', '==', CURRENT_EMAIL),
+        orderBy('timestamp', 'asc')
+      );
 
       onSnapshot(msgQuery, (snapshot) => {
         const msgs = [];
-        snapshot.forEach(d => {
-          const data = d.data();
-          if (data.repEmail === CURRENT_EMAIL) msgs.push(data);
-        });
+        snapshot.forEach(d => msgs.push(d.data()));
 
         if (msgs.length === 0) { empty.style.display = 'block'; return; }
         empty.style.display = 'none';
