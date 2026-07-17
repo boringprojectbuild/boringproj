@@ -24,6 +24,8 @@
       --blue-light: #3a75c4;
       --gold: #C4922A;
       --gold-bright: #d4a035;
+      --teal: #2f8f82;
+      --coral: #b5695e;
       --white: #F5F5F3;
       --muted: rgba(245, 245, 243, 0.45);
       --danger: #e05555;
@@ -200,6 +202,32 @@
     body.light-mode .chart-card { background: rgba(255, 255, 255, 0.6); border-color: rgba(0, 0, 0, 0.08); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10); }
     .chart-title { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 3px; line-height: 1.3; }
     .chart-subtitle { font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 18px; }
+
+    .lb-list { display: flex; flex-direction: column; gap: 16px; }
+    .lb-row { display: flex; align-items: center; gap: 12px; }
+    .lb-rank { width: 18px; flex-shrink: 0; text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .lb-name {
+      width: 130px; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .lb-crown { width: 14px; height: 14px; color: var(--gold); flex-shrink: 0; }
+    .lb-bar-wrap { flex: 1; height: 8px; background: rgba(255, 255, 255, 0.07); border-radius: 20px; overflow: hidden; }
+    .lb-bar-fill { height: 100%; border-radius: 20px; transition: width 1s ease; }
+    .lb-count { width: 26px; flex-shrink: 0; text-align: right; font-size: 12px; color: var(--muted); }
+    .lb-pct { width: 42px; flex-shrink: 0; text-align: right; font-size: 13px; font-weight: 600; color: var(--white); }
+    .lb-empty { font-size: 12.5px; color: rgba(245, 245, 243, 0.4); text-align: center; padding: 12px 0; }
+
+    .award-card {
+      display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 16px;
+      background: rgba(196, 146, 42, 0.07); border: 1px solid rgba(196, 146, 42, 0.4);
+    }
+    .award-icon {
+      width: 36px; height: 36px; border-radius: 10px; background: rgba(196, 146, 42, 0.15); color: var(--gold);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .award-icon svg { width: 18px; height: 18px; }
+    .award-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
+    .award-name { font-size: 15px; font-weight: 600; color: var(--white); }
 
     .leads-layout {
       display: grid;
@@ -420,6 +448,14 @@
             </button>
           </li>
           <li>
+            <button class="nav-item" data-page="leaderboard" title="Leaderboard">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8v4a4 4 0 0 1-8 0V3z"/><path d="M6 4H3.5v1a3 3 0 0 0 2.5 3"/><path d="M14 4h2.5v1a3 3 0 0 1-2.5 3"/><line x1="10" y1="11" x2="10" y2="14.5"/><path d="M6.5 17h7"/><line x1="10" y1="14.5" x2="10" y2="17"/></svg>
+              </span>
+              <span class="nav-label">Leaderboard</span>
+            </button>
+          </li>
+          <li>
             <button class="nav-item" data-page="reports" title="Reports">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z"/><polyline points="12 2 12 6 16 6"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="11" y2="13"/></svg>
@@ -508,6 +544,31 @@
 
       </div>
     </main>
+
+    <section id="page-leaderboard" class="main-content" style="display:none;" aria-label="Leaderboard">
+      <div style="padding:24px; max-width:720px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:20px;">
+
+        <div class="chart-card">
+          <div class="chart-title" id="lbHeader">Leaderboard</div>
+          <div class="chart-subtitle">Ranked by Won leads this month.</div>
+
+          <div class="lb-list" id="lbList"></div>
+          <p class="lb-empty" id="lbEmpty" style="display:none;">No wins yet this month &mdash; first one takes the crown.</p>
+        </div>
+
+        <div class="award-card" id="lbPrevWinnerCard" style="display:none;">
+          <span class="award-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,18 4,9 9,13 12,6 15,13 20,9 20,18"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          </span>
+          <div>
+            <div class="award-title">Previous Winner</div>
+            <div class="award-name" id="lbPrevWinnerName"></div>
+          </div>
+        </div>
+        <p class="lb-empty" id="lbPrevWinnerEmpty" style="display:none;">No winner last month.</p>
+
+      </div>
+    </section>
 
     <section id="page-reports" class="main-content" style="display:none;" aria-label="Reports">
       <div style="padding:24px; max-width:960px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:16px;">
@@ -623,6 +684,7 @@
 
     const navItems = document.querySelectorAll('.nav-item');
     const mainContent = document.getElementById('main-content');
+    const leaderboardPage = document.getElementById('page-leaderboard');
     const reportsPage = document.getElementById('page-reports');
     const messagesPage = document.getElementById('page-messages');
 
@@ -633,11 +695,13 @@
         item.setAttribute('aria-current', 'page');
 
         mainContent.style.display = 'none';
+        leaderboardPage.style.display = 'none';
         reportsPage.style.display = 'none';
         messagesPage.style.display = 'none';
 
         const page = item.dataset.page;
         if (page === 'leads') mainContent.style.display = '';
+        else if (page === 'leaderboard') leaderboardPage.style.display = '';
         else if (page === 'reports') reportsPage.style.display = '';
         else if (page === 'messages') messagesPage.style.display = 'flex';
 
@@ -719,9 +783,12 @@
     }
 
     async function updateLeadStage(leadId, newStage) {
-      const { doc, updateDoc } = window.firestoreModules;
+      const { doc, updateDoc, serverTimestamp } = window.firestoreModules;
       try {
-        await updateDoc(doc(window.db, 'leads', leadId), { stage: newStage });
+        await updateDoc(doc(window.db, 'leads', leadId), {
+          stage: newStage,
+          wonAt: newStage === 'Won' ? serverTimestamp() : null
+        });
       } catch (err) {
         console.error('Failed to update stage:', err);
         alert('Could not update - you may not be the owner of this lead.');
@@ -872,6 +939,111 @@
       });
     }
 
+    const LB_CROWN_SVG = '<svg class="lb-crown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4,18 4,9 9,13 12,6 15,13 20,9 20,18"/><line x1="4" y1="18" x2="20" y2="18"/></svg>';
+    const LB_REP_COLOR_PALETTE = ['var(--gold)', 'var(--blue)', 'var(--teal)', 'var(--coral)'];
+    const lbRepColorMap = {};
+
+    function lbAssignColors(names) {
+      names.slice().sort().forEach(name => {
+        if (!lbRepColorMap[name]) {
+          const idx = Object.keys(lbRepColorMap).length % LB_REP_COLOR_PALETTE.length;
+          lbRepColorMap[name] = LB_REP_COLOR_PALETTE[idx];
+        }
+      });
+    }
+
+    function lbMonthRange(offsetMonths) {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth() + offsetMonths, 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + offsetMonths + 1, 1);
+      const label = start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      return { start, end, label };
+    }
+
+    function lbGroupWins(wins, start, end) {
+      const counts = {};
+      let total = 0;
+      wins.forEach(w => {
+        if (w.date >= start && w.date < end) {
+          counts[w.name] = (counts[w.name] || 0) + 1;
+          total++;
+        }
+      });
+      return { counts, total };
+    }
+
+    function renderLeaderboard(wins) {
+      const cur = lbMonthRange(0);
+      const prev = lbMonthRange(-1);
+
+      const curData = lbGroupWins(wins, cur.start, cur.end);
+      const prevData = lbGroupWins(wins, prev.start, prev.end);
+
+      lbAssignColors(Object.keys(curData.counts).concat(Object.keys(prevData.counts)));
+
+      document.getElementById('lbHeader').textContent = 'Leaderboard — ' + cur.label;
+
+      const listEl = document.getElementById('lbList');
+      const emptyEl = document.getElementById('lbEmpty');
+      const entries = Object.entries(curData.counts).sort((a, b) => b[1] - a[1]);
+
+      if (entries.length === 0) {
+        listEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+      } else {
+        emptyEl.style.display = 'none';
+        listEl.style.display = 'flex';
+        listEl.innerHTML = '';
+
+        entries.forEach(([name, count], i) => {
+          const pct = curData.total ? Math.round((count / curData.total) * 100) : 0;
+          const color = lbRepColorMap[name];
+          const row = document.createElement('div');
+          row.className = 'lb-row';
+          row.innerHTML =
+            '<span class="lb-rank">' + (i + 1) + '</span>' +
+            '<span class="lb-name">' + (i === 0 ? LB_CROWN_SVG : '') + '<span class="lb-name-text"></span></span>' +
+            '<span class="lb-bar-wrap"><span class="lb-bar-fill" style="width:' + pct + '%; background:' + color + ';"></span></span>' +
+            '<span class="lb-count">' + count + '</span>' +
+            '<span class="lb-pct">' + pct + '%</span>';
+          row.querySelector('.lb-name-text').textContent = name;
+          listEl.appendChild(row);
+        });
+      }
+
+      const prevEntries = Object.entries(prevData.counts).sort((a, b) => b[1] - a[1]);
+      const awardCard = document.getElementById('lbPrevWinnerCard');
+      const awardEmpty = document.getElementById('lbPrevWinnerEmpty');
+      const awardName = document.getElementById('lbPrevWinnerName');
+
+      if (prevEntries.length === 0) {
+        awardCard.style.display = 'none';
+        awardEmpty.style.display = 'block';
+      } else {
+        awardEmpty.style.display = 'none';
+        awardCard.style.display = 'flex';
+        awardName.textContent = 'King of Sales — ' + prev.label + ': ' + prevEntries[0][0];
+      }
+    }
+
+    function initLeaderboard() {
+      const { collection, query, where, onSnapshot } = window.firestoreModules;
+      const db = window.db;
+
+      const wonQuery = query(collection(db, 'leads'), where('stage', '==', 'Won'));
+
+      onSnapshot(wonQuery, (snapshot) => {
+        const wins = [];
+        snapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          if (d.wonAt && d.wonAt.toDate) {
+            wins.push({ name: d.addedByName || d.addedByEmail || 'Unknown', date: d.wonAt.toDate() });
+          }
+        });
+        renderLeaderboard(wins);
+      });
+    }
+
     function initArchives() {
       const list = document.getElementById('archive-list');
       list.innerHTML = '<div class="chart-card"><p style="font-size:13px; color:rgba(245,245,243,0.45);">Monthly archives will appear here starting next month\u2019s rollover.</p></div>';
@@ -881,6 +1053,7 @@
       initLeadsTable();
       initTeamThread();
       initRepMessages();
+      initLeaderboard();
       initArchives();
     }
   </script>
