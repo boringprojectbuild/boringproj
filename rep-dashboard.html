@@ -316,6 +316,149 @@
     .thread-send-btn { background: var(--gold); color: #000; font-weight: 600; font-size: 12.5px; border-radius: 10px; padding: 0 16px; flex-shrink: 0; }
     .thread-send-btn:hover { background: var(--gold-bright); }
 
+    /* ── Script tab — ported from cold-call-script-preview.html ── */
+    .wrap { max-width: 760px; margin: 0 auto; }
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .page-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+
+    .tens-card {
+      background: rgba(196,146,42,0.08);
+      border: 1px solid rgba(196,146,42,0.3);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+    .tens-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 10px;
+    }
+    .tens-body { font-size: 13px; line-height: 1.7; color: rgba(245,245,243,0.85); }
+    .tens-row { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+    .ten-pill {
+      flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 10px 12px; font-size: 12px;
+    }
+    .ten-pill b { display: block; color: var(--white); font-size: 12.5px; margin-bottom: 2px; }
+    .ten-pill span { color: var(--muted); }
+
+    .section-title { font-size: 15px; font-weight: 600; margin: 32px 0 4px; }
+    .section-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+
+    .phase-card { display: flex; flex-direction: column; gap: 14px; }
+    .phase-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .phase-badge {
+      display: inline-flex; align-items: center; gap: 8px; background: rgba(43,95,166,0.15);
+      border: 1px solid rgba(43,95,166,0.4); color: #6fa3e0; font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px;
+    }
+    .phase-name { font-size: 16px; font-weight: 600; color: var(--white); }
+    .phase-body { display: grid; grid-template-columns: 1fr 220px; gap: 16px; }
+    .script-text {
+      font-size: 13.5px; line-height: 1.75; color: rgba(245,245,243,0.9);
+      background: rgba(0,0,0,0.2); padding: 14px 16px;
+      border-left: 3px solid var(--gold); border-radius: 0 10px 10px 0;
+    }
+    .script-text i { color: var(--gold); font-style: italic; }
+    .annotation {
+      background: rgba(196,146,42,0.06); border: 1px solid rgba(196,146,42,0.25); border-radius: 10px;
+      padding: 12px 14px; font-size: 11.5px; line-height: 1.6; color: rgba(245,245,243,0.7);
+    }
+    .annotation b { display: block; color: var(--gold); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+    @media (max-width: 620px) { .phase-body { grid-template-columns: 1fr; } }
+
+    .alt-note {
+      background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 10px;
+      padding: 12px 16px; font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 4px;
+    }
+    .alt-note b { color: rgba(245,245,243,0.7); }
+
+    .timer-badge {
+      display: inline-flex; align-items: center; gap: 6px; background: rgba(224,85,85,0.13);
+      border: 1px solid rgba(224,85,85,0.35); color: #ff9f9f; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.04em; padding: 5px 12px; border-radius: 20px; margin-bottom: 16px;
+    }
+    .script-block {
+      font-size: 14px; line-height: 1.95; color: rgba(245,245,243,0.92);
+      background: rgba(0,0,0,0.22); border-radius: 12px; padding: 20px 22px;
+    }
+    .tag {
+      display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 5px; margin: 0 5px 2px 0; vertical-align: middle; position: relative; top: -1px;
+    }
+    .tag-1 { background: rgba(43,95,166,0.22); color: #7fabe0; }
+    .tag-2 { background: rgba(47,143,130,0.22); color: #6fc4b5; }
+    .tag-3 { background: rgba(196,146,42,0.22); color: var(--gold); }
+    .tag-4 { background: rgba(181,105,94,0.22); color: #e0958a; }
+    .tag-6 { background: rgba(76,175,130,0.2); color: #7fd8a8; }
+    .fill { color: var(--gold); font-style: italic; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 16px; font-size: 10.5px; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+    .word-math {
+      display: flex; gap: 20px; flex-wrap: wrap; margin-top: 14px; font-size: 11.5px; color: var(--muted);
+    }
+    .word-math b { color: var(--white); }
+
+    .note-card {
+      background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px;
+      padding: 14px 18px; font-size: 12px; color: var(--muted); line-height: 1.6; margin: 20px 0;
+    }
+
+    .loop-row { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+    .loop-step {
+      flex: 1; min-width: 140px; text-align: center; background: rgba(43,95,166,0.1); border: 1px solid rgba(43,95,166,0.3);
+      border-radius: 10px; padding: 12px 10px;
+    }
+    .loop-step b { display: block; font-size: 12.5px; color: var(--white); margin-bottom: 2px; }
+    .loop-step span { font-size: 10.5px; color: var(--muted); }
+    .loop-arrow { color: var(--muted); font-size: 18px; flex-shrink: 0; }
+
+    .obj-item { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .obj-item:last-child { border-bottom: none; }
+    .obj-q { font-size: 13px; font-weight: 600; color: var(--gold); margin-bottom: 6px; }
+    .obj-a { font-size: 12.5px; line-height: 1.65; color: rgba(245,245,243,0.8); }
+
+    .analogy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .analogy-item {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px;
+    }
+    .analogy-item.default { border-color: rgba(196,146,42,0.4); }
+    .analogy-name { font-size: 11.5px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
+    .analogy-item.default .analogy-name { color: var(--gold); }
+    .analogy-text { font-size: 12px; color: rgba(245,245,243,0.7); line-height: 1.55; }
+    @media (max-width: 620px) { .analogy-grid { grid-template-columns: 1fr; } }
+
+    .rules-list { display: flex; flex-direction: column; gap: 8px; }
+    .rule-row { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; line-height: 1.6; color: rgba(245,245,243,0.8); }
+    .rule-num { color: var(--gold); font-weight: 700; flex-shrink: 0; width: 18px; }
+
+    .email-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 12px;
+      padding: 18px 20px; margin-top: 14px;
+    }
+    .email-meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .email-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .email-tag.cc { background: rgba(43,95,166,0.15); color: #7fabe0; border: 1px solid rgba(43,95,166,0.35); }
+    .email-tag.thread { background: rgba(47,143,130,0.15); color: #6fc4b5; border: 1px solid rgba(47,143,130,0.35); }
+    .email-subject { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+    .email-subject b { color: var(--white); font-weight: 600; }
+    .email-body {
+      font-size: 12.5px; line-height: 1.8; color: rgba(245,245,243,0.9);
+      background: rgba(0,0,0,0.2); border-radius: 8px; padding: 14px 16px; white-space: pre-line;
+    }
+
     #authGate {
       position: fixed; inset: 0; z-index: 999; background: #0D0D0D; display: flex; align-items: center;
       justify-content: center; flex-direction: column; gap: 12px;
@@ -456,6 +599,14 @@
             </button>
           </li>
           <li>
+            <button class="nav-item" data-page="script" title="Script">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2H5.5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V6l-4.5-4z"/><polyline points="11 2 11 6 15.5 6"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="13" y2="13"/><line x1="7" y1="16" x2="10.5" y2="16"/></svg>
+              </span>
+              <span class="nav-label">Script</span>
+            </button>
+          </li>
+          <li>
             <button class="nav-item" data-page="reports" title="Reports">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z"/><polyline points="12 2 12 6 16 6"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="11" y2="13"/></svg>
@@ -566,6 +717,301 @@
           </div>
         </div>
         <p class="lb-empty" id="lbPrevWinnerEmpty" style="display:none;">No winner last month.</p>
+
+      </div>
+    </section>
+
+    <section id="page-script" class="main-content" style="display:none;" aria-label="Script">
+      <div class="wrap">
+
+        <div class="page-title">Cold call script</div>
+        <div class="page-sub">Straight line approach — we steer the call, we don't ask permission to steer it.</div>
+
+        <div class="tens-card">
+          <div class="tens-title">The 3 tens</div>
+          <div class="tens-body">Nobody says yes until they hit a 10 out of 10 on all three of these, at the same time. Everything below is built to move all three at once.</div>
+          <div class="tens-row">
+            <div class="ten-pill"><b>1. The product</b><span>The actual solution to their problem.</span></div>
+            <div class="ten-pill"><b>2. You</b><span>They trust you, believe you've got their back.</span></div>
+            <div class="ten-pill"><b>3. Boring project</b><span>The company behind you is legit.</span></div>
+          </div>
+        </div>
+
+
+        <div class="card">
+          <div style="font-size:16px; font-weight:600; margin-bottom:4px;">Before the script starts — human connection</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-bottom:16px;">Untimed. This happens first, every call, before anything below it. The 60 seconds doesn't start until you cut to the chase.</div>
+          <div class="script-block">
+            Hey, is this <span class="fill">[Lead Name]</span>?
+            <i style="color:var(--muted); font-size:12px;">&mdash; wait for yes</i><br><br>
+            Perfect, you're just the person I was looking for! How's your day going?
+            <i style="color:var(--muted); font-size:12px;">&mdash; let them answer, actually listen</i><br><br>
+            Oh good, same here. I'm going to cut to the chase&mdash;
+          </div>
+          <div class="annotation" style="margin-top:14px;">
+            <b>Why no company name yet</b>
+            A name they don't recognize is the fastest trigger for a hang up. This part is just two people talking, no identification of who's calling or why. That reveal waits until the timed script below, once the door's already open.
+            <br><br>
+            <b>Why this still counts as steering</b>
+            Confirming who you're talking to isn't optional information, and "how's your day" is a genuine human moment capped by however long they naturally take to answer. You're still the one who ends it. Cutting to the chase is announced, not requested.
+          </div>
+        </div>
+
+        <div class="section-title">Broken down, part by part</div>
+        <div class="section-sub">The same script, one phase at a time, so you can see what each piece is doing before running it as one continuous push.</div>
+
+        <div class="card phase-card">
+          <div class="phase-top">
+            <div class="phase-badge">Straight line step 1 — the hook</div>
+          </div>
+          <div class="phase-body">
+            <div class="script-text">
+              "I'd like to properly introduce myself — this is <i>[Your Name]</i>, I'm with Boring Project, we help local service businesses in San Antonio get found online, and stay found. This will only take sixty seconds. I found something on Google you need to know about."
+            </div>
+            <div class="annotation">
+              <b>Why this works</b>
+              Sharp, enthusiastic, expert, in the first four seconds. No "how are you," no small talk. "This will only take sixty seconds" is a statement, not a question, we're not asking if now's a good time.
+            </div>
+          </div>
+          <div class="alt-note"><b>Alternate opener you drafted:</b> "I'm with a local company here in San Antonio called Boring Project, a local web agency that builds and manages websites and online visibility for local service businesses like yours." More explicit up front, costs about 16 extra words. Either works, pick whichever feels more natural once you've said it out loud a few times.</div>
+        </div>
+
+        <div class="card phase-card">
+          <div class="phase-top">
+            <div class="phase-badge">Straight line step 2 — intelligence</div>
+          </div>
+          <div class="phase-body">
+            <div class="script-text">
+              "I searched "<i>[service] San Antonio</i>" this morning and you didn't show up on the first page. Your competitors did."
+            </div>
+            <div class="annotation">
+              <b>Why this works</b>
+              A fact, not a question. In a full conversation you'd ask and listen, here there's no time, so we state the pain point directly and move.
+            </div>
+          </div>
+        </div>
+
+        <div class="card phase-card">
+          <div class="phase-top">
+            <div class="phase-badge">Straight line step 3 — presentation</div>
+          </div>
+          <div class="phase-body">
+            <div class="script-text">
+              "Every day, someone in this city searches for exactly what you do. Right now, that call is going to someone else. Not because they're better. Just because they show up first. Think of it like your storefront sign is missing. People are walking by every day, they just can't find you."
+            </div>
+            <div class="annotation">
+              <b>Why this works</b>
+              Benefits, not features. Nobody cares about SEO as a concept, they care about the job that went somewhere else. This is where certainty on the problem builds toward a 10.
+            </div>
+          </div>
+        </div>
+
+        <div class="card phase-card">
+          <div class="phase-top">
+            <div class="phase-badge">Straight line step 4 — the pivot</div>
+          </div>
+          <div class="phase-body">
+            <div class="script-text">
+              "We don't just build your site, we manage it every month so it keeps growing instead of going stale. We charge a fraction of what a typical agency charges, and we never lock you into a contract."
+            </div>
+            <div class="annotation">
+              <b>Why this works</b>
+              No dollar figures. A number now anchors them to one tier before the audit even knows which one fits, and it's an easy detail for the brain to fixate on and later feel let down by. "Fraction of a typical agency" does the same job without writing a check we haven't diagnosed yet.
+            </div>
+          </div>
+        </div>
+
+        <div class="card phase-card">
+          <div class="phase-top">
+            <div class="phase-badge">Straight line step 6 — the close</div>
+          </div>
+          <div class="phase-body">
+            <div class="script-text">
+              "I actually already have an email for you on file, <i>[states the email]</i>, is that the one that reaches you best? So I can at the least send you a free audit that reviews your business's online visibility as a whole."
+            </div>
+            <div class="annotation">
+              <b>Why this beats "can I send you&hellip;"</b>
+              This isn't a request for permission, it's confirming a fact. The audit is happening either way, the only real variable is which inbox it lands in. "At the least" quietly signals more is coming, without saying the in-person ask out loud yet.
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Put together, all at once</div>
+        <div class="section-sub">This is how it actually gets said on a real call, one continuous push with no pauses between phases.</div>
+
+        <div class="card">
+          <div style="font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Untimed — human connection first</div>
+          <div class="script-block" style="opacity:0.75; margin-bottom:16px;">
+            Hey, is this <span class="fill">[Lead Name]</span>? Perfect, you're just the person I was looking for! How's your day going? Oh good, same here. I'm going to cut to the chase&mdash;
+          </div>
+          <span class="timer-badge">Clock starts here — about 60 seconds, spoken briskly</span>
+          <div class="script-block">
+            <span class="tag tag-1">Step 1</span>I'd like to properly introduce myself — this is <span class="fill">[Your Name]</span>, I'm with Boring Project, we help local service businesses in San Antonio get found online, and stay found.
+            <span class="tag tag-1">Step 1</span>This will only take sixty seconds.
+            <span class="tag tag-1">Step 1</span>I found something on Google you need to know about.
+            <span class="tag tag-2">Step 2</span>I searched "<span class="fill">[service] San Antonio</span>" this morning and you didn't show up on the first page. Your competitors did.
+            <span class="tag tag-3">Step 3</span>Every day, someone in this city searches for exactly what you do. Right now, that call is going to someone else. Not because they're better. Just because they show up first.
+            <span class="tag tag-3">Step 3</span>Think of it like your storefront sign is missing. People are walking by every day, they just can't find you.
+            <span class="tag tag-4">Step 4</span>We don't just build your site, we manage it every month so it keeps growing instead of going stale. We charge a fraction of what a typical agency charges, and we never lock you into a contract.
+            <span class="tag tag-6">Step 6</span>I actually already have an email for you on file, <span class="fill">[states the email]</span>, is that the one that reaches you best? So I can at the least send you a free audit that reviews your business's online visibility as a whole.
+          </div>
+          <div class="legend">
+            <span><i style="background:#7fabe0"></i>Hook</span>
+            <span><i style="background:#6fc4b5"></i>Intelligence</span>
+            <span><i style="background:#C4922A"></i>Presentation</span>
+            <span><i style="background:#e0958a"></i>Pivot</span>
+            <span><i style="background:#7fd8a8"></i>Close</span>
+          </div>
+          <div class="word-math">
+            <span><b>190 words</b>, timed portion only</span>
+            <span>at a brisk 160 wpm &asymp; <b>71 sec</b></span>
+            <span>at a normal 150 wpm &asymp; <b>76 sec</b></span>
+          </div>
+        </div>
+
+        <div class="note-card">
+          Being honest about the math: with the fuller close line included, this now runs closer to 70 seconds even at a brisk pace, past the original 60 second target. The 60 second discipline still matters, it's what keeps a rep from rambling, but the actual number here is closer to "just over a minute." If keeping it strictly under 60 matters more than the extra context in the close line, the pivot section (step 4) is the easiest place to trim it back.
+        </div>
+
+        <div class="card">
+          <div style="font-size:16px; font-weight:600; margin-bottom:4px;">After they answer — locking it in</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-bottom:16px;">Still not on the clock. This is what actually finishes the call once they've responded to the email question.</div>
+
+          <div class="obj-item">
+            <div class="obj-q">If the email is correct</div>
+            <div class="obj-a">"Perfect. That audit will be in your inbox within twenty-four hours. Once you've had a chance to look it over, I'd love to sit down with you in person and walk through exactly what we found and how we'd fix it, that's really where this gets real. I'll follow up once it's sent to find a time that works."</div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-q">If the email is wrong, or it's a front desk address</div>
+            <div class="obj-a">"No problem, what's the best email to reach you directly? Not the general office line, I want this landing with you, not someone else's inbox." <i style="color:var(--muted);">&mdash; then go straight into the same twenty-four hour and in-person line above.</i></div>
+          </div>
+
+          <div class="annotation" style="margin-top:4px;">
+            <b>Why we always mention meeting in person</b>
+            The call's job isn't to close the deal, it's to earn a real conversation. Committing to an in-person walkthrough is what proves we're confident enough in what we're offering to sit across the table and back it up, not just email a pitch and hope. Reps aren't expected to close over the phone, this is the actual next step.
+            <br><br>
+            <b>Why twenty-four hours, not "this week"</b>
+            Time is of the essence, that's the whole pitch. A specific, fast promise signals real business. A vague one sounds like every other call they've already ignored.
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:16px; font-weight:600; margin-bottom:4px;">Straight line step 5 — the loop</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-bottom:16px;">Everything below happens in reaction to them, after the 60 seconds. This part can't be timed, it depends on the lead.</div>
+          <div class="loop-row">
+            <div class="loop-step"><b>Deflect</b><span>Acknowledge it, don't fight it</span></div>
+            <div class="loop-arrow">&rarr;</div>
+            <div class="loop-step"><b>Loop back</b><span>Return to the core problem</span></div>
+            <div class="loop-arrow">&rarr;</div>
+            <div class="loop-step"><b>Resell the tens</b><span>Rebuild certainty, then re-ask</span></div>
+          </div>
+
+          <div class="obj-item">
+            <div class="obj-q">"I already have a website."</div>
+            <div class="obj-a">"That's great, when's the last time it was updated? Do you know where it ranks on Google? A site that exists but doesn't rank is like a phone that's always on silent. It's there, but nobody's getting through."</div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-q">"I get all my business from word of mouth."</div>
+            <div class="obj-a">"That means you do good work. But even your referrals Google you before they call. And word of mouth has a ceiling, Google doesn't."</div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-q">"I can't afford it right now."</div>
+            <div class="obj-a">"That's exactly why we price it the way we do, a fraction of what a typical agency charges, and no long contract. Once the audit's done, we'll show you exactly what fits your business, nothing guessed at. The real risk is staying invisible."</div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-q">"I need to think about it."</div>
+            <div class="obj-a">"The audit is already free and already done in twenty minutes. I'll get it to you either way, it's useful whether we work together or not."</div>
+          </div>
+        </div>
+
+        <div class="section-title">Analogy reference</div>
+        <div class="section-sub">The storefront sign is baked into the default script since it's fast to say. Swap in one of these once you're comfortable, if it fits the lead better.</div>
+        <div class="analogy-grid">
+          <div class="analogy-item default"><div class="analogy-name">Storefront sign (default)</div><div class="analogy-text">People walk by, see you're open, but don't know what you do. That's no Google presence.</div></div>
+          <div class="analogy-item"><div class="analogy-name">The work truck</div><div class="analogy-text">For trades. Your website is your truck, except it's parked on every street in San Antonio at once, all day.</div></div>
+          <div class="analogy-item"><div class="analogy-name">The phone book</div><div class="analogy-text">For referral skeptics. Google is the phone book now, except everyone checks it constantly.</div></div>
+          <div class="analogy-item"><div class="analogy-name">The best kept secret</div><div class="analogy-text">Fine for a hidden gem restaurant. Not fine for a business trying to grow.</div></div>
+          <div class="analogy-item"><div class="analogy-name">The first impression</div><div class="analogy-text">Someone looks you up before calling. What they find decides half the outcome before you pick up.</div></div>
+          <div class="analogy-item"><div class="analogy-name">The job that went elsewhere</div><div class="analogy-text">The demand already exists. It's just going to whoever shows up on Google first.</div></div>
+        </div>
+
+        <div class="section-title">Golden rules</div>
+        <div class="section-sub">Internalize these. They hold up on every call.</div>
+        <div class="rules-list">
+          <div class="rule-row"><span class="rule-num">01</span>Tell, don't ask. Every extra choice you hand the lead is control you just gave away.</div>
+          <div class="rule-row"><span class="rule-num">02</span>Sixty seconds, no pauses, no permission questions until the ask itself.</div>
+          <div class="rule-row"><span class="rule-num">03</span>Never quote an exact price on the first call. The audit decides which tier fits, not a guess.</div>
+          <div class="rule-row"><span class="rule-num">04</span>We build it and we manage it. Say both. One-time-build agencies are the competition, not us.</div>
+          <div class="rule-row"><span class="rule-num">05</span>Get a next step, not a yes. The ask is always for information, not approval.</div>
+          <div class="rule-row"><span class="rule-num">06</span>Leave real value even on a no. A free audit costs nothing and it's already promised.</div>
+          <div class="rule-row"><span class="rule-num">07</span>Follow up within 24 hours, every time. Most sales happen in the follow up.</div>
+          <div class="rule-row"><span class="rule-num">08</span>Know the business before you call. Google them first, walk in knowing the problem.</div>
+          <div class="rule-row"><span class="rule-num">09</span>Never trash the competition. Nod and pivot to what makes us different.</div>
+          <div class="rule-row"><span class="rule-num">10</span>Say "I'm with Boring Project," never "I run Boring Project." Only true for one person on the team.</div>
+          <div class="rule-row"><span class="rule-num">11</span>Human connection first, every call. Confirm the name, ask how their day's going, actually listen. Then announce the pivot yourself, don't ask if it's ok to continue.</div>
+          <div class="rule-row"><span class="rule-num">12</span>Confirm the email, don't ask permission to send it. A direct email beats a company inbox every time, that's who actually reads it.</div>
+          <div class="rule-row"><span class="rule-num">13</span>Always plant the in-person meeting. Twenty-four hours on the audit, no exceptions, time is of the essence.</div>
+        </div>
+
+
+        <div class="section-title">Next steps after the call</div>
+        <div class="section-sub">The call gets the door open. These two emails are what actually keep it open until Joseph's in the room.</div>
+
+        <div class="note-card">
+          Reminder: this whole process exists to get Joseph, the owner and the one actually building and managing these sites, in front of the lead in person. That in-person meeting is what leads to a real close, and the close is what the 20% commission is tied to. Every step here is building toward that one meeting, not trying to replace it.
+        </div>
+
+        <div class="card">
+          <div style="font-size:16px; font-weight:600; margin-bottom:4px;">1. The debrief email — send immediately after the call</div>
+          <div class="email-card">
+            <div class="email-meta-row">
+              <span class="email-tag cc">CC boringprj210@gmail.com</span>
+              <span class="email-tag thread">Reply in the existing thread if one exists, otherwise this starts it</span>
+            </div>
+            <div class="email-subject">Subject: <b>Thanks for the minute today, [Business Name]</b></div>
+            <div class="email-body">Hey [Name],
+
+Thanks for taking a minute to talk today. I'll have that free audit of [Business Name]'s online visibility over to you within 24 hours.
+
+Talk soon,
+[Rep Name]
+Boring Project</div>
+          </div>
+          <div class="annotation" style="margin-top:14px;">
+            <b>Why this matters</b>
+            This does two things. It's another certainty touchpoint, prompt and organized follow through is exactly what builds trust in you and the company, the second and third of the 3 Tens. And it sets a clock the lead can actually see. 24 hours is a promise, not a maybe, and a lead who's expecting something specific is still paying attention when it lands.
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:16px; font-weight:600; margin-bottom:4px;">2. The audit email — within 24 hours</div>
+          <div class="email-card">
+            <div class="email-meta-row">
+              <span class="email-tag cc">CC boringprj210@gmail.com</span>
+              <span class="email-tag thread">Always reply on the debrief email above, never a new thread</span>
+            </div>
+            <div class="email-subject">Subject: <i style="color:var(--muted);">none needed, this is a reply</i></div>
+            <div class="email-body">Hey [Name],
+
+As said, here's the free audit reviewing [Business Name]'s online visibility as a whole. I hope this helps.
+
+If you want to know more, I'd be happy to schedule a time that works best for you to sit down in person for a deeper dive into the audit, what we can do for you, and how it'd bring you real value.
+
+Talk soon,
+[Rep Name]
+Boring Project
+
+[attach the audit or paste the audit link here]</div>
+          </div>
+          <div class="annotation" style="margin-top:14px;">
+            <b>Why this matters</b>
+            This is the actual proof, the moment the pitch becomes something real instead of a promise. Notice the only ask here is the in-person meeting, that's on purpose. This call was never meant to close the deal on its own, it's meant to earn a seat at their table. Once Joseph is actually in the room walking through the audit and answering real questions, that's where the close happens.
+          </div>
+        </div>
+
+        <div class="note-card">
+          One more thing, worth repeating everywhere: never mention AI, on the call or in either email. If someone asks how we build this fast, the answer is "we build faster, more efficient, and for a fraction of the cost," full stop, nothing about how. AI is a detail that scares people more than it reassures them, the client only cares about the outcome.
+        </div>
 
       </div>
     </section>
@@ -685,6 +1131,7 @@
     const navItems = document.querySelectorAll('.nav-item');
     const mainContent = document.getElementById('main-content');
     const leaderboardPage = document.getElementById('page-leaderboard');
+    const scriptPage = document.getElementById('page-script');
     const reportsPage = document.getElementById('page-reports');
     const messagesPage = document.getElementById('page-messages');
 
@@ -696,12 +1143,14 @@
 
         mainContent.style.display = 'none';
         leaderboardPage.style.display = 'none';
+        scriptPage.style.display = 'none';
         reportsPage.style.display = 'none';
         messagesPage.style.display = 'none';
 
         const page = item.dataset.page;
         if (page === 'leads') mainContent.style.display = '';
         else if (page === 'leaderboard') leaderboardPage.style.display = '';
+        else if (page === 'script') scriptPage.style.display = '';
         else if (page === 'reports') reportsPage.style.display = '';
         else if (page === 'messages') messagesPage.style.display = 'flex';
 
