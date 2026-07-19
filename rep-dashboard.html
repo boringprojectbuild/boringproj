@@ -135,7 +135,7 @@
     .app-layout.collapsed .sidebar { width: var(--sidebar-w-c); }
 
     .main-content {
-      flex: 1; overflow-y: auto; overflow-x: hidden; min-width: 0; padding: 24px;
+      position: relative; flex: 1; overflow-y: auto; overflow-x: hidden; min-width: 0; padding: 24px;
       scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent;
     }
     .main-content::-webkit-scrollbar { width: 5px; }
@@ -186,22 +186,8 @@
     }
     .nav-item:hover { color: var(--gold); background: rgba(196, 146, 42, 0.08); }
     .nav-item.active { color: var(--gold); background: rgba(196, 146, 42, 0.13); }
-    .nav-item-locked { opacity: 0.4; cursor: not-allowed; }
-    .nav-item-locked:hover { color: rgba(245, 245, 243, 0.55); background: none; }
     body.light-mode .nav-item { color: rgba(13, 13, 13, 0.5); }
     body.light-mode .nav-item:hover, body.light-mode .nav-item.active { color: var(--gold); background: rgba(196, 146, 42, 0.1); }
-    body.light-mode .nav-item-locked:hover { color: rgba(13, 13, 13, 0.5); background: none; }
-
-    .locked-toast {
-      position: fixed; left: 16px; bottom: 24px; z-index: 200; max-width: 260px;
-      background: rgba(13, 13, 13, 0.94); border: 1px solid rgba(196, 146, 42, 0.35);
-      color: var(--gold); font-size: 12.5px; font-weight: 500; line-height: 1.4;
-      padding: 10px 16px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-      opacity: 0; transform: translateY(6px); pointer-events: none; cursor: pointer;
-      transition: opacity var(--t-mid), transform var(--t-mid);
-    }
-    .locked-toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    body.light-mode .locked-toast { background: rgba(245, 245, 243, 0.96); color: var(--gold); border-color: rgba(196, 146, 42, 0.4); }
     .nav-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
     .nav-icon svg { width: 18px; height: 18px; }
     .nav-label { flex: 1; overflow: hidden; max-width: 160px; transition: max-width var(--t-slow), opacity var(--t-mid); }
@@ -250,6 +236,20 @@
       align-items: start;
       height: calc(100vh - var(--header-h) - 48px);
     }
+    .leads-layout.leads-lock-blur { filter: blur(6px); pointer-events: none; user-select: none; }
+
+    .leads-lock-overlay {
+      position: absolute; inset: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .leads-lock-card { max-width: 360px; width: 100%; padding: 28px 26px; text-align: center; }
+    .leads-lock-title { font-size: 17px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .leads-lock-text { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 18px; }
+    .leads-lock-btn {
+      background: var(--gold); color: #000; font-weight: 600; font-size: 13px;
+      border-radius: 8px; padding: 10px 22px; transition: background var(--t-fast);
+    }
+    .leads-lock-btn:hover { background: var(--gold-bright); }
 
     .leads-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; height: 100%; }
     .leads-table-card { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
@@ -657,8 +657,6 @@
       </nav>
     </aside>
 
-    <div id="lockedToast" class="locked-toast" role="status" aria-live="polite"></div>
-
     <main class="main-content" id="main-content" aria-label="Leads" tabindex="-1">
       <div class="leads-layout">
 
@@ -726,6 +724,14 @@
           </div>
         </div>
 
+      </div>
+
+      <div class="leads-lock-overlay" id="leadsLockOverlay" style="display:none;">
+        <div class="leads-lock-card glass">
+          <div class="leads-lock-title">Complete Training to Unlock Leads</div>
+          <p class="leads-lock-text">Finish your training modules to get full access to your leads table.</p>
+          <button class="leads-lock-btn" id="leadsLockGoToTraining">Go to Training</button>
+        </div>
       </div>
     </main>
 
@@ -1173,22 +1179,6 @@ Boring Project
       document.getElementById('themeIconLight').style.display = isLight ? '' : 'none';
     });
 
-    let lockedToastTimer = null;
-    function showLockedToast(message) {
-      const toastEl = document.getElementById('lockedToast');
-      if (!toastEl) return;
-
-      toastEl.textContent = message;
-      toastEl.classList.add('visible');
-
-      clearTimeout(lockedToastTimer);
-      lockedToastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2500);
-    }
-    document.getElementById('lockedToast').addEventListener('click', () => {
-      clearTimeout(lockedToastTimer);
-      document.getElementById('lockedToast').classList.remove('visible');
-    });
-
     const navItems = document.querySelectorAll('.nav-item');
     const mainContent = document.getElementById('main-content');
     const trainingPage = document.getElementById('page-training');
@@ -1199,11 +1189,6 @@ Boring Project
 
     navItems.forEach(item => {
       item.addEventListener('click', () => {
-        if (item.dataset.page === 'leads' && item.classList.contains('nav-item-locked')) {
-          showLockedToast('Complete training to unlock Leads.');
-          return;
-        }
-
         navItems.forEach(n => { n.classList.remove('active'); n.removeAttribute('aria-current'); });
         item.classList.add('active');
         item.setAttribute('aria-current', 'page');
@@ -1225,6 +1210,11 @@ Boring Project
 
         if (isMobile()) closeSidebar();
       });
+    });
+
+    document.getElementById('leadsLockGoToTraining').addEventListener('click', () => {
+      const trainingNavItem = document.querySelector('.nav-item[data-page="training"]');
+      if (trainingNavItem) trainingNavItem.click();
     });
 
     logoutBtn.addEventListener('click', () => { netlifyIdentity.logout(); });
@@ -1614,16 +1604,13 @@ Boring Project
     }
 
     function applyLeadAccessGate() {
-      const leadsNavItem = document.querySelector('.nav-item[data-page="leads"]');
-      if (!leadsNavItem) return;
+      const leadsLayout = document.querySelector('.leads-layout');
+      const overlay = document.getElementById('leadsLockOverlay');
+      if (!leadsLayout || !overlay) return;
 
       const granted = !!(TRAINING_PROGRESS && TRAINING_PROGRESS.leadAccessGranted);
-      leadsNavItem.classList.toggle('nav-item-locked', !granted);
-
-      if (!granted && leadsNavItem.classList.contains('active')) {
-        const trainingNavItem = document.querySelector('.nav-item[data-page="training"]');
-        if (trainingNavItem) trainingNavItem.click();
-      }
+      leadsLayout.classList.toggle('leads-lock-blur', !granted);
+      overlay.style.display = granted ? 'none' : 'flex';
     }
 
     function initDashboard() {
