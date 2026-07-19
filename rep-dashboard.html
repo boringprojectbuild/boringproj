@@ -459,6 +459,15 @@
       background: rgba(0,0,0,0.2); border-radius: 8px; padding: 14px 16px; white-space: pre-line;
     }
 
+    /* ── Training tab — skeleton only, content to follow ── */
+    .training-wrap { max-width: 720px; margin: 0 auto; padding: 24px; width: 100%; }
+    .training-card {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px; padding: 22px 24px;
+    }
+    .training-title { font-size: 20px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+    .training-text { font-size: 13px; color: var(--muted); }
+
     #authGate {
       position: fixed; inset: 0; z-index: 999; background: #0D0D0D; display: flex; align-items: center;
       justify-content: center; flex-direction: column; gap: 12px;
@@ -591,6 +600,14 @@
             </button>
           </li>
           <li>
+            <button class="nav-item" data-page="training" title="Training">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 1 7l9 4 9-4-9-4z"/><path d="M5 9v4c0 1.1 2.2 2 5 2s5-.9 5-2V9"/><path d="M17 8v5"/></svg>
+              </span>
+              <span class="nav-label">Training</span>
+            </button>
+          </li>
+          <li>
             <button class="nav-item" data-page="leaderboard" title="Leaderboard">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8v4a4 4 0 0 1-8 0V3z"/><path d="M6 4H3.5v1a3 3 0 0 0 2.5 3"/><path d="M14 4h2.5v1a3 3 0 0 1-2.5 3"/><line x1="10" y1="11" x2="10" y2="14.5"/><path d="M6.5 17h7"/><line x1="10" y1="14.5" x2="10" y2="17"/></svg>
@@ -695,6 +712,15 @@
 
       </div>
     </main>
+
+    <section id="page-training" class="main-content" style="display:none;" aria-label="Training">
+      <div class="training-wrap">
+        <div class="training-card">
+          <div class="training-title">Training</div>
+          <p class="training-text">Training module content coming soon.</p>
+        </div>
+      </div>
+    </section>
 
     <section id="page-leaderboard" class="main-content" style="display:none;" aria-label="Leaderboard">
       <div style="padding:24px; max-width:720px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:20px;">
@@ -1130,6 +1156,7 @@ Boring Project
 
     const navItems = document.querySelectorAll('.nav-item');
     const mainContent = document.getElementById('main-content');
+    const trainingPage = document.getElementById('page-training');
     const leaderboardPage = document.getElementById('page-leaderboard');
     const scriptPage = document.getElementById('page-script');
     const reportsPage = document.getElementById('page-reports');
@@ -1142,6 +1169,7 @@ Boring Project
         item.setAttribute('aria-current', 'page');
 
         mainContent.style.display = 'none';
+        trainingPage.style.display = 'none';
         leaderboardPage.style.display = 'none';
         scriptPage.style.display = 'none';
         reportsPage.style.display = 'none';
@@ -1149,6 +1177,7 @@ Boring Project
 
         const page = item.dataset.page;
         if (page === 'leads') mainContent.style.display = '';
+        else if (page === 'training') trainingPage.style.display = '';
         else if (page === 'leaderboard') leaderboardPage.style.display = '';
         else if (page === 'script') scriptPage.style.display = '';
         else if (page === 'reports') reportsPage.style.display = '';
