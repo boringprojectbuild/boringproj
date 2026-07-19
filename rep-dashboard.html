@@ -2077,19 +2077,37 @@ Boring Project
     }
 
     function renderTrainingPass(container, view) {
-      const num = TRAINING_MODULE_IDS.indexOf(view.moduleId) + 1;
+      const idx = TRAINING_MODULE_IDS.indexOf(view.moduleId);
+      const num = idx + 1;
+      const nextId = TRAINING_MODULE_IDS[idx + 1];
+      const nextHasContent = !!(nextId && TRAINING_MODULES[nextId]);
+
+      const backBtnClass = nextHasContent ? 'training-result-btn-secondary' : 'training-result-btn';
+      const nextBtnHtml = nextHasContent
+        ? '<button type="button" class="training-result-btn" id="trainingNextModuleBtn">Next Module →</button>'
+        : '';
 
       container.innerHTML =
         '<div class="training-card training-result-card">' +
           '<div class="training-result-title">Module ' + num + ' complete!</div>' +
           '<p class="training-result-text">You scored ' + view.score + ' out of ' + view.total + '. Nice work — the next module is unlocked.</p>' +
-          '<button type="button" class="training-result-btn" id="trainingBackToListFromResult">Back to Modules</button>' +
+          '<div class="training-result-btn-row">' +
+            '<button type="button" class="' + backBtnClass + '" id="trainingBackToListFromResult">Back to Modules</button>' +
+            nextBtnHtml +
+          '</div>' +
         '</div>';
 
       document.getElementById('trainingBackToListFromResult').addEventListener('click', () => {
         trainingViewState = { screen: 'list' };
         renderTrainingTab();
       });
+
+      if (nextHasContent) {
+        document.getElementById('trainingNextModuleBtn').addEventListener('click', () => {
+          trainingViewState = { screen: 'lesson', moduleId: nextId };
+          renderTrainingTab();
+        });
+      }
     }
 
     function renderTrainingFail(container, view) {
