@@ -562,6 +562,16 @@
     }
     .training-result-btn-secondary:hover { background: rgba(255,255,255,0.1); }
 
+    .training-chart-wrap { display: flex; flex-direction: column; gap: 12px; margin-bottom: 26px; text-align: left; }
+    .training-chart-row { display: flex; align-items: center; gap: 12px; }
+    .training-chart-label {
+      flex: 0 0 190px; font-size: 12px; color: var(--white); overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .training-chart-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; }
+    .training-chart-bar-fill { display: block; height: 100%; border-radius: 20px; transition: width 1s ease; }
+    .training-chart-score { flex: 0 0 38px; text-align: right; font-size: 12px; font-weight: 600; color: var(--muted); }
+
     #authGate {
       position: fixed; inset: 0; z-index: 999; background: #0D0D0D; display: flex; align-items: center;
       justify-content: center; flex-direction: column; gap: 12px;
@@ -1824,11 +1834,13 @@ Boring Project
       else if (view.screen === 'quiz') renderTrainingQuiz(container);
       else if (view.screen === 'pass') renderTrainingPass(container, view);
       else if (view.screen === 'fail') renderTrainingFail(container, view);
+      else if (view.screen === 'course-complete') renderCourseComplete(container);
       else renderTrainingModuleList(container);
     }
 
     function renderTrainingModuleList(container) {
       const progressModules = (TRAINING_PROGRESS && TRAINING_PROGRESS.modules) || {};
+      const courseComplete = !!(TRAINING_PROGRESS && TRAINING_PROGRESS.courseCompletedAt);
 
       const cardsHtml = TRAINING_MODULE_IDS.map((id, i) => {
         const num = i + 1;
@@ -1836,7 +1848,7 @@ Boring Project
         const status = progress.status || 'locked';
         const content = TRAINING_MODULES[id];
         const title = content ? content.title : ('Module ' + num);
-        const clickable = !!content && (status === 'unlocked' || status === 'in_progress' || status === 'passed');
+        const clickable = !!content && (courseComplete || status === 'unlocked' || status === 'in_progress' || status === 'passed');
         const statusClass = 'training-module-' + status.replace(/_/g, '-');
         const statusLabel = status === 'passed' ? 'Passed'
           : status === 'in_progress' ? 'In Progress'
@@ -1853,16 +1865,23 @@ Boring Project
         );
       }).join('');
 
+      const subtitle = courseComplete
+        ? 'All modules complete — jump back into any of them anytime as a reference.'
+        : 'Complete each module in order to unlock the next. You need 4 out of 5 (80%) to pass.';
+
       container.innerHTML =
         '<div class="training-card">' +
           '<div class="training-title">Training</div>' +
-          '<p class="training-text">Complete each module in order to unlock the next. You need 4 out of 5 (80%) to pass.</p>' +
+          '<p class="training-text">' + subtitle + '</p>' +
           '<div class="training-module-grid">' + cardsHtml + '</div>' +
         '</div>';
 
       container.querySelectorAll('.training-module-card[data-module-id]').forEach(btn => {
         btn.addEventListener('click', () => {
           if (btn.disabled) return;
+          // Free-roam (courseComplete) or normal progression both land on the
+          // lesson view here — this handler never routes into startTrainingQuiz,
+          // so a free-roam click can't accidentally kick off a quiz attempt.
           trainingViewState = { screen: 'lesson', moduleId: btn.dataset.moduleId };
           renderTrainingTab();
         });
@@ -2025,6 +2044,8 @@ Boring Project
       const modProgress = TRAINING_PROGRESS.modules[moduleId];
       const newAttempts = modProgress.attempts + 1;
       const newScores = modProgress.scores.concat([score]);
+      const isLastModule = moduleId === TRAINING_MODULE_IDS[TRAINING_MODULE_IDS.length - 1];
+      const isCourseComplete = passed && isLastModule;
 
       const updates = {};
       updates['modules.' + moduleId + '.attempts'] = newAttempts;
@@ -2042,6 +2063,10 @@ Boring Project
         if (nextId && TRAINING_PROGRESS.modules[nextId] && TRAINING_PROGRESS.modules[nextId].status === 'locked') {
           updates['modules.' + nextId + '.status'] = 'unlocked';
           unlockedNextId = nextId;
+        }
+
+        if (isCourseComplete) {
+          updates.courseCompletedAt = serverTimestamp();
         }
       } else {
         if (modProgress.status === 'unlocked') {
@@ -2064,15 +2089,18 @@ Boring Project
       if (passed) {
         modProgress.status = 'passed';
         if (unlockedNextId) TRAINING_PROGRESS.modules[unlockedNextId].status = 'unlocked';
+        if (isCourseComplete) TRAINING_PROGRESS.courseCompletedAt = new Date();
       } else {
         if (modProgress.status === 'unlocked') modProgress.status = 'in_progress';
         if (newAttempts >= 3) modProgress.flaggedForJoseph = true;
       }
 
       trainingQuizState = null;
-      trainingViewState = passed
-        ? { screen: 'pass', moduleId: moduleId, score: score, total: total }
-        : { screen: 'fail', moduleId: moduleId, score: score, total: total };
+      trainingViewState = isCourseComplete
+        ? { screen: 'course-complete' }
+        : passed
+          ? { screen: 'pass', moduleId: moduleId, score: score, total: total }
+          : { screen: 'fail', moduleId: moduleId, score: score, total: total };
       renderTrainingTab();
     }
 
@@ -2128,6 +2156,46 @@ Boring Project
       document.getElementById('trainingTryAgainBtn').addEventListener('click', () => {
         startTrainingQuiz(view.moduleId);
       });
+    }
+
+    function renderCourseComplete(container) {
+      const progressModules = (TRAINING_PROGRESS && TRAINING_PROGRESS.modules) || {};
+
+      const rowsHtml = TRAINING_MODULE_IDS.map((id, i) => {
+        const num = i + 1;
+        const content = TRAINING_MODULES[id];
+        const title = content ? content.title : ('Module ' + num);
+        const scores = (progressModules[id] && progressModules[id].scores) || [];
+        const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+        const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
+        const color = avg >= 4.5 ? 'var(--gold)' : avg >= 3.5 ? 'var(--blue)' : 'var(--coral)';
+
+        return (
+          '<div class="training-chart-row">' +
+            '<span class="training-chart-label">Module ' + num + ' — ' + title + '</span>' +
+            '<span class="training-chart-bar-track"><span class="training-chart-bar-fill" style="width:' + pct + '%; background:' + color + ';"></span></span>' +
+            '<span class="training-chart-score">' + avg.toFixed(1) + '/5</span>' +
+          '</div>'
+        );
+      }).join('');
+
+      container.innerHTML =
+        '<div class="training-card training-result-card">' +
+          '<div class="training-chart-wrap">' + rowsHtml + '</div>' +
+          '<div class="training-result-title">You\'ve unlocked your future here at boring project.</div>' +
+          '<p class="training-result-text">Every module complete. Time to put it to work.</p>' +
+          '<button type="button" class="training-result-btn" id="trainingWalkthroughBtn">Get started with walkthrough</button>' +
+        '</div>';
+
+      document.getElementById('trainingWalkthroughBtn').addEventListener('click', () => {
+        startPortalWalkthrough();
+      });
+    }
+
+    function startPortalWalkthrough() {
+      // TODO: Phase 7 will implement the guided portal tour here
+      trainingViewState = { screen: 'list' };
+      renderTrainingTab();
     }
 
     function initDashboard() {
