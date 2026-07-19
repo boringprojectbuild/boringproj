@@ -186,8 +186,22 @@
     }
     .nav-item:hover { color: var(--gold); background: rgba(196, 146, 42, 0.08); }
     .nav-item.active { color: var(--gold); background: rgba(196, 146, 42, 0.13); }
+    .nav-item-locked { opacity: 0.4; cursor: not-allowed; }
+    .nav-item-locked:hover { color: rgba(245, 245, 243, 0.55); background: none; }
     body.light-mode .nav-item { color: rgba(13, 13, 13, 0.5); }
     body.light-mode .nav-item:hover, body.light-mode .nav-item.active { color: var(--gold); background: rgba(196, 146, 42, 0.1); }
+    body.light-mode .nav-item-locked:hover { color: rgba(13, 13, 13, 0.5); background: none; }
+
+    .locked-toast {
+      position: fixed; left: 16px; bottom: 24px; z-index: 200; max-width: 260px;
+      background: rgba(13, 13, 13, 0.94); border: 1px solid rgba(196, 146, 42, 0.35);
+      color: var(--gold); font-size: 12.5px; font-weight: 500; line-height: 1.4;
+      padding: 10px 16px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      opacity: 0; transform: translateY(6px); pointer-events: none; cursor: pointer;
+      transition: opacity var(--t-mid), transform var(--t-mid);
+    }
+    .locked-toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    body.light-mode .locked-toast { background: rgba(245, 245, 243, 0.96); color: var(--gold); border-color: rgba(196, 146, 42, 0.4); }
     .nav-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
     .nav-icon svg { width: 18px; height: 18px; }
     .nav-label { flex: 1; overflow: hidden; max-width: 160px; transition: max-width var(--t-slow), opacity var(--t-mid); }
@@ -643,6 +657,8 @@
       </nav>
     </aside>
 
+    <div id="lockedToast" class="locked-toast" role="status" aria-live="polite"></div>
+
     <main class="main-content" id="main-content" aria-label="Leads" tabindex="-1">
       <div class="leads-layout">
 
@@ -1081,6 +1097,7 @@ Boring Project
     let CURRENT_ROLE = null;
     let CURRENT_EMAIL = null;
     let CURRENT_NAME = null;
+    let TRAINING_PROGRESS = null;
 
     function showAuthError(message) {
       document.getElementById('authGateMsg').style.display = 'none';
@@ -1111,6 +1128,8 @@ Boring Project
 
         document.getElementById('profileName').textContent = CURRENT_NAME;
         document.getElementById('profileAvatar').textContent = CURRENT_NAME.charAt(0).toUpperCase();
+
+        await initTrainingProgress();
 
         document.getElementById('authGate').style.display = 'none';
         initDashboard();
@@ -1154,6 +1173,22 @@ Boring Project
       document.getElementById('themeIconLight').style.display = isLight ? '' : 'none';
     });
 
+    let lockedToastTimer = null;
+    function showLockedToast(message) {
+      const toastEl = document.getElementById('lockedToast');
+      if (!toastEl) return;
+
+      toastEl.textContent = message;
+      toastEl.classList.add('visible');
+
+      clearTimeout(lockedToastTimer);
+      lockedToastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2500);
+    }
+    document.getElementById('lockedToast').addEventListener('click', () => {
+      clearTimeout(lockedToastTimer);
+      document.getElementById('lockedToast').classList.remove('visible');
+    });
+
     const navItems = document.querySelectorAll('.nav-item');
     const mainContent = document.getElementById('main-content');
     const trainingPage = document.getElementById('page-training');
@@ -1164,6 +1199,11 @@ Boring Project
 
     navItems.forEach(item => {
       item.addEventListener('click', () => {
+        if (item.dataset.page === 'leads' && item.classList.contains('nav-item-locked')) {
+          showLockedToast('Complete training to unlock Leads.');
+          return;
+        }
+
         navItems.forEach(n => { n.classList.remove('active'); n.removeAttribute('aria-current'); });
         item.classList.add('active');
         item.setAttribute('aria-current', 'page');
@@ -1525,6 +1565,65 @@ Boring Project
     function initArchives() {
       const list = document.getElementById('archive-list');
       list.innerHTML = '<div class="chart-card"><p style="font-size:13px; color:rgba(245,245,243,0.45);">Monthly archives will appear here starting next month\u2019s rollover.</p></div>';
+    }
+
+    function freshModule(status) {
+      return { status: status, attempts: 0, scores: [], lastScore: null, passedAt: null, flaggedForJoseph: false };
+    }
+
+    function defaultTrainingProgress() {
+      return {
+        repName: CURRENT_NAME,
+        welcomeSeenAt: null,
+        leadAccessGranted: false,
+        modules: {
+          module1: freshModule('unlocked'),
+          module2: freshModule('locked'),
+          module3: freshModule('locked'),
+          module4: freshModule('locked'),
+          module5: freshModule('locked'),
+          module6: freshModule('locked'),
+          module7: freshModule('locked'),
+          module8: freshModule('locked')
+        },
+        courseCompletedAt: null,
+        walkthroughCompletedAt: null
+      };
+    }
+
+    async function initTrainingProgress() {
+      const { doc, getDoc, setDoc } = window.firestoreModules;
+      const trainingRef = doc(window.db, 'trainingProgress', CURRENT_EMAIL);
+
+      try {
+        const snap = await getDoc(trainingRef);
+
+        if (snap.exists()) {
+          TRAINING_PROGRESS = snap.data();
+        } else {
+          const defaults = defaultTrainingProgress();
+          await setDoc(trainingRef, defaults);
+          TRAINING_PROGRESS = defaults;
+        }
+      } catch (err) {
+        console.error('Failed to load training progress:', err);
+        TRAINING_PROGRESS = null;
+      }
+
+      applyLeadAccessGate();
+    }
+
+    function applyLeadAccessGate() {
+      const leadsNavItem = document.querySelector('.nav-item[data-page="leads"]');
+      if (!leadsNavItem) return;
+
+      const granted = !!(TRAINING_PROGRESS && TRAINING_PROGRESS.leadAccessGranted);
+      leadsNavItem.classList.toggle('nav-item-locked', !granted);
+
+      if (!granted && leadsNavItem.classList.contains('active')) {
+        const trainingNavItem = document.querySelector('.nav-item[data-page="training"]');
+        if (trainingNavItem) trainingNavItem.click();
+      }
     }
 
     function initDashboard() {
