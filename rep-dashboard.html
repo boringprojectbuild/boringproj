@@ -493,6 +493,29 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     #authGate p { color: rgba(245,245,243,0.5); font-size: 13px; }
     #authGateError { display: none; color: #ff9f9f; font-size: 13px; max-width: 320px; text-align: center; }
+
+    .welcome-overlay {
+      position: fixed; inset: 0; z-index: 1000; background: rgba(13, 13, 13, 0.92);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .welcome-card {
+      max-width: 440px; width: 100%; padding: 40px 36px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 24px;
+    }
+    .welcome-slide-content {
+      font-size: 15px; line-height: 1.7; color: var(--white);
+      opacity: 1; transform: translateX(0); transition: opacity var(--t-mid), transform var(--t-mid);
+    }
+    .welcome-slide-content.welcome-fade-out { opacity: 0; transform: translateX(-10px); }
+    .welcome-slide-content.welcome-text-lg { font-size: 26px; font-weight: 700; line-height: 1.35; }
+    .welcome-progress { display: flex; gap: 7px; }
+    .welcome-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(245, 245, 243, 0.2); transition: background var(--t-fast); }
+    .welcome-dot-active { background: var(--gold); }
+    .welcome-next-btn {
+      background: var(--gold); color: #000; font-weight: 600; font-size: 13px;
+      border-radius: 8px; padding: 11px 26px; transition: background var(--t-fast);
+    }
+    .welcome-next-btn:hover { background: var(--gold-bright); }
   </style>
 
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
@@ -558,6 +581,21 @@
     <div class="spinner" aria-hidden="true"></div>
     <p id="authGateMsg">Signing you in...</p>
     <p id="authGateError"></p>
+  </div>
+
+  <div id="welcomeOverlay" class="welcome-overlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Welcome">
+    <div class="welcome-card glass">
+      <div class="welcome-slide-content" id="welcomeSlideContent"></div>
+      <div class="welcome-progress" id="welcomeProgress">
+        <span class="welcome-dot"></span>
+        <span class="welcome-dot"></span>
+        <span class="welcome-dot"></span>
+        <span class="welcome-dot"></span>
+        <span class="welcome-dot"></span>
+        <span class="welcome-dot"></span>
+      </div>
+      <button class="welcome-next-btn" id="welcomeNextBtn">Next</button>
+    </div>
   </div>
 
   <a href="#main-content" class="skip-link">Skip to content</a>
@@ -1137,12 +1175,83 @@ Boring Project
 
         await initTrainingProgress();
 
+        if (!TRAINING_PROGRESS || !TRAINING_PROGRESS.welcomeSeenAt) {
+          await showWelcomeSequence();
+        }
+
         document.getElementById('authGate').style.display = 'none';
         initDashboard();
       } catch (err) {
         console.error('Firebase bridge failed:', err);
         showAuthError('Something went wrong signing you in. Refresh to try again.');
       }
+    }
+
+    function showWelcomeSequence() {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById('welcomeOverlay');
+        const contentEl = document.getElementById('welcomeSlideContent');
+        const nextBtn = document.getElementById('welcomeNextBtn');
+        const dots = document.querySelectorAll('#welcomeProgress .welcome-dot');
+        const firstName = (CURRENT_NAME || '').trim().split(' ')[0] || 'there';
+
+        const slides = [
+          { text: `Welcome, ${firstName}.`, big: true },
+          { text: "Before you get full access to your portal, we're going to sharpen something first — your knowledge." },
+          { text: "Every top closer in this industry — the ones actually making real money — didn't start on the floor. They started in the film room. Jordan Belfort didn't wing it. Grant Cardone didn't either. Neither will you." },
+          { text: "This is boring project's training course — eight modules, built from the real audits, the real scripts, and the real objections you're about to hear on the phone. Go at your own pace. Your progress saves automatically, and there's a save button on every screen if you need to step away." },
+          { text: "Here's the truth: there's no ceiling on what this role pays. 20% on every close. 10% recurring for 12 months on every account you bring in. The only limit in this room is how fast you're willing to sharpen up." },
+          { text: "Once you've completed training to boring project's standard, your full portal unlocks — leads, commission, everything. That's the door. Let's go open it." }
+        ];
+
+        let index = 0;
+
+        function renderSlide() {
+          const slide = slides[index];
+          contentEl.textContent = slide.text;
+          contentEl.classList.toggle('welcome-text-lg', !!slide.big);
+          nextBtn.textContent = index === slides.length - 1 ? 'Begin →' : 'Next';
+          dots.forEach((dot, i) => dot.classList.toggle('welcome-dot-active', i === index));
+        }
+
+        function goToSlide(newIndex) {
+          contentEl.classList.add('welcome-fade-out');
+          setTimeout(() => {
+            index = newIndex;
+            renderSlide();
+            contentEl.classList.remove('welcome-fade-out');
+          }, 200);
+        }
+
+        async function finishWelcome() {
+          nextBtn.removeEventListener('click', onNextClick);
+          nextBtn.disabled = true;
+
+          try {
+            const { doc, updateDoc, serverTimestamp } = window.firestoreModules;
+            await updateDoc(doc(window.db, 'trainingProgress', CURRENT_EMAIL), { welcomeSeenAt: serverTimestamp() });
+          } catch (err) {
+            console.error('Failed to record welcomeSeenAt:', err);
+          }
+
+          if (TRAINING_PROGRESS) TRAINING_PROGRESS.welcomeSeenAt = true;
+          overlay.style.display = 'none';
+          resolve();
+        }
+
+        function onNextClick() {
+          if (index < slides.length - 1) {
+            goToSlide(index + 1);
+          } else {
+            finishWelcome();
+          }
+        }
+
+        nextBtn.addEventListener('click', onNextClick);
+
+        renderSlide();
+        overlay.style.display = 'flex';
+      });
     }
 
     const appLayout = document.getElementById('appLayout');
