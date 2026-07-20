@@ -1,0 +1,155 @@
+diff --git a/rep-dashboard.html b/rep-dashboard.html
+index ed1f66f..f33cc8a 100644
+--- a/rep-dashboard.html
++++ b/rep-dashboard.html
+@@ -606,6 +606,26 @@
+       border-radius: 8px; padding: 11px 26px; transition: background var(--t-fast);
+     }
+     .welcome-next-btn:hover { background: var(--gold-bright); }
++
++    .walkthrough-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(13, 13, 13, 0.72); }
++    .walkthrough-tooltip {
++      position: fixed; max-width: 300px; width: 100%; z-index: 1002; padding: 18px 20px;
++      display: flex; flex-direction: column; gap: 12px; transform: translateY(-50%);
++    }
++    .walkthrough-tooltip-text { font-size: 13px; line-height: 1.6; color: var(--white); margin: 0; }
++    .walkthrough-progress { display: flex; gap: 6px; }
++    .walkthrough-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(245, 245, 243, 0.2); transition: background var(--t-fast); }
++    .walkthrough-dot-active { background: var(--gold); }
++    .walkthrough-next-btn {
++      align-self: flex-start; background: var(--gold); color: #000; font-weight: 600; font-size: 13px;
++      border-radius: 8px; padding: 10px 20px; transition: background var(--t-fast);
++    }
++    .walkthrough-next-btn:hover { background: var(--gold-bright); }
++
++    .nav-item.walkthrough-spotlight-active {
++      position: relative; z-index: 1001; border-radius: 10px;
++      box-shadow: 0 0 0 3px var(--gold), 0 0 20px 4px rgba(196, 146, 42, 0.55);
++    }
+   </style>
+ 
+   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+@@ -688,6 +708,21 @@
+     </div>
+   </div>
+ 
++  <div id="walkthroughOverlay" class="walkthrough-overlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Portal walkthrough">
++    <div class="walkthrough-tooltip glass" id="walkthroughTooltip">
++      <p class="walkthrough-tooltip-text" id="walkthroughTooltipText"></p>
++      <div class="walkthrough-progress" id="walkthroughProgress">
++        <span class="walkthrough-dot"></span>
++        <span class="walkthrough-dot"></span>
++        <span class="walkthrough-dot"></span>
++        <span class="walkthrough-dot"></span>
++        <span class="walkthrough-dot"></span>
++        <span class="walkthrough-dot"></span>
++      </div>
++      <button type="button" class="walkthrough-next-btn" id="walkthroughNextBtn">Next</button>
++    </div>
++  </div>
++
+   <a href="#main-content" class="skip-link">Skip to content</a>
+   <div class="bg-layer" aria-hidden="true"></div>
+ 
+@@ -2192,8 +2227,100 @@ Boring Project
+       });
+     }
+ 
++    const WALKTHROUGH_STEPS = [
++      { page: 'leads', text: 'This is your Leads table — where you\'ll submit leads and log your progress and future outreach.' },
++      { page: 'training', text: 'This is home base — come back here anytime to review or sharpen up on anything from the course.' },
++      { page: 'leaderboard', text: 'This is the Leaderboard — monthly competition based on closed deals. Climb it.' },
++      { page: 'script', text: 'This is your Script — the full cold call flow, objection handling, and follow-up templates. Know it cold.' },
++      { page: 'reports', text: 'This is where you\'ll see reporting tied to your accounts.' },
++      { page: 'messages', text: 'This is your team thread with other reps and admin — keeping each other accountable, staying on momentum. Refreshes monthly.' }
++    ];
++
++    let walkthroughStepIndex = 0;
++
+     function startPortalWalkthrough() {
+-      // TODO: Phase 7 will implement the guided portal tour here
++      walkthroughStepIndex = 0;
++      document.getElementById('walkthroughOverlay').style.display = 'block';
++      renderWalkthroughStep();
++    }
++
++    function renderWalkthroughStep() {
++      const step = WALKTHROUGH_STEPS[walkthroughStepIndex];
++      const targetEl = document.querySelector('.nav-item[data-page="' + step.page + '"]');
++
++      document.querySelectorAll('.walkthrough-spotlight-active').forEach(el => {
++        el.classList.remove('walkthrough-spotlight-active');
++      });
++      if (targetEl) targetEl.classList.add('walkthrough-spotlight-active');
++
++      document.getElementById('walkthroughTooltipText').textContent = step.text;
++      document.getElementById('walkthroughNextBtn').textContent =
++        walkthroughStepIndex === WALKTHROUGH_STEPS.length - 1 ? 'Finish' : 'Next';
++
++      document.querySelectorAll('#walkthroughProgress .walkthrough-dot').forEach((dot, i) => {
++        dot.classList.toggle('walkthrough-dot-active', i === walkthroughStepIndex);
++      });
++
++      if (targetEl) positionWalkthroughTooltip(targetEl);
++    }
++
++    function positionWalkthroughTooltip(targetEl) {
++      const tooltipEl = document.getElementById('walkthroughTooltip');
++      const rect = targetEl.getBoundingClientRect();
++      const tooltipWidth = 300;
++
++      let left = rect.right + 16;
++      if (left + tooltipWidth > window.innerWidth - 16) {
++        left = Math.max(16, window.innerWidth - tooltipWidth - 16);
++      }
++
++      let top = rect.top + rect.height / 2;
++      top = Math.max(80, Math.min(top, window.innerHeight - 100));
++
++      tooltipEl.style.left = left + 'px';
++      tooltipEl.style.top = top + 'px';
++    }
++
++    window.addEventListener('resize', () => {
++      const overlayEl = document.getElementById('walkthroughOverlay');
++      if (!overlayEl || overlayEl.style.display === 'none') return;
++      const step = WALKTHROUGH_STEPS[walkthroughStepIndex];
++      const targetEl = document.querySelector('.nav-item[data-page="' + step.page + '"]');
++      if (targetEl) positionWalkthroughTooltip(targetEl);
++    });
++
++    document.getElementById('walkthroughNextBtn').addEventListener('click', () => {
++      if (walkthroughStepIndex < WALKTHROUGH_STEPS.length - 1) {
++        walkthroughStepIndex++;
++        renderWalkthroughStep();
++      } else {
++        finishWalkthrough();
++      }
++    });
++
++    async function finishWalkthrough() {
++      const { doc, updateDoc, serverTimestamp } = window.firestoreModules;
++
++      try {
++        await updateDoc(doc(window.db, 'trainingProgress', CURRENT_EMAIL), {
++          walkthroughCompletedAt: serverTimestamp(),
++          leadAccessGranted: true
++        });
++      } catch (err) {
++        console.error('Failed to save walkthrough completion:', err);
++      }
++
++      if (TRAINING_PROGRESS) {
++        TRAINING_PROGRESS.walkthroughCompletedAt = new Date();
++        TRAINING_PROGRESS.leadAccessGranted = true;
++      }
++      applyLeadAccessGate();
++
++      document.querySelectorAll('.walkthrough-spotlight-active').forEach(el => {
++        el.classList.remove('walkthrough-spotlight-active');
++      });
++      document.getElementById('walkthroughOverlay').style.display = 'none';
++
+       trainingViewState = { screen: 'list' };
+       renderTrainingTab();
+     }
