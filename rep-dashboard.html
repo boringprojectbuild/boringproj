@@ -2237,9 +2237,13 @@ Boring Project
     ];
 
     let walkthroughStepIndex = 0;
+    let walkthroughSidebarWasOpen = false;
 
     function startPortalWalkthrough() {
       walkthroughStepIndex = 0;
+      walkthroughSidebarWasOpen = isMobile() && appLayout.classList.contains('mobile-open');
+      if (isMobile() && !walkthroughSidebarWasOpen) openSidebar();
+
       document.getElementById('walkthroughOverlay').style.display = 'block';
       renderWalkthroughStep();
     }
@@ -2284,6 +2288,11 @@ Boring Project
     window.addEventListener('resize', () => {
       const overlayEl = document.getElementById('walkthroughOverlay');
       if (!overlayEl || overlayEl.style.display === 'none') return;
+
+      if (isMobile() && !appLayout.classList.contains('mobile-open')) {
+        openSidebar();
+      }
+
       const step = WALKTHROUGH_STEPS[walkthroughStepIndex];
       const targetEl = document.querySelector('.nav-item[data-page="' + step.page + '"]');
       if (targetEl) positionWalkthroughTooltip(targetEl);
@@ -2320,6 +2329,8 @@ Boring Project
         el.classList.remove('walkthrough-spotlight-active');
       });
       document.getElementById('walkthroughOverlay').style.display = 'none';
+
+      if (!walkthroughSidebarWasOpen) closeSidebar();
 
       trainingViewState = { screen: 'list' };
       renderTrainingTab();
