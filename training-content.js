@@ -481,3 +481,21 @@ const TRAINING_MODULES = {
     ]
   }
 };
+
+const MOTIVATIONAL_QUOTES = [
+  { text: "You can have everything in life you want if you will just help enough other people get what they want.", author: "Zig Ziglar" },
+  { text: "Success is not an accident. Success is actually a choice.", author: "Grant Cardone" },
+  { text: "The most important skill in sales — and in life — is the ability to handle rejection.", author: "Jordan Belfort" },
+  { text: "It's not about ideas. It's about making ideas happen.", author: "Scott Belsky" },
+  { text: "The most successful people are those who are good at plan B.", author: "James Yorke" },
+  { text: "Whatever the mind can conceive and believe, it can achieve.", author: "Napoleon Hill" },
+  { text: "People don't buy what you do; they buy why you do it.", author: "Simon Sinek" },
+  { text: "Success is walking from failure to failure with no loss of enthusiasm.", author: "Winston Churchill" },
+  { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "Sales are contingent upon the attitude of the salesman, not the attitude of the prospect.", author: "W. Clement Stone" },
+  { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+  { text: "Every sale has five basic obstacles: no need, no money, no hurry, no desire, no trust.", author: "Zig Ziglar" },
+  { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+  { text: "The best way to predict the future is to create it.", author: "Peter Drucker" }
+];
