@@ -123,6 +123,26 @@
     }
     .logout-btn:hover { background: rgba(224, 85, 85, 0.12); border-color: rgba(224, 85, 85, 0.6); }
 
+    .profile-wrap { position: relative; }
+    .profile-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 180px;
+      background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+      border: var(--glass-border); border-radius: var(--glass-radius); box-shadow: var(--glass-shadow);
+      padding: 6px; flex-direction: column; gap: 2px; z-index: 110;
+    }
+    .profile-dropdown.open { display: flex; }
+    .profile-dropdown-item {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 8px;
+      font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; color: var(--white);
+      text-align: left; transition: background var(--t-fast);
+    }
+    .profile-dropdown-item:hover { background: rgba(255, 255, 255, 0.08); }
+    .profile-dropdown-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .profile-dropdown-item-danger { color: var(--danger); }
+    .profile-dropdown-item-danger:hover { background: rgba(224, 85, 85, 0.12); }
+    .profile-dropdown-divider { height: 1px; background: rgba(255, 255, 255, 0.08); margin: 4px 2px; }
+    body.light-mode .profile-dropdown-divider { background: rgba(0, 0, 0, 0.08); }
+
     .app-layout { position: relative; z-index: 1; display: flex; height: 100vh; padding-top: var(--header-h); }
 
     .sidebar {
@@ -155,6 +175,10 @@
       .profile-name { display: none; }
       .leads-layout { grid-template-columns: 1fr !important; }
       .thread-rail { max-height: 400px; }
+
+      #themeToggle, .logout-btn { display: none; }
+      .header-center { max-width: calc(100vw - 200px); overflow: hidden; }
+      .header-brand, .header-date { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     }
 
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
@@ -747,11 +771,23 @@
         <span class="notif-badge" id="notifBadge" style="display:none;"></span>
       </button>
 
-      <button class="profile-pill" aria-label="Account menu" aria-haspopup="true">
-        <span class="profile-avatar" id="profileAvatar">R</span>
-        <span class="profile-name" id="profileName">Rep</span>
-        <svg class="profile-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 6 8 10 4"/></svg>
-      </button>
+      <div class="profile-wrap" id="profileWrap">
+        <button class="profile-pill" id="profilePillBtn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+          <span class="profile-avatar" id="profileAvatar">R</span>
+          <span class="profile-name" id="profileName">Rep</span>
+          <svg class="profile-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 6 8 10 4"/></svg>
+        </button>
+
+        <div class="profile-dropdown" id="profileDropdown" role="menu">
+          <button class="profile-dropdown-item" id="dropdownThemeToggle" role="menuitem">
+            <svg id="dropdownThemeIconDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg id="dropdownThemeIconLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span id="dropdownThemeLabel">Dark Mode</span>
+          </button>
+          <div class="profile-dropdown-divider"></div>
+          <button class="profile-dropdown-item profile-dropdown-item-danger" id="dropdownLogoutBtn" role="menuitem">Log out</button>
+        </div>
+      </div>
 
       <button class="logout-btn" id="logoutBtn" aria-label="Log out">Log out</button>
     </div>
@@ -1383,6 +1419,8 @@ Boring Project
     const overlay = document.getElementById('sidebarOverlay');
     const themeToggle = document.getElementById('themeToggle');
     const logoutBtn = document.getElementById('logoutBtn');
+    const profilePillBtn = document.getElementById('profilePillBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
     const isMobile = () => window.innerWidth <= 768;
 
     function formatHeaderDateTime(d) {
@@ -1404,12 +1442,46 @@ Boring Project
       else { appLayout.classList.toggle('collapsed'); }
     });
     overlay.addEventListener('click', closeSidebar);
-    window.addEventListener('resize', () => { if (!isMobile()) closeSidebar(); });
 
-    themeToggle.addEventListener('click', () => {
+    function openProfileDropdown() {
+      profileDropdown.classList.add('open');
+      profilePillBtn.setAttribute('aria-expanded', 'true');
+    }
+    function closeProfileDropdown() {
+      profileDropdown.classList.remove('open');
+      profilePillBtn.setAttribute('aria-expanded', 'false');
+    }
+    profilePillBtn.addEventListener('click', (e) => {
+      if (!isMobile()) return;
+      e.stopPropagation();
+      profileDropdown.classList.contains('open') ? closeProfileDropdown() : openProfileDropdown();
+    });
+    document.addEventListener('click', (e) => {
+      if (!profileDropdown.classList.contains('open')) return;
+      if (!profileDropdown.contains(e.target) && !profilePillBtn.contains(e.target)) {
+        closeProfileDropdown();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (!isMobile()) { closeSidebar(); closeProfileDropdown(); }
+    });
+
+    function toggleTheme() {
       const isLight = document.body.classList.toggle('light-mode');
       document.getElementById('themeIconDark').style.display = isLight ? 'none' : '';
       document.getElementById('themeIconLight').style.display = isLight ? '' : 'none';
+      document.getElementById('dropdownThemeIconDark').style.display = isLight ? 'none' : '';
+      document.getElementById('dropdownThemeIconLight').style.display = isLight ? '' : 'none';
+      document.getElementById('dropdownThemeLabel').textContent = isLight ? 'Light Mode' : 'Dark Mode';
+    }
+    themeToggle.addEventListener('click', toggleTheme);
+    document.getElementById('dropdownThemeToggle').addEventListener('click', () => {
+      toggleTheme();
+      closeProfileDropdown();
+    });
+    document.getElementById('dropdownLogoutBtn').addEventListener('click', () => {
+      netlifyIdentity.logout();
     });
 
     const navItems = document.querySelectorAll('.nav-item');
