@@ -507,6 +507,7 @@
     #services {
       background: #111111;
       padding: 120px 80px;
+      z-index: 2;
     }
 
     .services-inner {
@@ -552,8 +553,10 @@
     }
 
     .service-card {
-      background: var(--surface);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(245,245,243,0.02);
+      backdrop-filter: blur(20px) saturate(130%);
+      -webkit-backdrop-filter: blur(20px) saturate(130%);
+      border: 1px solid rgba(245,245,243,0.08);
       border-radius: 16px;
       padding: 36px 32px;
       transition: border-color 0.3s ease, transform 0.3s ease;
@@ -600,80 +603,198 @@
     /* ─── PROCESS ─── */
     #process {
       background: var(--bg);
-      padding: 120px 80px;
+      position: relative;
+      display: grid;
+      margin-top: -38vh;
+    }
+
+    #process > * {
+      grid-column: 1;
+      grid-row: 1;
     }
 
     .process-inner {
+      position: relative;
       max-width: 1280px;
       margin: 0 auto;
-      display: grid;
-      grid-template-columns: 40% 60%;
-      gap: 80px;
-      align-items: start;
+      padding: calc(38vh + 120px) 80px 120px;
     }
 
-    .process-left {
-      position: sticky;
-      top: 100px;
+    .process-intro {
+      max-width: 480px;
+      margin-bottom: 56px;
     }
 
-    .process-big-text {
-      line-height: 1;
-      letter-spacing: -2px;
-    }
-
-    .process-big-text .t-faded {
-      display: block;
-      font-weight: 900;
-      font-size: 72px;
-      color: rgba(255,255,255,0.08);
-    }
-
-    .process-big-text .t-white {
-      display: block;
-      font-weight: 900;
-      font-size: 72px;
+    .process-headline {
+      font-weight: 700;
+      font-size: 48px;
       color: var(--white);
+      margin-top: 8px;
     }
 
-    .process-big-text .t-blue {
+    .process-grid {
+      display: grid;
+      position: relative;
+    }
+
+    .process-grid > * {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .step-trigger {
+      height: 90vh;
+      position: relative;
+    }
+
+    .step-trigger:first-child {
+      height: 60vh;
+    }
+
+    #waveCanvas {
+      position: sticky;
+      top: 6vh;
+      height: 88vh;
+      width: 100%;
+      z-index: 0;
       display: block;
-      font-weight: 900;
-      font-size: 72px;
-      color: var(--blue);
+      mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 68%, transparent 96%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 68%, transparent 96%);
     }
 
-    .process-steps {
+    .process-sticky {
+      position: sticky;
+      top: 12vh;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 36px;
+      align-items: stretch;
+      align-self: start;
+      z-index: 1;
+    }
+
+    .step-list {
       display: flex;
       flex-direction: column;
+      gap: 18px;
     }
 
-    .process-step {
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 28px 0;
+    .step-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      opacity: 0.35;
+      transition: opacity 0.4s ease;
+    }
+
+    .step-item.active {
+      opacity: 1;
     }
 
     .step-num {
       font-weight: 700;
       font-size: 11px;
-      color: var(--blue);
+      color: var(--muted);
       letter-spacing: 0.2em;
-      margin-bottom: 8px;
+      padding-top: 2px;
+      min-width: 22px;
+      transition: color 0.4s ease;
     }
 
-    .step-title {
+    .step-item.active .step-num {
+      color: var(--gold);
+    }
+
+    .step-item h3 {
       font-weight: 700;
-      font-size: 18px;
-      color: var(--white);
-      margin-bottom: 8px;
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      transition: color 0.4s ease;
     }
 
-    .step-body {
-      font-weight: 400;
+    .step-item.active h3 {
+      color: var(--white);
+    }
+
+    .glass-wrap {
+      position: relative;
+      display: flex;
+    }
+
+    .glass-card {
+      position: relative;
+      background: rgba(245,245,243,0.015);
+      backdrop-filter: blur(14px) saturate(130%);
+      -webkit-backdrop-filter: blur(14px) saturate(130%);
+      border: 1px solid rgba(245,245,243,0.05);
+      border-radius: 24px;
+      padding: 44px 40px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 40px;
+      z-index: 1;
+      transition: opacity 0.15s ease;
+    }
+
+    .g-text {
+      flex: 0 0 auto;
+      max-width: 260px;
+    }
+
+    .g-visual {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .g-visual svg {
+      width: 100%;
+      max-width: 380px;
+      height: auto;
+    }
+
+    .g-icon {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 24px;
+    }
+
+    .g-title {
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 18px;
+    }
+
+    .g-num {
+      font-weight: 900;
+      font-size: 52px;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .g-label {
       font-size: 13px;
       color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .g-insight {
+      font-size: 15px;
       line-height: 1.65;
-      max-width: 480px;
+      color: rgba(245,245,243,0.85);
+      border-top: 1px solid rgba(245,245,243,0.1);
+      padding-top: 20px;
     }
 
     /* ─── PRICING ─── */
@@ -1202,22 +1323,39 @@
       }
 
       #process {
-        padding: 80px 24px;
+        margin-top: 0;
       }
 
       .process-inner {
-        grid-template-columns: 1fr;
-        gap: 48px;
+        padding: 80px 24px;
       }
 
-      .process-left {
+      .process-headline {
+        font-size: 32px;
+      }
+
+      .process-grid {
+        display: block;
+      }
+
+      .step-trigger {
+        display: none;
+      }
+
+      .process-sticky {
         position: static;
+        grid-template-columns: 1fr;
+        gap: 24px;
       }
 
-      .process-big-text .t-faded,
-      .process-big-text .t-white,
-      .process-big-text .t-blue {
-        font-size: 52px;
+      .glass-card {
+        flex-direction: column;
+        padding: 28px 24px;
+        gap: 24px;
+      }
+
+      .g-visual svg {
+        max-width: 260px;
       }
 
       #pricing {
@@ -1489,39 +1627,66 @@
 
   <!-- ═══════════════════════════════ PROCESS ═══════════════════════════════ -->
   <section id="process">
+    <canvas id="waveCanvas"></canvas>
     <div class="process-inner">
-      <div class="process-left fade-up">
-        <div class="process-big-text">
-          <span class="t-faded">THE</span>
-          <span class="t-white">BORING</span>
-          <span class="t-blue">PROCESS</span>
+      <div class="process-grid">
+        <div class="process-track">
+          <div class="step-trigger" data-index="0"></div>
+          <div class="step-trigger" data-index="1"></div>
+          <div class="step-trigger" data-index="2"></div>
+          <div class="step-trigger" data-index="3"></div>
+          <div class="step-trigger" data-index="4"></div>
         </div>
-      </div>
-      <div class="process-steps">
-        <div class="process-step fade-up">
-          <p class="step-num">01</p>
-          <h3 class="step-title">Intake call</h3>
-          <p class="step-body">45 minutes. You tell us everything. We build your complete SEO brief.</p>
-        </div>
-        <div class="process-step fade-up">
-          <p class="step-num">02</p>
-          <h3 class="step-title">Keyword mapping</h3>
-          <p class="step-body">We find what San Antonio is actually searching for and map every page to a term.</p>
-        </div>
-        <div class="process-step fade-up">
-          <p class="step-num">03</p>
-          <h3 class="step-title">Site build</h3>
-          <p class="step-body">Claude Code builds your site. Fast-loading, schema-marked, mobile-first. Live in days.</p>
-        </div>
-        <div class="process-step fade-up">
-          <p class="step-num">04</p>
-          <h3 class="step-title">SEO layer</h3>
-          <p class="step-body">Meta titles, descriptions, schema markup, internal linking. The stuff that actually ranks.</p>
-        </div>
-        <div class="process-step fade-up">
-          <p class="step-num">05</p>
-          <h3 class="step-title">Monthly sprint</h3>
-          <p class="step-body">Every month: GSC review, keyword push, performance report. No vanity metrics — just calls.</p>
+
+        <div class="process-sticky">
+          <div class="step-col">
+          <div class="process-intro fade-up">
+            <p class="section-label">✦ The Boring Process</p>
+            <h2 class="process-headline">How we get you found.</h2>
+          </div>
+          <div class="step-list">
+            <div class="step-item active" data-index="0">
+              <span class="step-num">01</span>
+              <div><h3>Intake call</h3></div>
+            </div>
+            <div class="step-item" data-index="1">
+              <span class="step-num">02</span>
+              <div><h3>Keyword mapping</h3></div>
+            </div>
+            <div class="step-item" data-index="2">
+              <span class="step-num">03</span>
+              <div><h3>Site build</h3></div>
+            </div>
+            <div class="step-item" data-index="3">
+              <span class="step-num">04</span>
+              <div><h3>SEO layer</h3></div>
+            </div>
+            <div class="step-item" data-index="4">
+              <span class="step-num">05</span>
+              <div><h3>Monthly sprint</h3></div>
+            </div>
+          </div>
+          </div>
+
+          <div class="glass-wrap">
+            <div class="glass-card" id="glassCard">
+              <div class="g-text">
+                <svg class="g-icon" viewBox="0 0 240 240">
+                  <path d="M146.4,82.3 A46,46 0 0,1 146.4,157.68" fill="none" stroke="#C4922A" stroke-width="12" stroke-linecap="round"/>
+                  <path d="M146.4,82.3 A46,46 0 0,1 146.4,157.68" fill="none" stroke="#2B5FA6" stroke-width="8" stroke-linecap="round"/>
+                  <path d="M93.6,82.3 A46,46 0 0,0 93.6,157.68" fill="none" stroke="#C4922A" stroke-width="12" stroke-linecap="round"/>
+                  <path d="M93.6,82.3 A46,46 0 0,0 93.6,157.68" fill="none" stroke="#2B5FA6" stroke-width="8" stroke-linecap="round"/>
+                  <circle cx="120" cy="120" r="24" fill="none" stroke="#2B5FA6" stroke-width="2"/>
+                  <circle cx="120" cy="120" r="14" fill="#C4922A"/>
+                </svg>
+                <div class="g-title" id="gTitle">Intake call</div>
+                <div class="g-num" id="gNum">45 min</div>
+                <div class="g-label" id="gLabel">one call, no fluff</div>
+                <div class="g-insight" id="gInsight">You tell us everything — services, zip codes, goals. We turn it into your complete SEO brief.</div>
+              </div>
+              <div class="g-visual" id="gVisual"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1903,6 +2068,448 @@
       }
 
       animate();
+    })();
+  </script>
+
+  <!-- ═══════════════════════════════ PROCESS: STEP-SYNCED GLASS PANEL ═══════════════════════════════ -->
+  <script>
+    (function () {
+      const data = [
+        { title: 'Intake call', num: '45 min', label: 'one call, no fluff', insight: "You tell us everything — services, zip codes, goals. We turn it into your complete SEO brief.",
+          visual: `<svg viewBox="0 0 260 110">
+            <circle cx="12" cy="14" r="6" fill="#C4922A"/>
+            <rect x="28" y="10" width="170" height="8" rx="4" fill="rgba(245,245,243,0.15)"/>
+            <circle cx="12" cy="42" r="6" fill="#C4922A"/>
+            <rect x="28" y="38" width="140" height="8" rx="4" fill="rgba(245,245,243,0.15)"/>
+            <circle cx="12" cy="70" r="6" fill="none" stroke="#888780" stroke-width="1.5"/>
+            <rect x="28" y="66" width="120" height="8" rx="4" fill="rgba(245,245,243,0.07)"/>
+            <circle cx="12" cy="98" r="6" fill="none" stroke="#888780" stroke-width="1.5"/>
+            <rect x="28" y="94" width="150" height="8" rx="4" fill="rgba(245,245,243,0.07)"/>
+          </svg>` },
+        { title: 'Keyword mapping', num: '120+', label: 'San Antonio search terms mapped', insight: "Every page gets mapped to what people actually type into Google — not guesses.",
+          visual: `<svg viewBox="0 0 260 110">
+            <g transform="translate(78,6)">
+              <rect x="0" y="0" width="20" height="20" rx="4" fill="#C4922A"/>
+              <rect x="28" y="0" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="56" y="0" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="84" y="0" width="20" height="20" rx="4" fill="none" stroke="#888780" stroke-width="1.5"/>
+              <rect x="0" y="28" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="28" y="28" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="56" y="28" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="84" y="28" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="0" y="56" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="28" y="56" width="20" height="20" rx="4" fill="none" stroke="#888780" stroke-width="1.5"/>
+              <rect x="56" y="56" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="84" y="56" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="0" y="84" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="28" y="84" width="20" height="20" rx="4" fill="#2B5FA6"/>
+              <rect x="56" y="84" width="20" height="20" rx="4" fill="none" stroke="#888780" stroke-width="1.5"/>
+              <rect x="84" y="84" width="20" height="20" rx="4" fill="#2B5FA6"/>
+            </g>
+          </svg>` },
+        { title: 'Site build', num: '7 days', label: 'to a live site', insight: "Claude Code builds it — fast-loading, schema-marked, mobile-first from day one.",
+          visual: `<svg viewBox="0 0 260 80">
+            <text x="43" y="20" fill="#888780" font-size="10" font-family="Inter">day 1</text>
+            <text x="217" y="20" fill="#888780" font-size="10" font-family="Inter" text-anchor="end">day 7</text>
+            <rect x="43" y="30" width="18" height="18" rx="4" fill="#2B5FA6"/>
+            <rect x="69" y="30" width="18" height="18" rx="4" fill="#2B5FA6"/>
+            <rect x="95" y="30" width="18" height="18" rx="4" fill="#2B5FA6"/>
+            <rect x="121" y="30" width="18" height="18" rx="4" fill="#2B5FA6"/>
+            <rect x="147" y="30" width="18" height="18" rx="4" fill="#2B5FA6"/>
+            <rect x="173" y="30" width="18" height="18" rx="4" fill="#2B5FA6"/>
+            <rect x="199" y="30" width="18" height="18" rx="4" fill="#C4922A"/>
+          </svg>` },
+        { title: 'SEO layer', num: '100%', label: 'pages schema-marked', insight: "Meta titles, descriptions, schema, internal linking — the technical stuff that actually ranks.",
+          visual: `<svg viewBox="0 0 260 110">
+            <circle cx="10" cy="10" r="4" fill="#C4922A"/>
+            <rect x="24" y="2" width="140" height="16" rx="8" fill="rgba(245,245,243,0.06)" stroke="rgba(245,245,243,0.15)" stroke-width="1"/>
+            <text x="34" y="14" fill="#F5F5F3" font-size="9" font-family="Inter">Title tags</text>
+            <circle cx="10" cy="38" r="4" fill="#C4922A"/>
+            <rect x="24" y="30" width="150" height="16" rx="8" fill="rgba(245,245,243,0.06)" stroke="rgba(245,245,243,0.15)" stroke-width="1"/>
+            <text x="34" y="42" fill="#F5F5F3" font-size="9" font-family="Inter">Meta descriptions</text>
+            <circle cx="10" cy="66" r="4" fill="#C4922A"/>
+            <rect x="24" y="58" width="110" height="16" rx="8" fill="rgba(245,245,243,0.06)" stroke="rgba(245,245,243,0.15)" stroke-width="1"/>
+            <text x="34" y="70" fill="#F5F5F3" font-size="9" font-family="Inter">Schema</text>
+            <circle cx="10" cy="94" r="4" fill="#C4922A"/>
+            <rect x="24" y="86" width="150" height="16" rx="8" fill="rgba(245,245,243,0.06)" stroke="rgba(245,245,243,0.15)" stroke-width="1"/>
+            <text x="34" y="98" fill="#F5F5F3" font-size="9" font-family="Inter">Internal links</text>
+          </svg>` },
+        { title: 'Monthly sprint', num: '60–120', label: 'days to real traction', insight: "GSC review, keyword push, performance report — every month. No vanity metrics, just calls.",
+          visual: `<svg viewBox="0 0 260 110">
+            <rect x="46" y="80" width="18" height="20" rx="3" fill="#2B5FA6"/>
+            <rect x="76" y="70" width="18" height="30" rx="3" fill="#2B5FA6"/>
+            <rect x="106" y="58" width="18" height="42" rx="3" fill="#2B5FA6"/>
+            <rect x="136" y="44" width="18" height="56" rx="3" fill="#2B5FA6"/>
+            <rect x="166" y="26" width="18" height="74" rx="3" fill="#2B5FA6"/>
+            <rect x="196" y="8" width="18" height="92" rx="3" fill="#C4922A"/>
+            <polyline points="55,80 85,70 115,58 145,44 175,26 205,8" fill="none" stroke="#C4922A" stroke-width="1.5" stroke-dasharray="3,3"/>
+          </svg>` }
+      ];
+
+      const listItems = document.querySelectorAll('#process .step-item');
+      const gTitle = document.getElementById('gTitle');
+      const gNum = document.getElementById('gNum');
+      const gLabel = document.getElementById('gLabel');
+      const gInsight = document.getElementById('gInsight');
+      const gVisual = document.getElementById('gVisual');
+      const glassCard = document.getElementById('glassCard');
+      if (!glassCard) return;
+
+      function setActive(idx) {
+        listItems.forEach(li => li.classList.toggle('active', li.dataset.index === String(idx)));
+        glassCard.style.opacity = 0;
+        setTimeout(() => {
+          const d = data[idx];
+          gTitle.textContent = d.title;
+          gNum.textContent = d.num;
+          gLabel.textContent = d.label;
+          gInsight.textContent = d.insight;
+          gVisual.innerHTML = d.visual;
+          glassCard.style.opacity = 1;
+        }, 150);
+      }
+
+      const triggers = Array.from(document.querySelectorAll('#process .step-trigger'));
+      let currentIdx = 0;
+
+      function updateActiveOnScroll() {
+        const viewportCenter = window.innerHeight / 2;
+        let closestIdx = currentIdx;
+        let closestDist = Infinity;
+        triggers.forEach(t => {
+          const rect = t.getBoundingClientRect();
+          const center = rect.top + rect.height / 2;
+          const dist = Math.abs(center - viewportCenter);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestIdx = Number(t.dataset.index);
+          }
+        });
+        if (closestIdx !== currentIdx) {
+          currentIdx = closestIdx;
+          setActive(closestIdx);
+        }
+      }
+
+      let ticking = false;
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(() => { updateActiveOnScroll(); ticking = false; });
+          ticking = true;
+        }
+      }, { passive: true });
+
+      updateActiveOnScroll();
+      gVisual.innerHTML = data[0].visual;
+    })();
+  </script>
+
+  <!-- Self-hosted Three.js r160 UMD build (extracted from process-section-prototype.html
+       per CLAUDE_CODE_INTEGRATION_BRIEF.md — not inlined). Confirmed working in isolation
+       at wave-grid-test.html before this port. -->
+  <script src="assets/vendor/three.min.js"></script>
+
+  <!-- ═══════════════════════════════ PROCESS: MOUSE-DRIVEN WAVE GRID ═══════════════════════════════ -->
+  <script>
+    (function () {
+
+      function initWaveScene() {
+        // ============================================================
+        // Wave propagation cube grid — mouse-driven ripples.
+        // InstancedMesh grid + a GPU vertex shader (via onBeforeCompile)
+        // that reads a small "trail texture" of recent mouse positions
+        // and displaces each cube's height with a Gaussian wave bump.
+        // ============================================================
+
+        const canvas = document.getElementById('waveCanvas');
+        const processTrack = document.querySelector('.process-track');
+
+        // Ripples should feel present during the transition into/out of this section,
+        // but go quiet while someone's actually reading through the 5 steps — otherwise
+        // it competes with the content. This checks whether we're currently scrolling
+        // through that "reading range" (the track element that drives step 01-05).
+        function isRippleActive() {
+          if (!processTrack) return true;
+          const rect = processTrack.getBoundingClientRect();
+          const insideReadingRange = rect.top <= 0 && rect.bottom >= 0;
+          return !insideReadingRange;
+        }
+
+        const BRAND = {
+          bg: 0x0d0d0d,
+          cube: 0x1e1e22,
+          gold: new THREE.Color(0xc4922a),
+          blue: new THREE.Color(0x2b5fa6),
+        };
+
+        const GRID_X = 24;
+        const GRID_Z = 15;
+        const SPACING = 1.05;
+        const CUBE_W = 0.8;
+        const CUBE_H = 2.6;
+
+        const MAX_TRAIL = 32;
+        const WAVE_SPEED = 5.5;   // world units / second the wavefront expands
+        const WAVE_WIDTH = 1.3;   // gaussian sigma, controls bump thickness
+        const FADE_TIME = 2.4;    // seconds before a trail point stops contributing
+        const AMPLITUDE = 0.45;   // max height a cube can pop up
+        const MIN_POINT_DIST = 0.28; // min world distance before a new trail point is recorded
+
+        // ---- renderer / scene / camera ----
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setClearColor(0x000000, 0);
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(BRAND.bg, 0.05);
+
+        const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+        const camBase = new THREE.Vector3(0, 0, 13);
+        camera.position.copy(camBase);
+        camera.lookAt(0, 0, 0);
+
+        // ---- lighting ----
+        scene.add(new THREE.AmbientLight(0x2a2a34, 0.6));
+        const sun = new THREE.DirectionalLight(0xfff2df, 0.9);
+        sun.position.set(6, 8, 8);
+        sun.castShadow = true;
+        sun.shadow.mapSize.set(1024, 1024);
+        sun.shadow.camera.left = -14; sun.shadow.camera.right = 14;
+        sun.shadow.camera.top = 10; sun.shadow.camera.bottom = -10;
+        scene.add(sun);
+
+        const rim = new THREE.PointLight(0x2b5fa6, 0.5, 20);
+        rim.position.set(-6, 4, 6);
+        scene.add(rim);
+
+        // ground (catches shadow, grounds the grid visually)
+        const ground = new THREE.Mesh(
+          new THREE.PlaneGeometry(60, 60),
+          new THREE.MeshPhongMaterial({ color: 0x090909 })
+        );
+        ground.position.z = -CUBE_H / 2 - 0.05;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // ---- trail texture (encodes recent mouse points for the shader) ----
+        const trailData = new Float32Array(MAX_TRAIL * 4);
+        const trailTexture = new THREE.DataTexture(trailData, MAX_TRAIL, 1, THREE.RGBAFormat, THREE.FloatType);
+        trailTexture.needsUpdate = true;
+
+        let trailPoints = []; // { x, z, age }
+        let lastPoint = null;
+        let pointerWorld = null; // current raycasted mouse position, or null if mouse not over canvas
+
+        // ---- instanced cube grid ----
+        const geometry = new THREE.BoxGeometry(CUBE_W, CUBE_H, CUBE_W);
+        const material = new THREE.MeshPhongMaterial({ color: BRAND.cube, shininess: 18 });
+
+        material.onBeforeCompile = (shader) => {
+          shader.uniforms.uTrailTex = { value: trailTexture };
+          shader.uniforms.uCount = { value: 0 };
+          shader.uniforms.uWaveSpeed = { value: WAVE_SPEED };
+          shader.uniforms.uWaveWidth = { value: WAVE_WIDTH };
+          shader.uniforms.uFadeTime = { value: FADE_TIME };
+          shader.uniforms.uAmplitude = { value: AMPLITUDE };
+          shader.uniforms.uColorGold = { value: BRAND.gold };
+          shader.uniforms.uColorBlue = { value: BRAND.blue };
+          waveMaterialShader = shader; // keep a reference so we can update uCount live
+
+          shader.vertexShader = `
+            attribute vec2 aOffset;
+            uniform sampler2D uTrailTex;
+            uniform float uCount;
+            uniform float uWaveSpeed;
+            uniform float uWaveWidth;
+            uniform float uFadeTime;
+            uniform float uAmplitude;
+            varying float vGlow;
+          ` + shader.vertexShader;
+
+          shader.vertexShader = shader.vertexShader.replace(
+            '#include <begin_vertex>',
+            `#include <begin_vertex>
+            float totalDisp = 0.0;
+            float totalGlow = 0.0;
+            for (int i = 0; i < 32; i++) {
+              if (float(i) >= uCount) break;
+              vec4 tp = texture2D(uTrailTex, vec2((float(i) + 0.5) / 32.0, 0.5));
+              vec2 pPos = tp.xy;
+              float age = tp.z;
+              float dist = distance(aOffset, pPos);
+              float wavefront = age * uWaveSpeed;
+              float diff = dist - wavefront;
+              float gauss = exp(-(diff * diff) / (2.0 * uWaveWidth * uWaveWidth));
+              float fade = clamp(1.0 - age / uFadeTime, 0.0, 1.0);
+              float contrib = gauss * fade;
+              totalDisp += contrib;
+              totalGlow += contrib;
+            }
+            transformed.y += totalDisp * uAmplitude;
+            vGlow = clamp(totalGlow, 0.0, 1.0);
+            `
+          );
+
+          shader.fragmentShader = `
+            varying float vGlow;
+            uniform vec3 uColorGold;
+            uniform vec3 uColorBlue;
+          ` + shader.fragmentShader;
+
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <dithering_fragment>',
+            `#include <dithering_fragment>
+            vec3 glowColor = mix(uColorGold, uColorBlue, clamp(vGlow * 1.4, 0.0, 1.0));
+            gl_FragColor.rgb += glowColor * vGlow * 0.85;
+            `
+          );
+        };
+        let waveMaterialShader = null;
+
+        const count = GRID_X * GRID_Z;
+        const mesh = new THREE.InstancedMesh(geometry, material, count);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        const offsets = new Float32Array(count * 2);
+        let i = 0;
+        const dummy = new THREE.Object3D();
+        const originX = -((GRID_X - 1) * SPACING) / 2;
+        const originZ = -((GRID_Z - 1) * SPACING) / 2;
+        for (let gx = 0; gx < GRID_X; gx++) {
+          for (let gz = 0; gz < GRID_Z; gz++) {
+            const x = originX + gx * SPACING;
+            const y = originZ + gz * SPACING;
+            dummy.position.set(x, y, 0);
+            dummy.rotation.set(Math.PI / 2, 0, 0);
+            dummy.updateMatrix();
+            mesh.setMatrixAt(i, dummy.matrix);
+            offsets[i * 2] = x;
+            offsets[i * 2 + 1] = y;
+            i++;
+          }
+        }
+        geometry.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets, 2));
+        scene.add(mesh);
+
+        // ---- mouse raycasting onto the y=0 ground plane ----
+        const raycaster = new THREE.Raycaster();
+        const groundPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        const ndc = new THREE.Vector2();
+        let pointerNormalized = new THREE.Vector2(0, 0); // for camera parallax
+
+        function onPointerMove(e) {
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          ndc.set((x / rect.width) * 2 - 1, -(y / rect.height) * 2 + 1);
+          pointerNormalized.set(ndc.x, ndc.y);
+
+          raycaster.setFromCamera(ndc, camera);
+          const hit = new THREE.Vector3();
+          if (raycaster.ray.intersectPlane(groundPlane, hit)) {
+            pointerWorld = hit;
+          }
+        }
+        canvas.addEventListener('mousemove', onPointerMove);
+        canvas.addEventListener('mouseleave', () => { pointerWorld = null; });
+
+        // ---- resize ----
+        function resize() {
+          const rect = canvas.getBoundingClientRect();
+          renderer.setSize(rect.width, rect.height, false);
+          camera.aspect = rect.width / Math.max(1, rect.height);
+          camera.updateProjectionMatrix();
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // ---- scroll-driven trail (test alongside mouse) ----
+        // traces a wandering path through the grid as you scroll; more scroll distance
+        // covered = more of the path gets drawn, no scrolling = it just ages out naturally
+        let lastScrollY = window.scrollY;
+        let scrollPhase = 0;
+        let lastScrollPoint = null;
+        const halfX = (GRID_X * SPACING) / 2;
+        const halfZ = (GRID_Z * SPACING) / 2;
+
+        function addScrollTrailPoint() {
+          const scrollY = window.scrollY;
+          const delta = scrollY - lastScrollY;
+          lastScrollY = scrollY;
+          if (Math.abs(delta) < 0.5) return;
+          if (!isRippleActive()) return; // paused while scrolling through the 5-step reading range
+
+          const rect = canvas.getBoundingClientRect();
+          const inView = rect.bottom > 0 && rect.top < window.innerHeight;
+          if (!inView) return;
+
+          scrollPhase += delta * 0.012;
+          const sx = Math.sin(scrollPhase * 0.6) * halfX * 0.7;
+          const sz = Math.cos(scrollPhase * 0.4) * halfZ * 0.6;
+
+          if (!lastScrollPoint || Math.hypot(sx - lastScrollPoint.x, sz - lastScrollPoint.z) > MIN_POINT_DIST) {
+            trailPoints.push({ x: sx, z: sz, age: 0 });
+            lastScrollPoint = { x: sx, z: sz };
+            if (trailPoints.length > MAX_TRAIL) trailPoints.shift();
+          }
+        }
+        window.addEventListener('scroll', addScrollTrailPoint, { passive: true });
+
+        // ---- animation loop ----
+        let lastTime = performance.now();
+
+        function animate(now) {
+          requestAnimationFrame(animate);
+          const dt = Math.min(0.05, (now - lastTime) / 1000);
+          lastTime = now;
+
+          // record a new trail point if the mouse has moved far enough since the last one —
+          // suppressed while scrolling through the 5-step reading range
+          if (pointerWorld && isRippleActive()) {
+            if (!lastPoint || Math.hypot(pointerWorld.x - lastPoint.x, pointerWorld.y - lastPoint.y) > MIN_POINT_DIST) {
+              trailPoints.push({ x: pointerWorld.x, z: pointerWorld.y, age: 0 });
+              lastPoint = { x: pointerWorld.x, y: pointerWorld.y };
+              if (trailPoints.length > MAX_TRAIL) trailPoints.shift();
+            }
+          }
+
+          // age and prune
+          trailPoints.forEach(p => p.age += dt);
+          trailPoints = trailPoints.filter(p => p.age < FADE_TIME);
+
+          // upload trail data to the GPU texture
+          for (let k = 0; k < MAX_TRAIL; k++) {
+            const p = trailPoints[k];
+            trailData[k * 4] = p ? p.x : 9999;
+            trailData[k * 4 + 1] = p ? p.z : 9999;
+            trailData[k * 4 + 2] = p ? p.age : 9999;
+            trailData[k * 4 + 3] = 1;
+          }
+          trailTexture.needsUpdate = true;
+          if (waveMaterialShader) waveMaterialShader.uniforms.uCount.value = trailPoints.length;
+
+          // gentle camera parallax toward the mouse
+          camera.position.x += (camBase.x + pointerNormalized.x * 1.4 - camera.position.x) * 0.04;
+          camera.position.y += (camBase.y - pointerNormalized.y * 0.7 - camera.position.y) * 0.04;
+          camera.lookAt(0, 0, 0.5);
+
+          renderer.render(scene, camera);
+        }
+        requestAnimationFrame(animate);
+      }
+
+      // The wave scene is desktop/tablet only — mobile keeps the process section's
+      // static step list, both for scope and for performance (a phone shouldn't be
+      // asked to run a shader scene built for a desktop background).
+      if (window.innerWidth >= 768) {
+        initWaveScene();
+      } else {
+        const waveCanvas = document.getElementById('waveCanvas');
+        if (waveCanvas) waveCanvas.style.display = 'none';
+      }
     })();
   </script>
 
