@@ -717,6 +717,10 @@
       color: var(--white);
     }
 
+    .step-body-mobile {
+      display: none;
+    }
+
     .glass-wrap {
       position: relative;
       display: flex;
@@ -1342,10 +1346,31 @@
         display: none;
       }
 
+      .process-track,
+      .glass-wrap {
+        display: none;
+      }
+
       .process-sticky {
         position: static;
         grid-template-columns: 1fr;
         gap: 24px;
+      }
+
+      .step-item {
+        opacity: 1 !important;
+      }
+
+      .step-num {
+        color: var(--gold) !important;
+      }
+
+      .step-item h3 {
+        color: var(--white) !important;
+      }
+
+      .step-body-mobile {
+        display: block;
       }
 
       .glass-card {
@@ -1647,23 +1672,23 @@
           <div class="step-list">
             <div class="step-item active" data-index="0">
               <span class="step-num">01</span>
-              <div><h3>Intake call</h3></div>
+              <div><h3>Intake call</h3><p class="step-body-mobile">You tell us everything — services, zip codes, goals. We turn it into your complete SEO brief.</p></div>
             </div>
             <div class="step-item" data-index="1">
               <span class="step-num">02</span>
-              <div><h3>Keyword mapping</h3></div>
+              <div><h3>Keyword mapping</h3><p class="step-body-mobile">Every page gets mapped to what people actually type into Google — not guesses.</p></div>
             </div>
             <div class="step-item" data-index="2">
               <span class="step-num">03</span>
-              <div><h3>Site build</h3></div>
+              <div><h3>Site build</h3><p class="step-body-mobile">Claude Code builds it — fast-loading, schema-marked, mobile-first from day one.</p></div>
             </div>
             <div class="step-item" data-index="3">
               <span class="step-num">04</span>
-              <div><h3>SEO layer</h3></div>
+              <div><h3>SEO layer</h3><p class="step-body-mobile">Meta titles, descriptions, schema, internal linking — the technical stuff that actually ranks.</p></div>
             </div>
             <div class="step-item" data-index="4">
               <span class="step-num">05</span>
-              <div><h3>Monthly sprint</h3></div>
+              <div><h3>Monthly sprint</h3><p class="step-body-mobile">GSC review, keyword push, performance report — every month. No vanity metrics, just calls.</p></div>
             </div>
           </div>
           </div>
@@ -2191,15 +2216,17 @@
         }
       }
 
-      let ticking = false;
-      window.addEventListener('scroll', () => {
-        if (!ticking) {
-          requestAnimationFrame(() => { updateActiveOnScroll(); ticking = false; });
-          ticking = true;
-        }
-      }, { passive: true });
+      if (window.innerWidth >= 768) {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            requestAnimationFrame(() => { updateActiveOnScroll(); ticking = false; });
+            ticking = true;
+          }
+        }, { passive: true });
 
-      updateActiveOnScroll();
+        updateActiveOnScroll();
+      }
       gVisual.innerHTML = data[0].visual;
     })();
   </script>
