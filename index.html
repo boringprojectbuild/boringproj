@@ -412,6 +412,106 @@
       animation: pulseRing 2.5s ease-in-out infinite;
     }
 
+    /* play button — direct child of #hero, NOT nested in .hero-inner/.hero-right,
+       since .hero-inner's own position:relative would hijack its coordinate system */
+    .play-btn {
+      position: absolute;
+      top: 90px;
+      right: 66px;
+      z-index: 3;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(13,13,13,0.55);
+      border: 1.5px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    }
+    .play-btn:hover {
+      transform: scale(1.08);
+      background: rgba(196,146,42,0.15);
+      box-shadow: 0 0 30px rgba(196,146,42,0.35);
+    }
+    .play-btn svg {
+      margin-left: 3px;
+    }
+    .play-label {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ---- tile grid overlay ---- */
+    #heroTileGrid {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      pointer-events: none;
+    }
+    .tile {
+      position: absolute;
+      background: var(--bg);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .tile.on { opacity: 1; }
+
+    /* ---- video overlay ---- */
+    #heroVideoOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 400;
+      background: #000;
+      display: none;
+    }
+    #heroVideoOverlay.active { display: block; }
+    #heroVideo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #heroCloseBtn {
+      position: fixed;
+      top: 24px;
+      right: 32px;
+      z-index: 600;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      color: var(--white);
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    #heroCloseBtn.visible { display: flex; }
+
+    /* while the video overlay is open, restore a real cursor over the site-wide
+       cursor:none custom-cursor system so video controls/close button are usable */
+    body.hero-video-active,
+    body.hero-video-active * {
+      cursor: auto !important;
+    }
+    body.hero-video-active #custom-cursor {
+      display: none;
+    }
+
     /* ─── SECTION SHARED ─── */
     .section-label {
       font-weight: 500;
@@ -1592,7 +1692,20 @@
         </div>
       </div>
     </div>
+    <button class="play-btn" id="heroPlayBtn" aria-label="Watch our ad">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--gold)"><path d="M8 5v14l11-7z"/></svg>
+      <span class="play-label">Press play</span>
+    </button>
   </section>
+
+  <!-- ═══════════════════════════════ HERO VIDEO AD OVERLAY ═══════════════════════════════ -->
+  <div id="heroTileGrid"></div>
+
+  <div id="heroVideoOverlay">
+    <video id="heroVideo" src="assets/video/hero-ad.mp4" playsinline></video>
+  </div>
+
+  <button id="heroCloseBtn" aria-label="Close">✕</button>
 
   <!-- ═══════════════════════════════ PROBLEM ═══════════════════════════════ -->
   <section id="problem">
@@ -2141,6 +2254,138 @@
       }
 
       animate();
+    })();
+  </script>
+
+  <!-- ═══════════════════════════════ HERO: CLICK-TO-PLAY VIDEO AD ═══════════════════════════════ -->
+  <script>
+    (function () {
+      const CELL = 60;
+      const tileGrid = document.getElementById('heroTileGrid');
+      const videoOverlay = document.getElementById('heroVideoOverlay');
+      const closeBtn = document.getElementById('heroCloseBtn');
+      const playBtn = document.getElementById('heroPlayBtn');
+      const heroVideo = document.getElementById('heroVideo');
+      if (!tileGrid || !videoOverlay || !closeBtn || !playBtn || !heroVideo) return;
+
+      let tiles = [];
+      let cols, rows;
+
+      function buildTiles() {
+        tileGrid.innerHTML = '';
+        tiles = [];
+        cols = Math.ceil(window.innerWidth / CELL);
+        rows = Math.ceil(window.innerHeight / CELL);
+        const cx = cols / 2, cy = rows / 2;
+        const maxDistCenter = Math.hypot(cx, cy);
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const el = document.createElement('div');
+            el.className = 'tile';
+            el.style.left = (c * CELL) + 'px';
+            el.style.top = (r * CELL) + 'px';
+            el.style.width = CELL + 'px';
+            el.style.height = CELL + 'px';
+            tileGrid.appendChild(el);
+
+            const distCenter = Math.hypot(c - cx, r - cy);
+            const distEdge = Math.min(c, r, cols - c, rows - r);
+            const maxDistEdge = Math.min(cols, rows) / 2;
+
+            tiles.push({
+              el,
+              delayCenter: distCenter / maxDistCenter, // 0 at center, 1 at corners
+              delayEdge: distEdge / maxDistEdge,        // 0 at edges, 1 at center
+            });
+          }
+        }
+      }
+      buildTiles();
+      window.addEventListener('resize', buildTiles);
+
+      function runTiles(order, direction, duration = 900) {
+        // order: 'center' or 'edge' — which distance metric drives the stagger
+        // direction: 'in' (fade to visible) or 'out' (fade to hidden)
+        return new Promise(resolve => {
+          let maxDelay = 0;
+          tiles.forEach(t => {
+            const key = order === 'center' ? t.delayCenter : t.delayEdge;
+            const delay = key * (duration * 0.7);
+            maxDelay = Math.max(maxDelay, delay);
+            t.el.style.transitionDelay = delay + 'ms';
+            t.el.style.animationDelay = delay + 'ms';
+            requestAnimationFrame(() => {
+              t.el.classList.toggle('on', direction === 'in');
+            });
+          });
+          setTimeout(resolve, maxDelay + 450);
+        });
+      }
+
+      let isOpen = false;
+
+      async function openSequence() {
+        if (isOpen) return;
+        isOpen = true;
+        document.body.classList.add('hero-video-active');
+        buildTiles(); // fresh grid sized to current viewport
+
+        // step 1: cover, center outward
+        await runTiles('center', 'in');
+
+        // step 2: start the real video and wait for actual frames to be
+        // rendering (not just metadata loaded) before revealing anything
+        videoOverlay.classList.add('active');
+        closeBtn.classList.add('visible');
+        heroVideo.currentTime = 0;
+        const playing = new Promise(resolve => {
+          heroVideo.addEventListener('playing', resolve, { once: true });
+        });
+        heroVideo.play().catch(() => {});
+        await playing;
+
+        await runTiles('center', 'out'); // uncover, revealing already-playing video
+      }
+
+      async function closeSequenceViaEnd() {
+        heroVideo.pause();
+
+        // step 3: re-cover, edges inward
+        await runTiles('edge', 'in');
+
+        // step 4: swap back to real hero, dissolve center outward
+        videoOverlay.classList.remove('active');
+        closeBtn.classList.remove('visible');
+        heroVideo.currentTime = 0;
+        await runTiles('center', 'out');
+        document.body.classList.remove('hero-video-active');
+        isOpen = false;
+      }
+
+      heroVideo.addEventListener('ended', closeSequenceViaEnd);
+
+      function manualClose() {
+        // quick simple fade, no tile spectacle
+        heroVideo.pause();
+        videoOverlay.style.transition = 'opacity 0.3s ease';
+        videoOverlay.style.opacity = '0';
+        setTimeout(() => {
+          videoOverlay.classList.remove('active');
+          videoOverlay.style.opacity = '1';
+          heroVideo.currentTime = 0;
+          closeBtn.classList.remove('visible');
+          tiles.forEach(t => t.el.classList.remove('on'));
+          document.body.classList.remove('hero-video-active');
+          isOpen = false;
+        }, 300);
+      }
+
+      playBtn.addEventListener('click', openSequence);
+      closeBtn.addEventListener('click', manualClose);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) manualClose();
+      });
     })();
   </script>
 

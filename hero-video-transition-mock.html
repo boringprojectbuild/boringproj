@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero Video Transition Mock — boring project.</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D0D0D;
+    --surface: #1A1A1A;
+    --blue: #2B5FA6;
+    --gold: #C4922A;
+    --white: #F5F5F3;
+    --muted: #888780;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--white); overflow-x: hidden; }
+  a { text-decoration: none; color: inherit; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 64px; background: rgba(13,13,13,0.95);
+    border-bottom: 0.5px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 48px;
+  }
+  .nav-logo { font-weight: 700; font-size: 18px; }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { font-weight: 500; font-size: 14px; color: var(--muted); }
+  .nav-cta { background: var(--gold); color: var(--bg); font-weight: 700; font-size: 13px; border-radius: 50px; padding: 10px 20px; }
+
+  #hero {
+    min-height: 100vh; display: flex; align-items: center; padding: 0 80px; padding-top: 64px;
+    position: relative; overflow: hidden;
+  }
+  .hero-inner { display: flex; align-items: center; width: 100%; max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-left { flex: 0 0 55%; }
+  .hero-eyebrow { font-weight: 500; font-size: 12px; color: var(--gold); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 24px; }
+  .hero-headline { line-height: 0.95; letter-spacing: -2px; }
+  .hero-headline .line1 { display: block; font-weight: 900; font-size: 72px; color: var(--white); }
+  .hero-headline .line1 span { color: var(--gold); }
+  .hero-headline .line2 { display: block; font-weight: 900; font-size: 72px; color: var(--blue); }
+  .hero-sub { font-size: 16px; color: var(--muted); max-width: 480px; line-height: 1.7; margin-top: 24px; }
+  .hero-cta-row { display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
+  .btn-primary { background: var(--gold); color: var(--bg); font-weight: 700; font-size: 14px; border-radius: 50px; padding: 14px 28px; }
+  .btn-outline { border: 1px solid rgba(255,255,255,0.2); color: var(--white); font-weight: 500; font-size: 14px; border-radius: 50px; padding: 14px 28px; }
+  .hero-proof { display: flex; gap: 16px; margin-top: 48px; }
+  .proof-item { font-weight: 500; font-size: 11px; color: var(--muted); }
+
+  .hero-right { flex: 0 0 45%; display: flex; align-items: center; justify-content: center; }
+  .hero-icon-wrap { animation: slowRotate 20s linear infinite; position: relative; }
+  @keyframes slowRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes pulseRing { 0%,100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.15); opacity: 0.15; } }
+  .pulse-outer { transform-origin: center; animation: pulseRing 2.5s ease-in-out infinite; }
+
+  /* play button — right-justified, overlaid on the icon, out of the text's way */
+  .play-btn {
+    position: absolute;
+    top: 90px;
+    right: 48px;
+    z-index: 3;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(13,13,13,0.55);
+    border: 1.5px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  }
+  .play-btn:hover {
+    transform: scale(1.08);
+    background: rgba(196,146,42,0.15);
+    box-shadow: 0 0 30px rgba(196,146,42,0.35);
+  }
+  .play-btn svg { margin-left: 3px; }
+  .play-label {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ---- tile grid overlay ---- */
+  #tileGrid {
+    position: fixed; inset: 0; z-index: 500;
+    pointer-events: none;
+  }
+  .tile {
+    position: absolute;
+    background: var(--bg);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .tile.on { opacity: 1; }
+
+  /* ---- video placeholder overlay ---- */
+  #videoOverlay {
+    position: fixed; inset: 0; z-index: 400;
+    background: #000;
+    display: none;
+  }
+  #videoOverlay.active { display: block; }
+  #heroVideo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  #simulateEndBtn {
+    position: absolute;
+    bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 410;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(245,245,243,0.25);
+    color: var(--white);
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+  }
+  #closeBtn {
+    position: fixed;
+    top: 24px; right: 32px;
+    z-index: 600;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  #closeBtn.visible { display: flex; }
+
+  .filler { min-height: 60vh; display: flex; align-items: center; justify-content: center; color: rgba(245,245,243,0.25); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo">boring project<span>.</span></a>
+  <ul class="nav-links"><li><a>Home</a></li><li><a>Services</a></li><li><a>Pricing</a></li></ul>
+  <a class="nav-cta">Get started →</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <p class="hero-eyebrow">✦ San Antonio Web + SEO Agency</p>
+      <h1 class="hero-headline">
+        <span class="line1">boring project<span>.</span></span>
+        <span class="line2">Finally found.</span>
+      </h1>
+      <p class="hero-sub">We build fast, fully optimized websites and local SEO strategies for San Antonio service businesses that are tired of being invisible online.</p>
+      <div class="hero-cta-row">
+        <a class="btn-primary">See how it works →</a>
+        <a class="btn-outline">View pricing</a>
+      </div>
+      <div class="hero-proof">
+        <span class="proof-item">San Antonio based</span>
+        <span class="proof-item">AI-powered builds</span>
+        <span class="proof-item">Fraction of agency cost</span>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-icon-wrap">
+        <svg width="420" height="420" viewBox="-130 -130 260 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="-100" y="-100" width="200" height="200" rx="20" stroke="#2B5FA6" stroke-width="1.4" fill="none"/>
+          <rect x="-60" y="-60" width="120" height="120" rx="12" stroke="#2B5FA6" stroke-width="1" fill="none" opacity="0.3"/>
+          <circle class="pulse-outer" cx="0" cy="0" r="50" stroke="#C4922A" stroke-width="0.7" fill="none" opacity="0.3"/>
+          <circle cx="0" cy="0" r="30" stroke="#C4922A" stroke-width="1" fill="none" opacity="0.65"/>
+          <circle cx="0" cy="0" r="8" fill="#F5F5F3"/>
+          <circle cx="0" cy="0" r="4" fill="#C4922A"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <button class="play-btn" id="playBtn" aria-label="Watch our ad">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--gold)"><path d="M8 5v14l11-7z"/></svg>
+    <span class="play-label">Press play</span>
+  </button>
+</section>
+
+<div class="filler">— rest of homepage below —</div>
+
+<div id="tileGrid"></div>
+
+<div id="videoOverlay">
+  <video id="heroVideo" src="hero-ad.mp4" playsinline></video>
+  <button id="simulateEndBtn">Skip to end (testing) →</button>
+</div>
+
+<button id="closeBtn" aria-label="Close">✕</button>
+
+<script>
+  const CELL = 60;
+  const tileGrid = document.getElementById('tileGrid');
+  const videoOverlay = document.getElementById('videoOverlay');
+  const closeBtn = document.getElementById('closeBtn');
+  const playBtn = document.getElementById('playBtn');
+  const simulateEndBtn = document.getElementById('simulateEndBtn');
+
+  let tiles = [];
+  let cols, rows;
+
+  function buildTiles() {
+    tileGrid.innerHTML = '';
+    tiles = [];
+    cols = Math.ceil(window.innerWidth / CELL);
+    rows = Math.ceil(window.innerHeight / CELL);
+    const cx = cols / 2, cy = rows / 2;
+    const maxDistCenter = Math.hypot(cx, cy);
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const el = document.createElement('div');
+        el.className = 'tile';
+        el.style.left = (c * CELL) + 'px';
+        el.style.top = (r * CELL) + 'px';
+        el.style.width = CELL + 'px';
+        el.style.height = CELL + 'px';
+        tileGrid.appendChild(el);
+
+        const distCenter = Math.hypot(c - cx, r - cy);
+        const distEdge = Math.min(c, r, cols - c, rows - r);
+        const maxDistEdge = Math.min(cols, rows) / 2;
+
+        tiles.push({
+          el,
+          delayCenter: distCenter / maxDistCenter, // 0 at center, 1 at corners
+          delayEdge: distEdge / maxDistEdge,        // 0 at edges, 1 at center
+        });
+      }
+    }
+  }
+  buildTiles();
+  window.addEventListener('resize', buildTiles);
+
+  function runTiles(order, direction, duration = 900) {
+    // order: 'center' or 'edge' — which distance metric drives the stagger
+    // direction: 'in' (fade to visible) or 'out' (fade to hidden)
+    return new Promise(resolve => {
+      let maxDelay = 0;
+      tiles.forEach(t => {
+        const key = order === 'center' ? t.delayCenter : t.delayEdge;
+        const delay = key * (duration * 0.7);
+        maxDelay = Math.max(maxDelay, delay);
+        t.el.style.transitionDelay = delay + 'ms';
+        t.el.style.animationDelay = delay + 'ms';
+        requestAnimationFrame(() => {
+          t.el.classList.toggle('on', direction === 'in');
+        });
+      });
+      setTimeout(resolve, maxDelay + 450);
+    });
+  }
+
+  function instantCoverAll() {
+    return new Promise(resolve => {
+      tiles.forEach(t => {
+        t.el.style.transition = 'none';
+        t.el.classList.add('on');
+      });
+      void tileGrid.offsetHeight; // force reflow so 'none' actually applies before we restore it
+      tiles.forEach(t => {
+        t.el.style.transition = '';
+      });
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+  }
+
+  let isOpen = false;
+
+  const heroVideo = document.getElementById('heroVideo');
+
+  async function openSequence() {
+    if (isOpen) return;
+    isOpen = true;
+    buildTiles(); // fresh grid sized to current viewport
+
+    // step 1: cover, center outward
+    await runTiles('center', 'in');
+
+    // step 2: start the real video and wait for actual frames to be
+    // rendering (not just metadata loaded) before revealing anything
+    videoOverlay.classList.add('active');
+    closeBtn.classList.add('visible');
+    heroVideo.currentTime = 0;
+    const playing = new Promise(resolve => {
+      heroVideo.addEventListener('playing', resolve, { once: true });
+    });
+    heroVideo.play().catch(() => {});
+    await playing;
+
+    await runTiles('center', 'out'); // uncover, revealing already-playing video
+  }
+
+  async function closeSequenceViaEnd() {
+    heroVideo.pause();
+
+    // step 3: re-cover, edges inward
+    await runTiles('edge', 'in');
+
+    // step 4: swap back to real hero, dissolve center outward
+    videoOverlay.classList.remove('active');
+    closeBtn.classList.remove('visible');
+    heroVideo.currentTime = 0;
+    await runTiles('center', 'out');
+    isOpen = false;
+  }
+
+  heroVideo.addEventListener('ended', closeSequenceViaEnd);
+
+  function manualClose() {
+    // quick simple fade, no tile spectacle
+    heroVideo.pause();
+    videoOverlay.style.transition = 'opacity 0.3s ease';
+    videoOverlay.style.opacity = '0';
+    setTimeout(() => {
+      videoOverlay.classList.remove('active');
+      videoOverlay.style.opacity = '1';
+      heroVideo.currentTime = 0;
+      closeBtn.classList.remove('visible');
+      tiles.forEach(t => t.el.classList.remove('on'));
+      isOpen = false;
+    }, 300);
+  }
+
+  playBtn.addEventListener('click', openSequence);
+  simulateEndBtn.addEventListener('click', closeSequenceViaEnd);
+  closeBtn.addEventListener('click', manualClose);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) manualClose();
+  });
+</script>
+
+</body>
+</html>
