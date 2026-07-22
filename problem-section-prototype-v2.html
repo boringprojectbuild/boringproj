@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Problem Section Prototype v2 — boring project.</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D0D0D;
+    --blue: #2B5FA6;
+    --gold: #C4922A;
+    --white: #F5F5F3;
+    --muted: #888780;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--white);
+  }
+
+  .filler {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(245,245,243,0.25);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .problem-scroll { position: relative; }
+  .problem-grid { display: grid; position: relative; }
+  .problem-track { grid-column: 1; grid-row: 1; height: 650vh; }
+  .problem-sticky {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow.blue { background: rgba(43,95,166,0.16); width: 520px; height: 520px; top: 10%; left: -8%; }
+  .glow.gold { background: rgba(196,146,42,0.14); width: 460px; height: 460px; bottom: 5%; right: -6%; }
+
+  .problem-question {
+    position: relative;
+    z-index: 2;
+    font-weight: 900;
+    font-size: clamp(24px, 4.2vw, 58px);
+    text-align: center;
+    max-width: 92vw;
+    white-space: nowrap;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    padding: 0 24px;
+    transition: transform 0.8s ease, color 0.4s ease;
+  }
+  .problem-question.resolved {
+    color: var(--gold);
+  }
+
+  .problem-eyebrow {
+    position: absolute;
+    top: 14%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .problem-eyebrow.visible { opacity: 1; }
+
+  /* captions travel bottom-to-top through fixed left/right lanes, passing beside
+     the centered question rather than through it */
+  .caption {
+    position: absolute;
+    z-index: 1;
+    width: 280px;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .caption.lane-left {
+    left: 6%;
+    text-align: left;
+  }
+  .caption.lane-right {
+    right: 6%;
+    text-align: right;
+  }
+  .caption .num {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--blue);
+    margin-bottom: 8px;
+  }
+  .caption h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  .caption p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 6%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .scroll-hint.visible { opacity: 0.6; }
+
+  @media (max-width: 720px) {
+    .caption { width: 46vw; }
+  }
+</style>
+</head>
+<body>
+
+<div class="filler">— hero section above —</div>
+
+<section class="problem-scroll">
+  <div class="problem-grid">
+    <div class="problem-track"></div>
+    <div class="problem-sticky">
+      <div class="glow blue"></div>
+      <div class="glow gold"></div>
+
+      <div class="problem-eyebrow" id="eyebrow">✦ The Problem</div>
+      <h2 class="problem-question" id="question">Still invisible on Google?</h2>
+
+      <div class="caption lane-left" data-index="0" style="top: 50%;">
+        <span class="num">01</span>
+        <h3>No website at all.</h3>
+        <p>Your competitors have a site. You have a phone number and a prayer.</p>
+      </div>
+      <div class="caption lane-right" data-index="1" style="top: 50%;">
+        <span class="num">02</span>
+        <h3>Buried by big budgets.</h3>
+        <p>Companies with $10k ad spend show up first. You built something real and nobody can find it.</p>
+      </div>
+      <div class="caption lane-left" data-index="2" style="top: 50%;">
+        <span class="num">03</span>
+        <h3>Agencies cost too much.</h3>
+        <p>Traditional agencies want $5k upfront and $2k a month. You just need to be found.</p>
+      </div>
+      <div class="caption lane-right" data-index="3" style="top: 50%;">
+        <span class="num">04</span>
+        <h3>Google profile's gone quiet.</h3>
+        <p>No new posts, no new photos, no activity in months. Google reads that as "maybe closed." So do customers.</p>
+      </div>
+      <div class="caption lane-left" data-index="4" style="top: 50%;">
+        <span class="num">05</span>
+        <h3>No one's managing it.</h3>
+        <p>Rankings slip. Reviews go unanswered. It doesn't crash or break — it just stops working, and by the time you notice, it's already cost you calls.</p>
+      </div>
+
+      <div class="scroll-hint" id="scrollHint">Scroll</div>
+    </div>
+  </div>
+</section>
+
+<div class="filler">— What we do section below —</div>
+
+<script>
+  const track = document.querySelector('.problem-track');
+  const question = document.getElementById('question');
+  const eyebrow = document.getElementById('eyebrow');
+  const scrollHint = document.getElementById('scrollHint');
+  const captions = Array.from(document.querySelectorAll('.caption'));
+
+  // each caption's own scroll range — overlapping is fine since left/right
+  // lanes keep them from colliding visually
+  const RANGES = [
+    [0.02, 0.30],
+    [0.16, 0.44],
+    [0.30, 0.58],
+    [0.44, 0.72],
+    [0.58, 0.80],
+  ];
+
+  // vertical travel: starts below center (near bottom of viewport),
+  // ends above center (near top), passing beside the fixed question
+  const START_Y = 220; // px below center
+  const END_Y = -260;  // px above center
+
+  const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!<>-_/[]{}=+*^?#';
+  const ORIGINAL_QUESTION = question.textContent;
+  const RESOLUTION_TEXT = 'We fix that.';
+  let scrambled = false;
+  let scrambleRAF = null;
+
+  function scrambleTo(newText, duration = 650) {
+    if (scrambleRAF) cancelAnimationFrame(scrambleRAF);
+    const oldText = question.textContent;
+    const length = Math.max(oldText.length, newText.length);
+    const start = performance.now();
+
+    function frame(now) {
+      const t = Math.min(1, (now - start) / duration);
+      let out = '';
+      for (let i = 0; i < length; i++) {
+        const revealAt = i / length; // stagger left to right
+        if (t > revealAt + 0.15) {
+          out += newText[i] || '';
+        } else if (t > revealAt) {
+          out += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+        } else {
+          out += oldText[i] || '';
+        }
+      }
+      question.textContent = out;
+      if (t < 1) {
+        scrambleRAF = requestAnimationFrame(frame);
+      } else {
+        question.textContent = newText;
+        scrambleRAF = null;
+      }
+    }
+    scrambleRAF = requestAnimationFrame(frame);
+  }
+
+  function getProgress() {
+    const rect = track.getBoundingClientRect();
+    const total = rect.height - window.innerHeight;
+    return total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+  }
+
+  function update() {
+    const p = getProgress();
+
+    eyebrow.classList.toggle('visible', p > 0.02 && p < 0.95);
+    scrollHint.classList.toggle('visible', p < 0.08);
+
+    const scale = 1 + p * 0.03;
+    question.style.transform = `scale(${scale})`;
+
+    // once the last caption has fully exited, resolve the question into
+    // the closing line; scrolling back up reverses it
+    if (p > 0.83 && !scrambled) {
+      scrambled = true;
+      question.classList.add('resolved');
+      scrambleTo(RESOLUTION_TEXT);
+    } else if (p < 0.78 && scrambled) {
+      scrambled = false;
+      question.classList.remove('resolved');
+      scrambleTo(ORIGINAL_QUESTION);
+    }
+
+    captions.forEach((el, i) => {
+      const [start, end] = RANGES[i];
+      if (p < start || p > end) {
+        el.style.opacity = 0;
+        return;
+      }
+      const local = (p - start) / (end - start); // 0 to 1 within this caption's own range
+      const y = START_Y + (END_Y - START_Y) * local;
+      el.style.transform = `translateY(${y}px)`;
+
+      // fade in over first 18%, hold, fade out over last 25% as it nears the top
+      let opacity = 1;
+      if (local < 0.18) opacity = local / 0.18;
+      else if (local > 0.75) opacity = 1 - (local - 0.75) / 0.25;
+      el.style.opacity = Math.max(0, Math.min(1, opacity));
+    });
+  }
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => { update(); ticking = false; });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  update();
+</script>
+
+</body>
+</html>
