@@ -715,11 +715,13 @@
 
     .process-sticky {
       position: sticky;
-      top: 12vh;
+      top: 64px;
+      height: calc(100vh - 64px);
       display: grid;
       grid-template-columns: 320px 1fr;
       gap: 36px;
       align-items: stretch;
+      align-content: center;
       align-self: start;
       z-index: 1;
     }
@@ -1383,6 +1385,7 @@
 
       .process-sticky {
         position: static;
+        height: auto;
         grid-template-columns: 1fr;
         gap: 24px;
       }
