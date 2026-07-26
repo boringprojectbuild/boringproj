@@ -4602,8 +4602,13 @@ Thank you! — [Business Name]</div>
         card.draggable = true;
         card.dataset.contactId = c.id;
 
-        const idleMillis = Date.now() - tsToMillis(c.lastActivityAt);
-        const isIdle = idleMillis > IDLE_MS && c.stage !== 'won' && c.stage !== 'lost';
+        // lastActivityAt resolves as null for one frame while a
+        // serverTimestamp() write is still pending — tsToMillis() reads
+        // that as 0 (epoch), which would otherwise read as maximally idle.
+        // Treat an unresolved timestamp as "not idle" instead.
+        const lastActivityMillis = tsToMillis(c.lastActivityAt);
+        const idleMillis = lastActivityMillis === 0 ? 0 : Date.now() - lastActivityMillis;
+        const isIdle = lastActivityMillis !== 0 && idleMillis > IDLE_MS && c.stage !== 'won' && c.stage !== 'lost';
         const idleDays = Math.floor(idleMillis / 86400000);
 
         card.innerHTML = `
