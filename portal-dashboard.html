@@ -3439,7 +3439,7 @@ Thank you! — [Business Name]</div>
       return card;
     }
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const db = window.db;
       const list = document.getElementById('report-list');
       if (!db || !list) return;
@@ -3448,6 +3448,14 @@ Thank you! — [Business Name]</div>
       const clientEmail = currentClientEmail();
       const clientInfo = getClientInfo(clientEmail);
       if (!clientInfo.key) return;
+
+      // reports/{clientKey}/months rules require a signed-in session with
+      // a matching clientKey claim — wait for the bridge before reading.
+      const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+      if (!authReady) {
+        console.error('Reports: client auth bridge not ready — reports will not load.');
+        return;
+      }
 
       onSnapshot(collection(db, 'reports', clientInfo.key, 'months'), (snapshot) => {
         const reports = {};
@@ -3461,7 +3469,7 @@ Thank you! — [Business Name]</div>
     });
 
     // ── Work Completed — current month, real data or "—" ────
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const db = window.db;
       if (!db) return;
       const { doc, onSnapshot } = window.firestoreModules;
@@ -3469,6 +3477,15 @@ Thank you! — [Business Name]</div>
       const clientEmail = currentClientEmail();
       const clientInfo = getClientInfo(clientEmail);
       if (!clientInfo.key) return;
+
+      // workcompleted/{clientKey}/months rules require a signed-in
+      // session with a matching clientKey claim — wait for the bridge
+      // before reading.
+      const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+      if (!authReady) {
+        console.error('Work Completed: client auth bridge not ready — data will not load.');
+        return;
+      }
 
       const currentMonth = RECENT_MONTHS[0];
       const fixedIds = { gbpPosts: 'wc-gbp', citationsBuilt: 'wc-citations', siteUpdates: 'wc-siteupdates', reviewRequests: 'wc-reviews' };

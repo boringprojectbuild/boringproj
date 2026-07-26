@@ -1861,6 +1861,8 @@ Boring Project
         startRepMessagesListener();
         startLeadsAndThread();
         startLeaderboard();
+        startReports();
+        startWorkCompleted();
       } catch (err) {
         console.error('Reps auth bridge failed:', err);
       }
@@ -2511,11 +2513,21 @@ Boring Project
       return slot;
     }
 
-    REPORT_CLIENTS.forEach(client => {
-      const container = document.getElementById(`report-slots-${client.key}`);
-      if (!container) return;
-      RECENT_MONTHS.forEach(month => container.appendChild(buildReportSlot(client, month)));
-    });
+    // reports/{clientKey}/months rules require a signed-in admin session —
+    // only started once bridgeRepsAuth has actually signed in, same
+    // reasoning as startLeadsAndThread above. This also covers the
+    // Save-button write inside buildReportSlot(): its click listener isn't
+    // attached until this runs, so there's no way to trigger it earlier.
+    let reportsStarted = false;
+    function startReports() {
+      if (reportsStarted) return;
+      reportsStarted = true;
+      REPORT_CLIENTS.forEach(client => {
+        const container = document.getElementById(`report-slots-${client.key}`);
+        if (!container) return;
+        RECENT_MONTHS.forEach(month => container.appendChild(buildReportSlot(client, month)));
+      });
+    }
 
     // ── Expand / collapse client report cards ──
     document.querySelectorAll('.report-client-header').forEach(header => {
@@ -2597,65 +2609,75 @@ Boring Project
       }
     }
 
-    REPORT_CLIENTS.forEach(client => {
-      const key = client.key;
-      const monthLabelEl = document.getElementById(`wc-month-label-${key}`);
-      if (monthLabelEl) monthLabelEl.textContent = CURRENT_MONTH.label;
+    // workcompleted/{clientKey}/months rules require a signed-in admin
+    // session — only started once bridgeRepsAuth has actually signed in,
+    // same reasoning as startLeadsAndThread above. This also covers the
+    // Save button's write: its click listener isn't attached until this
+    // runs, so there's no way to trigger it before the bridge resolves.
+    let workCompletedStarted = false;
+    function startWorkCompleted() {
+      if (workCompletedStarted) return;
+      workCompletedStarted = true;
+      REPORT_CLIENTS.forEach(client => {
+        const key = client.key;
+        const monthLabelEl = document.getElementById(`wc-month-label-${key}`);
+        if (monthLabelEl) monthLabelEl.textContent = CURRENT_MONTH.label;
 
-      const toggleBtn = document.querySelector(`#wc-card-${key} .wc-toggle`);
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-          const card = document.getElementById(`wc-card-${key}`);
-          const expanded = card.classList.toggle('expanded');
-          toggleBtn.setAttribute('aria-expanded', String(expanded));
-        });
-      }
-
-      const reportBtn = document.getElementById(`wc-report-${key}`);
-      if (reportBtn) {
-        reportBtn.addEventListener('click', () => {
-          const on = reportBtn.dataset.value !== 'true';
-          reportBtn.dataset.value = String(on);
-          reportBtn.textContent = on ? 'Yes' : 'No';
-          reportBtn.classList.toggle('on', on);
-        });
-      }
-
-      const addCustomBtn = document.getElementById(`wc-add-custom-${key}`);
-      if (addCustomBtn) {
-        addCustomBtn.addEventListener('click', () => addCustomItemRow(key, null));
-      }
-
-      onSnapshot(wcDocRef(key), (docSnap) => {
-        applyWorkCompletedData(key, docSnap.exists() ? docSnap.data() : null);
-      });
-
-      const saveBtn = document.getElementById(`wc-save-${key}`);
-      const saveStatus = document.getElementById(`wc-save-status-${key}`);
-      if (saveBtn) {
-        saveBtn.addEventListener('click', async () => {
-          const num = id => Number(document.getElementById(id).value) || 0;
-          await setDoc(wcDocRef(key), {
-            clientKey: key,
-            clientEmail: client.email,
-            clientName: client.name,
-            month: CURRENT_MONTH.key,
-            monthLabel: CURRENT_MONTH.label,
-            gbpPosts: num(`wc-gbp-${key}`),
-            citationsBuilt: num(`wc-citations-${key}`),
-            siteUpdates: num(`wc-siteupdates-${key}`),
-            reviewRequests: num(`wc-reviews-${key}`),
-            reportGenerated: document.getElementById(`wc-report-${key}`).dataset.value === 'true',
-            customItems: readCustomItems(key),
-            updatedAt: serverTimestamp()
+        const toggleBtn = document.querySelector(`#wc-card-${key} .wc-toggle`);
+        if (toggleBtn) {
+          toggleBtn.addEventListener('click', () => {
+            const card = document.getElementById(`wc-card-${key}`);
+            const expanded = card.classList.toggle('expanded');
+            toggleBtn.setAttribute('aria-expanded', String(expanded));
           });
-          if (saveStatus) {
-            saveStatus.textContent = 'Saved';
-            setTimeout(() => { saveStatus.textContent = ''; }, 2500);
-          }
+        }
+
+        const reportBtn = document.getElementById(`wc-report-${key}`);
+        if (reportBtn) {
+          reportBtn.addEventListener('click', () => {
+            const on = reportBtn.dataset.value !== 'true';
+            reportBtn.dataset.value = String(on);
+            reportBtn.textContent = on ? 'Yes' : 'No';
+            reportBtn.classList.toggle('on', on);
+          });
+        }
+
+        const addCustomBtn = document.getElementById(`wc-add-custom-${key}`);
+        if (addCustomBtn) {
+          addCustomBtn.addEventListener('click', () => addCustomItemRow(key, null));
+        }
+
+        onSnapshot(wcDocRef(key), (docSnap) => {
+          applyWorkCompletedData(key, docSnap.exists() ? docSnap.data() : null);
         });
-      }
-    });
+
+        const saveBtn = document.getElementById(`wc-save-${key}`);
+        const saveStatus = document.getElementById(`wc-save-status-${key}`);
+        if (saveBtn) {
+          saveBtn.addEventListener('click', async () => {
+            const num = id => Number(document.getElementById(id).value) || 0;
+            await setDoc(wcDocRef(key), {
+              clientKey: key,
+              clientEmail: client.email,
+              clientName: client.name,
+              month: CURRENT_MONTH.key,
+              monthLabel: CURRENT_MONTH.label,
+              gbpPosts: num(`wc-gbp-${key}`),
+              citationsBuilt: num(`wc-citations-${key}`),
+              siteUpdates: num(`wc-siteupdates-${key}`),
+              reviewRequests: num(`wc-reviews-${key}`),
+              reportGenerated: document.getElementById(`wc-report-${key}`).dataset.value === 'true',
+              customItems: readCustomItems(key),
+              updatedAt: serverTimestamp()
+            });
+            if (saveStatus) {
+              saveStatus.textContent = 'Saved';
+              setTimeout(() => { saveStatus.textContent = ''; }, 2500);
+            }
+          });
+        }
+      });
+    }
   </script>
 
   <script>

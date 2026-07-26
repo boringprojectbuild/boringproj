@@ -4,18 +4,31 @@ service cloud.firestore {
 
     // ── Existing collections — unchanged from what's currently live ──
     // Left exactly as permissive as before so the client portal keeps
-    // working with zero changes. (contacts/quotes/users below now use
-    // this same bridge — messages/reports/workcompleted are still open
-    // and would need the same treatment, plus their read/write call
+    // working with zero changes. (contacts/quotes/users/reports/
+    // workcompleted below now use this same bridge — messages is still
+    // open and would need the same treatment, plus its read/write call
     // sites moved to wait for the auth bridge, to tighten further.)
     match /messages/{messageId} {
       allow read, write: if true;
     }
+
+    // ── Reports (Google Drive links) / Work Completed — client reads
+    // their own clientKey subcollection, admin reads+writes any. Client
+    // never writes either (confirmed — no setDoc/addDoc for these in
+    // portal-dashboard.html), so write is admin-only. ──
     match /reports/{clientKey}/months/{monthId} {
-      allow read, write: if true;
+      allow read: if request.auth != null
+                  && (request.auth.token.clientKey == clientKey
+                      || request.auth.token.role == 'admin');
+      allow write: if request.auth != null
+                   && request.auth.token.role == 'admin';
     }
     match /workcompleted/{clientKey}/months/{monthId} {
-      allow read, write: if true;
+      allow read: if request.auth != null
+                  && (request.auth.token.clientKey == clientKey
+                      || request.auth.token.role == 'admin');
+      allow write: if request.auth != null
+                   && request.auth.token.role == 'admin';
     }
 
     // ── Client notification state — doc ID is the client's lowercased
