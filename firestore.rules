@@ -4,9 +4,9 @@ service cloud.firestore {
 
     // ── Existing collections — unchanged from what's currently live ──
     // Left exactly as permissive as before so the client portal keeps
-    // working with zero changes. (Worth tightening later by extending
-    // the same Netlify Identity -> Firebase Auth bridge to clients too,
-    // but that's a separate project from tonight's rep dashboard work.)
+    // working with zero changes. (contacts/quotes below now use this same
+    // bridge, extended to mint a clientKey claim for clients — these four
+    // are still open and would need the same treatment to tighten further.)
     match /messages/{messageId} {
       allow read, write: if true;
     }
@@ -18,6 +18,24 @@ service cloud.firestore {
     }
     match /workcompleted/{clientKey}/months/{monthId} {
       allow read, write: if true;
+    }
+
+    // ── CRM contacts/quotes — real enforcement, via the same Netlify ->
+    // Firebase custom-token bridge as leads/reps below (mint-firebase-token
+    // now also mints a clientKey claim for client logins). A doc's own
+    // clientKey field must match the signed-in client's claim; on create
+    // that's request.resource.data since the document doesn't exist yet ──
+    match /contacts/{contactId} {
+      allow read, update, delete: if request.auth != null
+                                   && request.auth.token.clientKey == resource.data.clientKey;
+      allow create: if request.auth != null
+                    && request.auth.token.clientKey == request.resource.data.clientKey;
+    }
+    match /quotes/{quoteId} {
+      allow read, update, delete: if request.auth != null
+                                   && request.auth.token.clientKey == resource.data.clientKey;
+      allow create: if request.auth != null
+                    && request.auth.token.clientKey == request.resource.data.clientKey;
     }
 
     // ── Leads table — real enforcement, via the Netlify -> Firebase

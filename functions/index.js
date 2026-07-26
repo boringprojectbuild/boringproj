@@ -19,9 +19,14 @@
 // 2. Dashboard sends its Netlify access token to this function
 // 3. This function verifies that token by asking Netlify's own
 //    /.netlify/identity/user endpoint
-// 4. If valid, looks up the user's role in USER_REGISTRY (server-side —
-//    can't be tampered with from the browser)
-// 5. Mints a Firebase custom token with { role, email } as claims
+// 4. If valid, looks up the user's role in USER_REGISTRY and/or client
+//    identity in CLIENT_REGISTRY (server-side — can't be tampered with
+//    from the browser)
+// 5. Mints a Firebase custom token with whichever of { role, clientKey,
+//    email } apply — a rep/admin gets { role, email }, a client gets
+//    { clientKey, email }, and an account that's both (e.g. Joseph's own
+//    admin login, which doubles as the "boringproject" demo client) gets
+//    all three
 // 6. Dashboard signs into Firebase with that token, unlocking real
 //    Firestore Security Rules enforcement
 
@@ -44,6 +49,17 @@ const USER_REGISTRY = {
   // "rep1@example.com": { role: "sales_rep", name: "Rep One" },
   // "rep2@example.com": { role: "sales_rep", name: "Rep Two" },
   // "rep3@example.com": { role: "sales_rep", name: "Rep Three" },
+};
+
+// --- Client registry ---
+// Mirrors the CLIENTS object duplicated in portal-dashboard.html /
+// admin.html — keep the `clientKey` values in sync with those if a
+// client is ever added or renamed there. Server-side only, same
+// reasoning as USER_REGISTRY: a client can't grant themselves another
+// client's clientKey by editing browser code.
+const CLIENT_REGISTRY = {
+  "luminaservices220@outlook.com": {clientKey: "lumina", name: "Lumina Cleaning Service"},
+  "boringprj210@gmail.com": {clientKey: "boringproject", name: "boring project."},
 };
 
 exports.mintFirebaseToken = onRequest(
@@ -84,27 +100,33 @@ exports.mintFirebaseToken = onRequest(
         return;
       }
 
-      // --- Look up role, server-side only ---
-      const registryEntry = USER_REGISTRY[email];
-      if (!registryEntry) {
+      // --- Look up role and/or client identity, server-side only ---
+      const repEntry = USER_REGISTRY[email];
+      const clientEntry = CLIENT_REGISTRY[email];
+
+      if (!repEntry && !clientEntry) {
         res.status(403).json({
           error: "no_role_assigned",
-          message: "This account isn't registered as a rep or admin yet. Contact Joseph.",
+          message: "This account isn't registered as a rep, admin, or client yet. Contact Joseph.",
         });
         return;
       }
 
-      // --- Mint the Firebase custom token ---
+      // --- Mint the Firebase custom token — include whichever claims
+      // apply. An account can be both (Joseph's admin login also serves
+      // as the "boringproject" demo client), so these aren't exclusive. ---
+      const claims = {email};
+      if (repEntry) claims.role = repEntry.role;
+      if (clientEntry) claims.clientKey = clientEntry.clientKey;
+
       try {
-        const customToken = await admin.auth().createCustomToken(email, {
-          role: registryEntry.role,
-          email,
-        });
+        const customToken = await admin.auth().createCustomToken(email, claims);
 
         res.status(200).json({
           token: customToken,
-          role: registryEntry.role,
-          name: registryEntry.name,
+          role: repEntry ? repEntry.role : undefined,
+          clientKey: clientEntry ? clientEntry.clientKey : undefined,
+          name: (repEntry && repEntry.name) || (clientEntry && clientEntry.name),
           email,
         });
       } catch (err) {

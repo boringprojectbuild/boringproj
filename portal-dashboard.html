@@ -45,6 +45,7 @@
       --white:       #F5F5F3;
       --muted:       rgba(245, 245, 243, 0.45);
       --danger:      #e05555;
+      --success:     #4CAF82;
 
       /* Glassmorphism */
       --glass-bg:      rgba(255, 255, 255, 0.05);
@@ -671,6 +672,91 @@
       padding: 10px 0;
     }
 
+    /* ── Sidebar groups (Web dashboard / CRM dashboard) ── */
+    .nav-chevron {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--t-mid);
+    }
+
+    .nav-chevron svg { width: 14px; height: 14px; }
+
+    .nav-group.expanded .nav-group-toggle .nav-chevron {
+      transform: rotate(180deg);
+    }
+
+    .nav-group-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 14px;
+      padding-top: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height var(--t-slow), padding-top var(--t-slow);
+    }
+
+    .nav-group.expanded .nav-group-list {
+      max-height: 320px;
+      padding-top: 2px;
+    }
+
+    .app-layout.collapsed .nav-group-list {
+      display: none;
+    }
+
+    .app-layout.collapsed .nav-chevron,
+    .app-layout.collapsed .nav-lock {
+      display: none;
+    }
+
+    /* Lock icon — shown in place of the chevron / trailing edge when gated */
+    .nav-lock {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(245, 245, 243, 0.35);
+    }
+
+    .nav-lock[hidden] { display: none; }
+
+    .nav-lock svg { width: 14px; height: 14px; }
+
+    /* Locked state — greyed, inert, no gold hover */
+    .nav-item.locked,
+    .nav-group.locked .nav-group-toggle {
+      color: rgba(245, 245, 243, 0.28);
+      cursor: not-allowed;
+    }
+
+    .nav-item.locked:hover,
+    .nav-group.locked .nav-group-toggle:hover {
+      color: rgba(245, 245, 243, 0.28);
+      background: none;
+    }
+
+    body.light-mode .nav-item.locked,
+    body.light-mode .nav-group.locked .nav-group-toggle {
+      color: rgba(13, 13, 13, 0.25);
+    }
+
+    body.light-mode .nav-item.locked:hover,
+    body.light-mode .nav-group.locked .nav-group-toggle:hover {
+      color: rgba(13, 13, 13, 0.25);
+      background: none;
+    }
+
+    .nav-group.locked .nav-group-list {
+      display: none;
+    }
+
     /* ═══════════════════════════════════════════════
        METRIC CARDS
     ═══════════════════════════════════════════════ */
@@ -1252,13 +1338,470 @@
       color: #C4922A;
       opacity: 0.8;
     }
+
+    /* ═══════════════════════════════════════════════
+       CRM DASHBOARD — flat, marketing-surface only.
+       No glass/ambient here except #crmInsightPanel, which is the
+       one deliberate glass element in this whole section.
+    ═══════════════════════════════════════════════ */
+    #page-crm {
+      background: var(--bg);
+    }
+
+    .crm-wrap {
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .crm-tabbar {
+      display: flex;
+      gap: 4px;
+      border-bottom: 0.5px solid rgba(245, 245, 243, 0.1);
+      padding-bottom: 0;
+    }
+
+    .crm-tab {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(245, 245, 243, 0.45);
+      border-bottom: 2px solid transparent;
+      transition: color var(--t-fast), border-color var(--t-fast);
+    }
+
+    .crm-tab:hover { color: var(--white); }
+
+    .crm-tab.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    .crm-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── The one glass panel in the CRM section ── */
+    .crm-glass-panel {
+      background: rgba(43, 95, 166, 0.10);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(245, 245, 243, 0.12);
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 13px;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ── Flat card — the default surface for everything else in CRM ── */
+    .crm-card {
+      background: rgba(245, 245, 243, 0.04);
+      border: 0.5px solid rgba(245, 245, 243, 0.1);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+
+    .crm-card-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .crm-card-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .crm-card-trend {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .crm-card-trend.up { color: var(--success); }
+    .crm-card-trend.down { color: var(--danger); }
+
+    .crm-card-subtext {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .crm-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .crm-card-wide {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 900px) {
+      .crm-stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .crm-card-wide { grid-column: span 2; }
+    }
+
+    @media (max-width: 560px) {
+      .crm-stat-grid { grid-template-columns: 1fr; }
+      .crm-card-wide { grid-column: span 1; }
+    }
+
+    .crm-source-chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 140px;
+    }
+
+    .crm-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .crm-toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .crm-btn-primary {
+      padding: 10px 18px;
+      background: var(--gold);
+      color: #000;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background var(--t-fast);
+    }
+
+    .crm-btn-primary:hover { background: var(--gold-bright); }
+
+    .crm-btn-secondary {
+      padding: 10px 16px;
+      background: rgba(245, 245, 243, 0.06);
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 0.5px solid rgba(245, 245, 243, 0.14);
+      cursor: pointer;
+      transition: background var(--t-fast);
+    }
+
+    .crm-btn-secondary:hover { background: rgba(245, 245, 243, 0.1); }
+
+    /* ── Table ── */
+    .crm-table-wrap {
+      background: rgba(245, 245, 243, 0.04);
+      border: 0.5px solid rgba(245, 245, 243, 0.1);
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    .crm-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .crm-table th {
+      text-align: left;
+      padding: 12px 16px;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 0.5px solid rgba(245, 245, 243, 0.1);
+      white-space: nowrap;
+    }
+
+    .crm-table td {
+      padding: 12px 16px;
+      color: var(--white);
+      border-bottom: 0.5px solid rgba(245, 245, 243, 0.06);
+    }
+
+    .crm-table tbody tr:last-child td { border-bottom: none; }
+
+    .crm-table tbody tr {
+      cursor: pointer;
+      transition: background var(--t-fast);
+    }
+
+    .crm-table tbody tr:hover { background: rgba(245, 245, 243, 0.03); }
+
+    .crm-sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .crm-empty-row {
+      text-align: center;
+      color: var(--muted);
+      padding: 24px !important;
+      cursor: default !important;
+    }
+
+    /* ── Tag / badge pills — same shape as the existing rankings-table pills ── */
+    .crm-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .crm-tag.source-gbp_call  { background: rgba(43,95,166,0.15);  color: var(--blue); }
+    .crm-tag.source-web_form  { background: rgba(196,146,42,0.15); color: var(--gold); }
+    .crm-tag.source-referral  { background: rgba(76,175,130,0.15); color: var(--success); }
+    .crm-tag.source-manual    { background: rgba(245,245,243,0.1); color: var(--muted); }
+
+    .crm-tag.stage-new_lead  { background: rgba(43,95,166,0.15);  color: var(--blue); }
+    .crm-tag.stage-contacted { background: rgba(245,245,243,0.1); color: rgba(245,245,243,0.65); }
+    .crm-tag.stage-quoted    { background: rgba(196,146,42,0.15); color: var(--gold); }
+    .crm-tag.stage-won       { background: rgba(76,175,130,0.15); color: var(--success); }
+    .crm-tag.stage-lost      { background: rgba(224,85,85,0.15);  color: var(--danger); }
+
+    .crm-tag.status-sent     { background: rgba(43,95,166,0.15);  color: var(--blue); }
+    .crm-tag.status-accepted { background: rgba(76,175,130,0.15); color: var(--success); }
+
+    /* Idle follow-up warning pill on kanban cards */
+    .crm-idle-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 10.5px;
+      font-weight: 600;
+      background: rgba(196, 146, 42, 0.15);
+      color: var(--gold);
+    }
+
+    /* ── Kanban ── */
+    .crm-kanban {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .crm-kanban.show-lost {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .crm-kanban-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .crm-kanban-col-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      padding: 0 2px;
+    }
+
+    .crm-kanban-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(245, 245, 243, 0.35);
+    }
+
+    .crm-kanban-dropzone {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 80px;
+      border-radius: 10px;
+      padding: 4px;
+      transition: background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .crm-kanban-dropzone.drag-over {
+      background: rgba(196, 146, 42, 0.08);
+      box-shadow: inset 0 0 0 1.5px rgba(196, 146, 42, 0.4);
+    }
+
+    .crm-kanban-card {
+      background: rgba(245, 245, 243, 0.04);
+      border: 0.5px solid rgba(245, 245, 243, 0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: grab;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .crm-kanban-card.dragging {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(196, 146, 42, 0.25);
+      opacity: 0.85;
+    }
+
+    .crm-kanban-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .crm-kanban-card-desc {
+      font-size: 12px;
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .crm-kanban-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .crm-kanban-card-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    @media (max-width: 900px) {
+      .crm-kanban,
+      .crm-kanban.show-lost {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Forms (Add contact / Add quote) ── */
+    .crm-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .crm-form-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 560px) {
+      .crm-form-row { grid-template-columns: 1fr; }
+    }
+
+    .crm-field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: -4px;
+    }
+
+    .crm-input,
+    .crm-form input,
+    .crm-form select,
+    .crm-form textarea {
+      background: rgba(245, 245, 243, 0.04);
+      border: 0.5px solid rgba(245, 245, 243, 0.1);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--white);
+      outline: none;
+      resize: none;
+      width: 100%;
+    }
+
+    .crm-form input:focus,
+    .crm-form select:focus,
+    .crm-form textarea:focus {
+      border-color: var(--gold);
+    }
+
+    /* ── Contact detail: activity log ── */
+    .crm-activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+
+    .crm-activity-item {
+      background: rgba(245, 245, 243, 0.04);
+      border: 0.5px solid rgba(245, 245, 243, 0.1);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .crm-activity-item-time {
+      font-size: 10.5px;
+      color: rgba(245, 245, 243, 0.35);
+      margin-bottom: 4px;
+    }
+
+    .crm-activity-item-text {
+      font-size: 12.5px;
+      color: var(--white);
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .crm-activity-add {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
   </style>
 
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
@@ -1271,9 +1814,44 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     window.db = db;
-    window.firestoreModules = { collection, doc, getDoc, setDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp };
+    window.fbAuth = auth;
+    window.firestoreModules = { collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp };
+
+    // ── Netlify Identity → Firebase Auth bridge, needed only to satisfy
+    // Firestore rules for the CRM contacts/quotes collections below.
+    // Same mint-firebase-token bridge admin.html/rep-dashboard.html use
+    // for reps/admin, extended server-side to also mint a clientKey claim
+    // for client logins. Independent of the page's own Netlify Identity
+    // gating further down — if this fails, only the CRM tab is affected;
+    // everything else on this page keeps working exactly as before. ──
+    let resolveClientAuthReady;
+    window.__clientAuthReady = new Promise(resolve => { resolveClientAuthReady = resolve; });
+
+    async function bridgeClientAuth() {
+      try {
+        const freshToken = await netlifyIdentity.refresh();
+        const res = await fetch('https://mintfirebasetoken-pu4cnee5tq-uc.a.run.app', {
+          headers: { Authorization: `Bearer ${freshToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          console.error('Client auth bridge: not authorized —', data.message || data.error);
+          resolveClientAuthReady(false);
+          return;
+        }
+        await signInWithCustomToken(auth, data.token);
+        resolveClientAuthReady(true);
+      } catch (err) {
+        console.error('Client auth bridge failed:', err);
+        resolveClientAuthReady(false);
+      }
+    }
+
+    netlifyIdentity.on('init', user => { if (user) bridgeClientAuth(); });
+    netlifyIdentity.on('login', () => { bridgeClientAuth(); });
   </script>
 </head>
 
@@ -1402,8 +1980,15 @@
       <nav class="sidebar-nav" aria-label="Dashboard sections">
         <ul role="list">
 
-          <li>
-            <button class="nav-item active" data-page="overview" aria-current="page" title="Overview">
+          <!-- ── Group: Web dashboard (collapsible, expanded by default) ── -->
+          <li class="nav-group expanded" id="webDashboardGroup">
+            <button
+              class="nav-item nav-group-toggle"
+              id="webDashboardToggle"
+              aria-expanded="true"
+              aria-controls="webDashboardList"
+              title="Web dashboard"
+            >
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="2" width="7" height="7" rx="1.5"/>
@@ -1412,68 +1997,118 @@
                   <rect x="11" y="11" width="7" height="7" rx="1.5"/>
                 </svg>
               </span>
-              <span class="nav-label">Overview</span>
-            </button>
-          </li>
-
-          <li>
-            <button class="nav-item" data-page="rankings" title="Rankings">
-              <span class="nav-icon" aria-hidden="true">
+              <span class="nav-label">Web dashboard</span>
+              <span class="nav-lock" aria-hidden="true" hidden>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="2 14 7 9 11 12 18 5"/>
-                  <polyline points="14 5 18 5 18 9"/>
+                  <rect x="4.5" y="9" width="11" height="8" rx="1.5"/>
+                  <path d="M7 9V6.5a3 3 0 0 1 6 0V9"/>
                 </svg>
               </span>
-              <span class="nav-label">Rankings</span>
-            </button>
-          </li>
-
-          <li>
-            <button class="nav-item" data-page="gbp" title="GBP Performance">
-              <span class="nav-icon" aria-hidden="true">
+              <span class="nav-chevron" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 2a6 6 0 0 1 6 6c0 4.5-6 10-6 10S4 12.5 4 8a6 6 0 0 1 6-6z"/>
-                  <circle cx="10" cy="8" r="2"/>
+                  <polyline points="6 8 10 12 14 8"/>
                 </svg>
               </span>
-              <span class="nav-label">GBP Performance</span>
             </button>
+
+            <ul class="nav-group-list" id="webDashboardList" role="list">
+
+              <li>
+                <button class="nav-item active" data-page="overview" aria-current="page" title="Overview">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+                      <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+                      <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+                      <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Overview</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="nav-item" data-page="rankings" title="Rankings">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="2 14 7 9 11 12 18 5"/>
+                      <polyline points="14 5 18 5 18 9"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Rankings</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="nav-item" data-page="gbp" title="GBP Performance">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 2a6 6 0 0 1 6 6c0 4.5-6 10-6 10S4 12.5 4 8a6 6 0 0 1 6-6z"/>
+                      <circle cx="10" cy="8" r="2"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">GBP Performance</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="nav-item" data-page="traffic" title="Website Traffic">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 3l5.5 14 3-6.5 6-2.5L3 3z"/>
+                      <line x1="12" y1="12" x2="17" y2="17"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Website Traffic</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="nav-item" data-page="reports" title="Reports">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z"/>
+                      <polyline points="12 2 12 6 16 6"/>
+                      <line x1="7" y1="10" x2="13" y2="10"/>
+                      <line x1="7" y1="13" x2="11" y2="13"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Reports</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="nav-item" data-page="messages" title="Messages">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 9a6 6 0 0 0-10.4-4A6 6 0 0 0 4 9c0 1.4.5 2.7 1.3 3.7L4 17l3.7-1.3A6 6 0 1 0 17 9z"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Messages</span>
+                </button>
+              </li>
+
+            </ul>
           </li>
 
+          <!-- ── Group: CRM dashboard (single link, no dropdown) ── -->
           <li>
-            <button class="nav-item" data-page="traffic" title="Website Traffic">
+            <button class="nav-item" data-page="crm" id="crmNavItem" title="CRM dashboard">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 3l5.5 14 3-6.5 6-2.5L3 3z"/>
-                  <line x1="12" y1="12" x2="17" y2="17"/>
+                  <circle cx="7" cy="6" r="2.5"/>
+                  <path d="M2.5 17c0-2.8 2-4.5 4.5-4.5s4.5 1.7 4.5 4.5"/>
+                  <path d="M12.5 4.5a2.5 2.5 0 0 1 0 5"/>
+                  <path d="M14 12.6c1.9.4 3.5 1.9 3.5 4.4"/>
                 </svg>
               </span>
-              <span class="nav-label">Website Traffic</span>
-            </button>
-          </li>
-
-          <li>
-            <button class="nav-item" data-page="reports" title="Reports">
-              <span class="nav-icon" aria-hidden="true">
+              <span class="nav-label">CRM dashboard</span>
+              <span class="nav-lock" aria-hidden="true" hidden>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z"/>
-                  <polyline points="12 2 12 6 16 6"/>
-                  <line x1="7" y1="10" x2="13" y2="10"/>
-                  <line x1="7" y1="13" x2="11" y2="13"/>
+                  <rect x="4.5" y="9" width="11" height="8" rx="1.5"/>
+                  <path d="M7 9V6.5a3 3 0 0 1 6 0V9"/>
                 </svg>
               </span>
-              <span class="nav-label">Reports</span>
-            </button>
-          </li>
-
-          <li>
-            <button class="nav-item" data-page="messages" title="Messages">
-              <span class="nav-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 9a6 6 0 0 0-10.4-4A6 6 0 0 0 4 9c0 1.4.5 2.7 1.3 3.7L4 17l3.7-1.3A6 6 0 1 0 17 9z"/>
-                </svg>
-              </span>
-              <span class="nav-label">Messages</span>
             </button>
           </li>
 
@@ -2045,6 +2680,227 @@
       </div>
     </section>
 
+    <!-- ═══════════════════════════════ CRM DASHBOARD ═══════════════════════════════ -->
+    <section
+      id="page-crm"
+      class="main-content"
+      style="display:none; flex-direction:column; height:100%; padding:0;"
+      aria-label="CRM Dashboard"
+    >
+      <div class="crm-wrap">
+
+        <div class="crm-tabbar" role="tablist" aria-label="CRM sections">
+          <button class="crm-tab active" data-crm-tab="overview" role="tab" aria-selected="true">Overview</button>
+          <button class="crm-tab" data-crm-tab="contacts" role="tab" aria-selected="false">Contacts</button>
+          <button class="crm-tab" data-crm-tab="pipeline" role="tab" aria-selected="false">Pipeline</button>
+          <button class="crm-tab" data-crm-tab="quotes" role="tab" aria-selected="false">Quotes</button>
+          <button class="crm-tab" data-crm-tab="messages" role="tab" aria-selected="false">Messages</button>
+        </div>
+
+        <!-- ── OVERVIEW ── -->
+        <div class="crm-panel" id="crm-panel-overview">
+          <div class="crm-glass-panel" id="crmInsightPanel">
+            <span id="crmInsightText">Loading insight…</span>
+          </div>
+
+          <div class="crm-stat-grid">
+            <div class="crm-card">
+              <div class="crm-card-label">Win rate</div>
+              <div class="crm-card-number" id="crmStatWinRate">—</div>
+              <div class="crm-card-trend" id="crmStatWinRateTrend"></div>
+            </div>
+            <div class="crm-card">
+              <div class="crm-card-label">Revenue closed</div>
+              <div class="crm-card-number" id="crmStatRevenue">—</div>
+              <div class="crm-card-trend" id="crmStatRevenueTrend"></div>
+            </div>
+            <div class="crm-card crm-card-wide">
+              <div class="crm-card-label">Source breakdown — $ won</div>
+              <div class="crm-source-chart-wrap">
+                <canvas id="crmSourceChart" aria-label="Revenue won by source" role="img"></canvas>
+              </div>
+            </div>
+            <div class="crm-card">
+              <div class="crm-card-label">Pipeline value</div>
+              <div class="crm-card-number" id="crmStatPipelineValue">—</div>
+              <div class="crm-card-subtext">Sum of quoted-stage contacts</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CONTACTS ── -->
+        <div class="crm-panel" id="crm-panel-contacts" style="display:none;">
+          <div class="crm-toolbar">
+            <div class="chart-subtitle" style="margin:0;">Sorted by last activity</div>
+            <button class="crm-btn-primary" id="crmAddContactBtn">+ Add contact</button>
+          </div>
+          <div class="crm-table-wrap">
+            <table class="crm-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Source</th>
+                  <th>Stage</th>
+                  <th style="text-align:right;">Value</th>
+                  <th class="crm-sortable" id="crmContactsSortBtn" style="text-align:right;">
+                    Last activity <span id="crmSortArrow">↓</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="crmContactsTbody">
+                <tr><td colspan="5" class="crm-empty-row">No contacts yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── PIPELINE ── -->
+        <div class="crm-panel" id="crm-panel-pipeline" style="display:none;">
+          <div class="crm-toolbar">
+            <div class="chart-subtitle" style="margin:0;">Drag a card to update its stage</div>
+            <label class="crm-toggle-label">
+              <input type="checkbox" id="crmShowLostToggle">
+              Show lost
+            </label>
+          </div>
+          <div class="crm-kanban" id="crmKanban">
+            <div class="crm-kanban-col" data-stage="new_lead">
+              <div class="crm-kanban-col-header">New lead <span class="crm-kanban-count" id="crmCountnew_lead">0</span></div>
+              <div class="crm-kanban-dropzone" data-stage="new_lead" id="crmCol-new_lead"></div>
+            </div>
+            <div class="crm-kanban-col" data-stage="contacted">
+              <div class="crm-kanban-col-header">Contacted <span class="crm-kanban-count" id="crmCountcontacted">0</span></div>
+              <div class="crm-kanban-dropzone" data-stage="contacted" id="crmCol-contacted"></div>
+            </div>
+            <div class="crm-kanban-col" data-stage="quoted">
+              <div class="crm-kanban-col-header">Quoted <span class="crm-kanban-count" id="crmCountquoted">0</span></div>
+              <div class="crm-kanban-dropzone" data-stage="quoted" id="crmCol-quoted"></div>
+            </div>
+            <div class="crm-kanban-col" data-stage="won">
+              <div class="crm-kanban-col-header">Won <span class="crm-kanban-count" id="crmCountwon">0</span></div>
+              <div class="crm-kanban-dropzone" data-stage="won" id="crmCol-won"></div>
+            </div>
+            <div class="crm-kanban-col" data-stage="lost" id="crmLostCol" style="display:none;">
+              <div class="crm-kanban-col-header">Lost <span class="crm-kanban-count" id="crmCountlost">0</span></div>
+              <div class="crm-kanban-dropzone" data-stage="lost" id="crmCol-lost"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── QUOTES ── -->
+        <div class="crm-panel" id="crm-panel-quotes" style="display:none;">
+          <div class="crm-card">
+            <div class="crm-card-label">New quote</div>
+            <form id="crmQuoteForm" class="crm-form">
+              <select id="crmQuoteContact" class="crm-input" required>
+                <option value="">Select contact…</option>
+              </select>
+              <input type="text" id="crmQuoteDescription" class="crm-input" placeholder="Description" required>
+              <input type="number" id="crmQuoteAmount" class="crm-input" placeholder="Amount ($)" min="0" step="1" required>
+              <button type="submit" class="crm-btn-primary">Add quote</button>
+            </form>
+          </div>
+          <div class="crm-table-wrap">
+            <table class="crm-table">
+              <thead>
+                <tr>
+                  <th>Contact</th>
+                  <th>Description</th>
+                  <th style="text-align:right;">Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="crmQuotesTbody">
+                <tr><td colspan="5" class="crm-empty-row">No quotes yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── MESSAGES — reuses #page-messages directly, no duplicate thread ── -->
+        <div class="crm-panel" id="crm-panel-messages" style="display:none; height:100%; flex:1;">
+          <div id="crmMessagesSlot" style="height:100%; display:flex; flex-direction:column;"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Add / view contact modal — reused for both create and detail-edit -->
+    <div
+      class="modal-overlay"
+      id="crmContactModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="crmContactModalTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-box" style="max-width:560px; max-height:88vh; overflow-y:auto;">
+        <button class="modal-close" id="crmContactModalClose" aria-label="Close modal">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <line x1="2" y1="2" x2="14" y2="14"/>
+            <line x1="14" y1="2" x2="2" y2="14"/>
+          </svg>
+        </button>
+
+        <div class="modal-title" id="crmContactModalTitle">Add contact</div>
+        <div class="modal-subtitle" id="crmContactModalSubtitle">Manually add a new lead to the pipeline.</div>
+
+        <form id="crmContactForm" class="crm-form">
+          <input type="hidden" id="crmContactId">
+
+          <label class="crm-field-label">Name</label>
+          <input type="text" id="crmContactName" class="crm-input" required>
+
+          <label class="crm-field-label">Phone</label>
+          <input type="tel" id="crmContactPhone" class="crm-input">
+
+          <label class="crm-field-label">Email</label>
+          <input type="email" id="crmContactEmail" class="crm-input">
+
+          <label class="crm-field-label">Job description</label>
+          <textarea id="crmContactJobDescription" class="crm-input" rows="2"></textarea>
+
+          <div class="crm-form-row">
+            <div>
+              <label class="crm-field-label">Source</label>
+              <select id="crmContactSource" class="crm-input">
+                <option value="gbp_call">GBP call</option>
+                <option value="web_form">Web form</option>
+                <option value="referral">Referral</option>
+                <option value="manual" selected>Manual</option>
+              </select>
+            </div>
+            <div>
+              <label class="crm-field-label">Stage</label>
+              <select id="crmContactStage" class="crm-input">
+                <option value="new_lead">New lead</option>
+                <option value="contacted">Contacted</option>
+                <option value="quoted">Quoted</option>
+                <option value="won">Won</option>
+                <option value="lost">Lost</option>
+              </select>
+            </div>
+            <div>
+              <label class="crm-field-label">Value ($)</label>
+              <input type="number" id="crmContactValue" class="crm-input" min="0" step="1">
+            </div>
+          </div>
+
+          <button type="submit" class="crm-btn-primary" id="crmContactFormSubmit" style="margin-top:6px;">Add contact</button>
+        </form>
+
+        <div id="crmContactActivitySection" style="display:none; margin-top:22px;">
+          <div class="crm-field-label" style="margin-bottom:8px;">Activity log</div>
+          <div class="crm-activity-list" id="crmActivityList"></div>
+          <div class="crm-activity-add">
+            <textarea id="crmActivityInput" class="crm-input" rows="2" placeholder="Add a note…"></textarea>
+            <button type="button" class="crm-btn-secondary" id="crmActivityAddBtn" style="align-self:flex-start;">Add note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Review script modal -->
@@ -2144,16 +3000,18 @@ Thank you! — [Business Name]</div>
     renderReviews(REVIEW_COUNT);
 
     // ── Client registry — maps logged-in email to business identity ──
+    // hasWebsiteService/hasCRM gate the sidebar's two dashboard groups (see
+    // applySidebarGating()) — existing clients default to website-only.
     const CLIENTS = {
-      'luminaservices220@outlook.com': { key: 'lumina',        name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas' },
-      'boringprj210@gmail.com':        { key: 'boringproject', name: 'boring project.',         contact: 'Joseph Gutierrez' }
+      'luminaservices220@outlook.com': { key: 'lumina',        name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas', hasWebsiteService: true, hasCRM: false },
+      'boringprj210@gmail.com':        { key: 'boringproject', name: 'boring project.',         contact: 'Joseph Gutierrez', hasWebsiteService: true, hasCRM: true }
     };
     // Messages sent before per-client tagging existed belong to the original client
     const DEFAULT_CLIENT_EMAIL = 'luminaservices220@outlook.com';
 
     function getClientInfo(email) {
       const key = (email || '').toLowerCase();
-      return CLIENTS[key] || { name: 'Client', contact: '' };
+      return CLIENTS[key] || { name: 'Client', contact: '', hasWebsiteService: true, hasCRM: false };
     }
 
     function currentClientEmail() {
@@ -2214,12 +3072,16 @@ Thank you! — [Business Name]</div>
     });
 
     // ── Sidebar nav active state ────────
-    const navItems = document.querySelectorAll('.nav-item');
+    // .nav-group-toggle is excluded here — it only expands/collapses the
+    // "Web dashboard" group and has its own handler below, not a data-page.
+    const navItems = document.querySelectorAll('.nav-item:not(.nav-group-toggle)');
     const mainContent = document.getElementById('main-content');
     const messagesPage = document.getElementById('page-messages');
 
     navItems.forEach(item => {
       item.addEventListener('click', () => {
+        if (item.classList.contains('locked')) return;
+
         navItems.forEach(n => {
           n.classList.remove('active');
           n.removeAttribute('aria-current');
@@ -2232,6 +3094,7 @@ Thank you! — [Business Name]</div>
         const gbpPage = document.getElementById('page-gbp');
         const trafficPage = document.getElementById('page-traffic');
         const reportsPage = document.getElementById('page-reports');
+        const crmPage = document.getElementById('page-crm');
 
         mainContent.style.display = 'none';
         messagesPage.style.display = 'none';
@@ -2239,6 +3102,14 @@ Thank you! — [Business Name]</div>
         gbpPage.style.display = 'none';
         trafficPage.style.display = 'none';
         reportsPage.style.display = 'none';
+        crmPage.style.display = 'none';
+
+        // Messages may currently be reparented into the CRM tab's
+        // "Messages" slot — restore it before leaving the CRM page so
+        // the top-level Web-dashboard Messages tab keeps working.
+        if (page !== 'crm' && typeof window.__restoreMessagesToDefaultSlot === 'function') {
+          window.__restoreMessagesToDefaultSlot();
+        }
 
         if (page === 'overview') {
           mainContent.style.display = '';
@@ -2252,11 +3123,46 @@ Thank you! — [Business Name]</div>
           reportsPage.style.display = '';
         } else if (page === 'messages') {
           messagesPage.style.display = 'flex';
+        } else if (page === 'crm') {
+          crmPage.style.display = 'flex';
+          if (typeof window.__onCrmPageShown === 'function') window.__onCrmPageShown();
         }
 
         if (isMobile()) closeSidebar();
       });
     });
+
+    // ── "Web dashboard" group expand/collapse ────
+    const webDashboardGroup = document.getElementById('webDashboardGroup');
+    const webDashboardToggle = document.getElementById('webDashboardToggle');
+    webDashboardToggle.addEventListener('click', () => {
+      if (webDashboardGroup.classList.contains('locked')) return;
+      const expanded = webDashboardGroup.classList.toggle('expanded');
+      webDashboardToggle.setAttribute('aria-expanded', String(expanded));
+    });
+
+    // ── Sidebar gating — hasWebsiteService / hasCRM ────
+    function applySidebarGating() {
+      const info = getClientInfo(currentClientEmail());
+      const hasWebsiteService = info.hasWebsiteService !== false;
+      const hasCRM = !!info.hasCRM;
+
+      const webLock = webDashboardToggle.querySelector('.nav-lock');
+      webDashboardGroup.classList.toggle('locked', !hasWebsiteService);
+      webDashboardToggle.setAttribute('aria-disabled', String(!hasWebsiteService));
+      if (webLock) webLock.hidden = hasWebsiteService;
+      if (!hasWebsiteService) webDashboardGroup.classList.remove('expanded');
+
+      const crmNavItem = document.getElementById('crmNavItem');
+      const crmLock = crmNavItem.querySelector('.nav-lock');
+      crmNavItem.classList.toggle('locked', !hasCRM);
+      crmNavItem.setAttribute('aria-disabled', String(!hasCRM));
+      if (crmLock) crmLock.hidden = hasCRM;
+    }
+
+    applySidebarGating();
+    netlifyIdentity.on('login', applySidebarGating);
+    netlifyIdentity.on('init', user => { if (user) applySidebarGating(); });
 
     // Firebase messaging
     window.addEventListener('load', () => {
@@ -3354,6 +4260,560 @@ Thank you! — [Business Name]</div>
         },
       });
     }
+  </script>
+
+  <!-- ═══════════════════════════════ CRM DASHBOARD ═══════════════════════════════ -->
+  <script>
+    window.addEventListener('load', async () => {
+      const db = window.db;
+      if (!db) return;
+      const { collection, doc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp } = window.firestoreModules;
+
+      const clientEmail = currentClientEmail();
+      const clientInfo = getClientInfo(clientEmail);
+      if (!clientInfo.key) return;
+
+      // contacts/quotes rules require a signed-in Firebase Auth session
+      // with a matching clientKey claim — wait for the bridge started in
+      // the <head> module script before subscribing to either collection.
+      // Tab switching / Messages reuse below don't depend on this, since
+      // messages/reports/etc. rules are unchanged.
+      const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+      if (!authReady) console.error('CRM: client auth bridge not ready — contacts/quotes will not load.');
+
+      const STAGES = ['new_lead', 'contacted', 'quoted', 'won', 'lost'];
+      const STAGE_LABELS = { new_lead: 'New lead', contacted: 'Contacted', quoted: 'Quoted', won: 'Won', lost: 'Lost' };
+      const SOURCE_LABELS = { gbp_call: 'GBP call', web_form: 'Web form', referral: 'Referral', manual: 'Manual' };
+      const IDLE_MS = 2 * 24 * 60 * 60 * 1000;
+
+      let contactsCache = [];
+      let quotesCache = [];
+      let contactSortDir = 'desc';
+      let showLost = false;
+      let activeContactId = null;
+
+      function tsToMillis(ts) {
+        if (!ts) return 0;
+        if (typeof ts.toMillis === 'function') return ts.toMillis();
+        if (ts instanceof Date) return ts.getTime();
+        return 0;
+      }
+
+      function fmtMoney(n) {
+        return '$' + Math.round(n || 0).toLocaleString('en-US');
+      }
+
+      function fmtRelative(millis) {
+        if (!millis) return '—';
+        const days = Math.floor((Date.now() - millis) / 86400000);
+        if (days <= 0) return 'Today';
+        if (days === 1) return '1 day ago';
+        return `${days} days ago`;
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str == null ? '' : String(str);
+        return div.innerHTML;
+      }
+
+      // ── CRM internal tab switching + Messages reuse ────
+      const crmTabs = document.querySelectorAll('.crm-tab');
+      const crmPanels = {
+        overview: document.getElementById('crm-panel-overview'),
+        contacts: document.getElementById('crm-panel-contacts'),
+        pipeline: document.getElementById('crm-panel-pipeline'),
+        quotes: document.getElementById('crm-panel-quotes'),
+        messages: document.getElementById('crm-panel-messages'),
+      };
+      const crmMessagesSlot = document.getElementById('crmMessagesSlot');
+      const pageMessagesEl = document.getElementById('page-messages');
+      const messagesHomeParent = pageMessagesEl.parentNode;
+      const messagesHomeNext = pageMessagesEl.nextSibling;
+
+      function restoreMessagesToDefaultSlot() {
+        if (pageMessagesEl.parentNode === crmMessagesSlot) {
+          messagesHomeParent.insertBefore(pageMessagesEl, messagesHomeNext);
+          pageMessagesEl.style.display = 'none';
+          pageMessagesEl.style.height = '';
+        }
+      }
+      window.__restoreMessagesToDefaultSlot = restoreMessagesToDefaultSlot;
+
+      function showCrmTab(name) {
+        crmTabs.forEach(t => {
+          const active = t.dataset.crmTab === name;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
+        });
+        Object.keys(crmPanels).forEach(key => {
+          crmPanels[key].style.display = key === name ? '' : 'none';
+        });
+
+        if (name === 'messages') {
+          if (pageMessagesEl.parentNode !== crmMessagesSlot) {
+            crmMessagesSlot.appendChild(pageMessagesEl);
+          }
+          pageMessagesEl.style.display = 'flex';
+          pageMessagesEl.style.height = '100%';
+        } else {
+          restoreMessagesToDefaultSlot();
+        }
+
+        if (name === 'overview') renderOverview();
+        if (name === 'contacts') renderContactsTable();
+        if (name === 'pipeline') renderKanban();
+        if (name === 'quotes') renderQuotesTable();
+      }
+
+      crmTabs.forEach(tab => tab.addEventListener('click', () => showCrmTab(tab.dataset.crmTab)));
+
+      window.__onCrmPageShown = function () {
+        const activeTab = document.querySelector('.crm-tab.active');
+        showCrmTab(activeTab ? activeTab.dataset.crmTab : 'overview');
+      };
+
+      // ── Firestore subscriptions — filtered server-side by clientKey,
+      // matching the clientKey claim minted for this client's session.
+      // Only reachable once the auth bridge above has actually signed in
+      // (rules require request.auth != null too), so gate on authReady. ────
+      if (authReady) {
+        const contactsQuery = query(
+          collection(db, 'contacts'),
+          where('clientKey', '==', clientInfo.key),
+          orderBy('lastActivityAt', 'desc')
+        );
+        onSnapshot(contactsQuery, (snapshot) => {
+          contactsCache = [];
+          snapshot.forEach(docSnap => {
+            contactsCache.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          renderContactsTable();
+          renderKanban();
+          renderOverview();
+          populateQuoteContactSelect();
+        }, err => console.error('CRM: contacts subscription failed', err));
+
+        const quotesQuery = query(
+          collection(db, 'quotes'),
+          where('clientKey', '==', clientInfo.key),
+          orderBy('createdAt', 'desc')
+        );
+        onSnapshot(quotesQuery, (snapshot) => {
+          quotesCache = [];
+          snapshot.forEach(docSnap => {
+            quotesCache.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          renderQuotesTable();
+        }, err => console.error('CRM: quotes subscription failed', err));
+      }
+
+      // ── Contacts table ────
+      const contactsTbody = document.getElementById('crmContactsTbody');
+      const sortBtn = document.getElementById('crmContactsSortBtn');
+      const sortArrow = document.getElementById('crmSortArrow');
+
+      sortBtn.addEventListener('click', () => {
+        contactSortDir = contactSortDir === 'desc' ? 'asc' : 'desc';
+        sortArrow.textContent = contactSortDir === 'desc' ? '↓' : '↑';
+        renderContactsTable();
+      });
+
+      function renderContactsTable() {
+        const sorted = [...contactsCache].sort((a, b) => {
+          const diff = tsToMillis(a.lastActivityAt) - tsToMillis(b.lastActivityAt);
+          return contactSortDir === 'desc' ? -diff : diff;
+        });
+
+        if (sorted.length === 0) {
+          contactsTbody.innerHTML = '<tr><td colspan="5" class="crm-empty-row">No contacts yet.</td></tr>';
+          return;
+        }
+
+        contactsTbody.innerHTML = '';
+        sorted.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHtml(c.name || 'Unnamed')}</td>
+            <td><span class="crm-tag source-${c.source}">${SOURCE_LABELS[c.source] || c.source}</span></td>
+            <td><span class="crm-tag stage-${c.stage}">${STAGE_LABELS[c.stage] || c.stage}</span></td>
+            <td style="text-align:right;">${fmtMoney(c.value)}</td>
+            <td style="text-align:right;">${fmtRelative(tsToMillis(c.lastActivityAt))}</td>
+          `;
+          tr.addEventListener('click', () => openContactModal(c));
+          contactsTbody.appendChild(tr);
+        });
+      }
+
+      // ── Add / view contact modal — reused for create and detail-edit ────
+      const contactModal = document.getElementById('crmContactModal');
+      const contactModalTitle = document.getElementById('crmContactModalTitle');
+      const contactModalSubtitle = document.getElementById('crmContactModalSubtitle');
+      const contactModalCloseBtn = document.getElementById('crmContactModalClose');
+      const contactForm = document.getElementById('crmContactForm');
+      const contactFormSubmit = document.getElementById('crmContactFormSubmit');
+      const contactActivitySection = document.getElementById('crmContactActivitySection');
+      const activityList = document.getElementById('crmActivityList');
+      const activityInput = document.getElementById('crmActivityInput');
+      const addContactBtn = document.getElementById('crmAddContactBtn');
+
+      const fieldId = document.getElementById('crmContactId');
+      const fieldName = document.getElementById('crmContactName');
+      const fieldPhone = document.getElementById('crmContactPhone');
+      const fieldEmail = document.getElementById('crmContactEmail');
+      const fieldJob = document.getElementById('crmContactJobDescription');
+      const fieldSource = document.getElementById('crmContactSource');
+      const fieldStage = document.getElementById('crmContactStage');
+      const fieldValue = document.getElementById('crmContactValue');
+
+      function openContactModalUI() {
+        contactModal.classList.add('open');
+        contactModal.setAttribute('aria-hidden', 'false');
+        setTimeout(() => fieldName.focus(), 50);
+      }
+      function closeContactModalUI() {
+        contactModal.classList.remove('open');
+        contactModal.setAttribute('aria-hidden', 'true');
+        addContactBtn.focus();
+      }
+
+      function openAddContactModal() {
+        activeContactId = null;
+        contactModalTitle.textContent = 'Add contact';
+        contactModalSubtitle.textContent = 'Manually add a new lead to the pipeline.';
+        contactFormSubmit.textContent = 'Add contact';
+        contactForm.reset();
+        fieldId.value = '';
+        fieldSource.value = 'manual';
+        fieldStage.value = 'new_lead';
+        contactActivitySection.style.display = 'none';
+        openContactModalUI();
+      }
+
+      function openContactModal(contact) {
+        activeContactId = contact.id;
+        contactModalTitle.textContent = contact.name || 'Contact';
+        contactModalSubtitle.textContent = 'Edit contact details and log activity.';
+        contactFormSubmit.textContent = 'Save changes';
+        fieldId.value = contact.id;
+        fieldName.value = contact.name || '';
+        fieldPhone.value = contact.phone || '';
+        fieldEmail.value = contact.email || '';
+        fieldJob.value = contact.jobDescription || '';
+        fieldSource.value = contact.source || 'manual';
+        fieldStage.value = contact.stage || 'new_lead';
+        fieldValue.value = contact.value != null ? contact.value : '';
+        renderActivityList(contact.notes || []);
+        contactActivitySection.style.display = '';
+        openContactModalUI();
+      }
+
+      function renderActivityList(notes) {
+        const sorted = [...notes].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        if (sorted.length === 0) {
+          activityList.innerHTML = '<div class="crm-card-subtext">No activity logged yet.</div>';
+          return;
+        }
+        activityList.innerHTML = sorted.map(n => `
+          <div class="crm-activity-item">
+            <div class="crm-activity-item-time">${n.createdAt ? new Date(n.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}</div>
+            <div class="crm-activity-item-text">${escapeHtml(n.text)}</div>
+          </div>
+        `).join('');
+      }
+
+      addContactBtn.addEventListener('click', openAddContactModal);
+      contactModalCloseBtn.addEventListener('click', closeContactModalUI);
+      contactModal.addEventListener('click', e => { if (e.target === contactModal) closeContactModalUI(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && contactModal.classList.contains('open')) closeContactModalUI();
+      });
+
+      contactForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const payload = {
+          name: fieldName.value.trim(),
+          phone: fieldPhone.value.trim(),
+          email: fieldEmail.value.trim(),
+          jobDescription: fieldJob.value.trim(),
+          source: fieldSource.value,
+          stage: fieldStage.value,
+          value: fieldValue.value ? Number(fieldValue.value) : 0,
+          clientKey: clientInfo.key,
+          lastActivityAt: serverTimestamp(),
+        };
+
+        if (activeContactId) {
+          await updateDoc(doc(db, 'contacts', activeContactId), payload);
+        } else {
+          await addDoc(collection(db, 'contacts'), { ...payload, notes: [], createdAt: serverTimestamp() });
+        }
+        closeContactModalUI();
+      });
+
+      document.getElementById('crmActivityAddBtn').addEventListener('click', async () => {
+        const text = activityInput.value.trim();
+        if (!text || !activeContactId) return;
+        const existing = contactsCache.find(c => c.id === activeContactId);
+        const notes = existing && existing.notes ? [...existing.notes] : [];
+        notes.push({ text, createdAt: Date.now() });
+        await updateDoc(doc(db, 'contacts', activeContactId), { notes, lastActivityAt: serverTimestamp() });
+        activityInput.value = '';
+        renderActivityList(notes);
+      });
+
+      // ── Pipeline (kanban) ────
+      const kanbanEl = document.getElementById('crmKanban');
+      const lostCol = document.getElementById('crmLostCol');
+      const showLostToggle = document.getElementById('crmShowLostToggle');
+
+      showLostToggle.addEventListener('change', () => {
+        showLost = showLostToggle.checked;
+        lostCol.style.display = showLost ? 'flex' : 'none';
+        kanbanEl.classList.toggle('show-lost', showLost);
+        renderKanban();
+      });
+
+      function renderKanban() {
+        const counts = {};
+        STAGES.forEach(s => {
+          const zone = document.getElementById('crmCol-' + s);
+          if (zone) zone.innerHTML = '';
+          counts[s] = 0;
+        });
+
+        contactsCache.forEach(c => {
+          const stage = STAGES.includes(c.stage) ? c.stage : 'new_lead';
+          if (stage === 'lost' && !showLost) return;
+          counts[stage]++;
+          const zone = document.getElementById('crmCol-' + stage);
+          if (zone) zone.appendChild(buildKanbanCard(c));
+        });
+
+        STAGES.forEach(s => {
+          const countEl = document.getElementById('crmCount' + s);
+          if (countEl) countEl.textContent = String(counts[s]);
+        });
+      }
+
+      function buildKanbanCard(c) {
+        const card = document.createElement('div');
+        card.className = 'crm-kanban-card';
+        card.draggable = true;
+        card.dataset.contactId = c.id;
+
+        const idleMillis = Date.now() - tsToMillis(c.lastActivityAt);
+        const isIdle = idleMillis > IDLE_MS && c.stage !== 'won' && c.stage !== 'lost';
+        const idleDays = Math.floor(idleMillis / 86400000);
+
+        card.innerHTML = `
+          <div class="crm-kanban-card-name">${escapeHtml(c.name || 'Unnamed')}</div>
+          ${c.jobDescription ? `<div class="crm-kanban-card-desc">${escapeHtml(c.jobDescription)}</div>` : ''}
+          <div class="crm-kanban-card-footer">
+            <span class="crm-tag source-${c.source}">${SOURCE_LABELS[c.source] || c.source}</span>
+            <span class="crm-kanban-card-value">${fmtMoney(c.value)}</span>
+          </div>
+          ${isIdle ? `<span class="crm-idle-pill">Follow up — ${idleDays}d idle</span>` : ''}
+        `;
+
+        card.addEventListener('click', () => openContactModal(c));
+        card.addEventListener('dragstart', e => {
+          card.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', c.id);
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        card.addEventListener('dragend', () => card.classList.remove('dragging'));
+
+        return card;
+      }
+
+      STAGES.forEach(s => {
+        const zone = document.getElementById('crmCol-' + s);
+        if (!zone) return;
+        zone.addEventListener('dragover', e => {
+          e.preventDefault();
+          zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', async e => {
+          e.preventDefault();
+          zone.classList.remove('drag-over');
+          const contactId = e.dataTransfer.getData('text/plain');
+          if (!contactId) return;
+          await updateDoc(doc(db, 'contacts', contactId), { stage: s, lastActivityAt: serverTimestamp() });
+        });
+      });
+
+      // ── Quotes ────
+      const quotesTbody = document.getElementById('crmQuotesTbody');
+      const quoteContactSelect = document.getElementById('crmQuoteContact');
+      const quoteForm = document.getElementById('crmQuoteForm');
+
+      function populateQuoteContactSelect() {
+        const current = quoteContactSelect.value;
+        quoteContactSelect.innerHTML = '<option value="">Select contact…</option>' +
+          contactsCache.map(c => `<option value="${c.id}">${escapeHtml(c.name || 'Unnamed')}</option>`).join('');
+        quoteContactSelect.value = current;
+      }
+
+      quoteForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const contactId = quoteContactSelect.value;
+        const contact = contactsCache.find(c => c.id === contactId);
+        if (!contact) return;
+
+        await addDoc(collection(db, 'quotes'), {
+          clientKey: clientInfo.key,
+          contactId,
+          contactName: contact.name || 'Unnamed',
+          description: document.getElementById('crmQuoteDescription').value.trim(),
+          amount: Number(document.getElementById('crmQuoteAmount').value) || 0,
+          status: 'sent',
+          createdAt: serverTimestamp(),
+        });
+        quoteForm.reset();
+      });
+
+      function renderQuotesTable() {
+        if (quotesCache.length === 0) {
+          quotesTbody.innerHTML = '<tr><td colspan="5" class="crm-empty-row">No quotes yet.</td></tr>';
+          return;
+        }
+        quotesTbody.innerHTML = quotesCache.map(q => `
+          <tr>
+            <td>${escapeHtml(q.contactName)}</td>
+            <td>${escapeHtml(q.description)}</td>
+            <td style="text-align:right;">${fmtMoney(q.amount)}</td>
+            <td><span class="crm-tag status-${q.status}">${q.status === 'accepted' ? 'Accepted' : 'Sent'}</span></td>
+            <td>${q.createdAt && q.createdAt.toDate ? q.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</td>
+          </tr>
+        `).join('');
+      }
+
+      // ── Overview ────
+      function monthKey(d) { return d.getFullYear() + '-' + d.getMonth(); }
+
+      function renderOverview() {
+        const now = new Date();
+        const thisMonthKey = monthKey(now);
+        const lastMonthKey = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+
+        function bucket() {
+          const thisMonth = { won: 0, lost: 0, revenue: 0 };
+          const lastMonth = { won: 0, lost: 0, revenue: 0 };
+          contactsCache.forEach(c => {
+            const millis = tsToMillis(c.lastActivityAt) || tsToMillis(c.createdAt);
+            if (!millis) return;
+            const k = monthKey(new Date(millis));
+            const b = k === thisMonthKey ? thisMonth : (k === lastMonthKey ? lastMonth : null);
+            if (!b) return;
+            if (c.stage === 'won') { b.won++; b.revenue += Number(c.value) || 0; }
+            if (c.stage === 'lost') b.lost++;
+          });
+          return { thisMonth, lastMonth };
+        }
+
+        const { thisMonth, lastMonth } = bucket();
+
+        const winRateThis = (thisMonth.won + thisMonth.lost) > 0 ? thisMonth.won / (thisMonth.won + thisMonth.lost) : null;
+        const winRateLast = (lastMonth.won + lastMonth.lost) > 0 ? lastMonth.won / (lastMonth.won + lastMonth.lost) : null;
+
+        const winRateEl = document.getElementById('crmStatWinRate');
+        const winRateTrendEl = document.getElementById('crmStatWinRateTrend');
+        winRateEl.textContent = winRateThis === null ? '—' : Math.round(winRateThis * 100) + '%';
+        if (winRateThis !== null && winRateLast !== null) {
+          const diff = Math.round((winRateThis - winRateLast) * 100);
+          winRateTrendEl.textContent = (diff >= 0 ? '↑ +' : '↓ ') + diff + 'pts vs last month';
+          winRateTrendEl.className = 'crm-card-trend ' + (diff >= 0 ? 'up' : 'down');
+        } else {
+          winRateTrendEl.textContent = 'Not enough data yet';
+          winRateTrendEl.className = 'crm-card-trend';
+        }
+
+        const revenueEl = document.getElementById('crmStatRevenue');
+        const revenueTrendEl = document.getElementById('crmStatRevenueTrend');
+        revenueEl.textContent = fmtMoney(thisMonth.revenue);
+        const revDiff = thisMonth.revenue - lastMonth.revenue;
+        if (lastMonth.revenue > 0 || thisMonth.revenue > 0) {
+          revenueTrendEl.textContent = (revDiff >= 0 ? '↑ +' : '↓ ') + fmtMoney(Math.abs(revDiff)) + ' vs last month';
+          revenueTrendEl.className = 'crm-card-trend ' + (revDiff >= 0 ? 'up' : 'down');
+        } else {
+          revenueTrendEl.textContent = 'No closed deals yet';
+          revenueTrendEl.className = 'crm-card-trend';
+        }
+
+        const pipelineValue = contactsCache.filter(c => c.stage === 'quoted').reduce((sum, c) => sum + (Number(c.value) || 0), 0);
+        document.getElementById('crmStatPipelineValue').textContent = fmtMoney(pipelineValue);
+
+        const bySource = { gbp_call: 0, web_form: 0, referral: 0, manual: 0 };
+        contactsCache.filter(c => c.stage === 'won').forEach(c => {
+          if (bySource[c.source] === undefined) return;
+          bySource[c.source] += Number(c.value) || 0;
+        });
+        renderSourceChart(bySource);
+
+        const idleCount = contactsCache.filter(c => {
+          if (c.stage === 'won' || c.stage === 'lost') return false;
+          return (Date.now() - tsToMillis(c.lastActivityAt)) > IDLE_MS;
+        }).length;
+        document.getElementById('crmInsightText').textContent = idleCount > 0
+          ? `${idleCount} lead${idleCount === 1 ? '' : 's'} idle more than 2 days — follow up before they go cold.`
+          : 'All active leads have been touched within the last 2 days.';
+      }
+
+      let sourceChartInstance = null;
+      function renderSourceChart(bySource) {
+        const canvas = document.getElementById('crmSourceChart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const labels = ['GBP call', 'Web form', 'Referral', 'Manual'];
+        const values = [bySource.gbp_call, bySource.web_form, bySource.referral, bySource.manual];
+        const colors = ['rgba(43,95,166,0.85)', 'rgba(196,146,42,0.85)', 'rgba(76,175,130,0.85)', 'rgba(245,245,243,0.5)'];
+
+        if (sourceChartInstance) {
+          sourceChartInstance.data.datasets[0].data = values;
+          sourceChartInstance.update();
+          return;
+        }
+
+        sourceChartInstance = new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, borderSkipped: false }] },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 700, easing: 'easeOutQuart' },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(10,10,10,0.93)',
+                borderColor: 'rgba(255,255,255,0.12)',
+                borderWidth: 1,
+                titleColor: '#F5F5F3',
+                bodyColor: 'rgba(245,245,243,0.72)',
+                titleFont: { family: 'Poppins', size: 12, weight: '600' },
+                bodyFont: { family: 'Poppins', size: 12 },
+                padding: 10,
+                cornerRadius: 8,
+                callbacks: { label: ctx => '$' + ctx.parsed.x.toLocaleString('en-US') },
+              },
+            },
+            scales: {
+              x: {
+                border: { display: false },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+                ticks: { color: 'rgba(245,245,243,0.6)', font: { family: 'Poppins', size: 10 }, callback: v => '$' + v },
+              },
+              y: {
+                border: { display: false },
+                grid: { display: false },
+                ticks: { color: 'rgba(245,245,243,0.7)', font: { family: 'Poppins', size: 11 } },
+              },
+            },
+          },
+        });
+      }
+    });
   </script>
 
   <script>
