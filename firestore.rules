@@ -2,14 +2,20 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Existing collections — unchanged from what's currently live ──
-    // Left exactly as permissive as before so the client portal keeps
-    // working with zero changes. (contacts/quotes/users/reports/
-    // workcompleted below now use this same bridge — messages is still
-    // open and would need the same treatment, plus its read/write call
-    // sites moved to wait for the auth bridge, to tighten further.)
+    // ── Client <-> Joseph messages — real enforcement, via the same
+    // bridge as everything below. Read/written by two different login
+    // types (the client themselves, and admin across any client's
+    // thread), scoped by clientEmail rather than clientKey since that's
+    // the field these docs actually carry. On create, resource.data
+    // doesn't exist yet, so that check reads from request.resource.data
+    // instead — same split contacts/quotes already use. ──
     match /messages/{messageId} {
-      allow read, write: if true;
+      allow read, update, delete: if request.auth != null
+                                   && (request.auth.token.role == 'admin'
+                                       || request.auth.token.email == resource.data.clientEmail);
+      allow create: if request.auth != null
+                    && (request.auth.token.role == 'admin'
+                        || request.auth.token.email == request.resource.data.clientEmail);
     }
 
     // ── Reports (Google Drive links) / Work Completed — client reads

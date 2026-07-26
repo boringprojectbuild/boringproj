@@ -3198,7 +3198,7 @@ Thank you! — [Business Name]</div>
     window.__applySidebarGating = applySidebarGating;
 
     // Firebase messaging
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const db = window.db;
       if (!db) return;
       const { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
@@ -3208,8 +3208,19 @@ Thank you! — [Business Name]</div>
       const sendBtn = document.getElementById('msg-send');
       const empty = document.getElementById('msg-empty');
 
-      const clientEmail = currentClientEmail();
+      // Lowercased to match request.auth.token.email, which
+      // mintFirebaseToken always lowercases server-side — the messages
+      // rule compares this exact field against that claim.
+      const clientEmail = (currentClientEmail() || '').toLowerCase();
       const clientInfo = getClientInfo(clientEmail);
+
+      // messages rules require a signed-in session — wait for the bridge
+      // before reading or writing.
+      const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+      if (!authReady) {
+        console.error('Messages: client auth bridge not ready — messages will not load.');
+        return;
+      }
 
       const msgQuery = query(
         collection(db, 'messages'),
@@ -3273,14 +3284,17 @@ Thank you! — [Business Name]</div>
     });
 
     // ── Notification bell — unread admin replies ────
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const db = window.db;
       const bell = document.getElementById('notifBell');
       const badge = document.getElementById('notifBadge');
       if (!db || !bell || !badge) return;
       const { collection, doc, getDoc, setDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
 
-      const clientEmail = currentClientEmail();
+      // Lowercased to match request.auth.token.email — the users/{userId}
+      // rule (see firestore.rules) requires the doc ID itself to equal
+      // that claim, same reasoning as the messages clientEmail fields.
+      const clientEmail = (currentClientEmail() || '').toLowerCase();
       if (!clientEmail) return;
       const userRef = doc(db, 'users', clientEmail);
 
@@ -3337,24 +3351,24 @@ Thank you! — [Business Name]</div>
         setUnread(unread);
       }
 
-      // users/{userId} read — waits for the auth bridge, same reasoning
-      // as the write in markMessagesRead() above.
-      (async () => {
-        const authReady = await (window.__clientAuthReady || Promise.resolve(false));
-        if (!authReady) return;
-        try {
-          const snap = await getDoc(userRef);
-          const stored = snap.exists() ? snap.data().lastReadMessages : null;
-          lastReadMillis = stored && stored.toMillis ? stored.toMillis() : 0;
-          recomputeUnread();
-        } catch (err) {
-          console.error('notifications: failed to load lastReadMessages', err);
-        }
-      })();
+      // Both the users/{userId} read below and the messages subscription
+      // require a signed-in session — wait for the bridge once, then
+      // start both together.
+      const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+      if (!authReady) {
+        console.error('Notifications: client auth bridge not ready — unread state will not load.');
+        return;
+      }
 
-      // messages — untouched/ungated on purpose. Its own rules are still
-      // open; tightening those is a separate, later change, so this
-      // subscription keeps firing immediately like it always has.
+      try {
+        const snap = await getDoc(userRef);
+        const stored = snap.exists() ? snap.data().lastReadMessages : null;
+        lastReadMillis = stored && stored.toMillis ? stored.toMillis() : 0;
+        recomputeUnread();
+      } catch (err) {
+        console.error('notifications: failed to load lastReadMessages', err);
+      }
+
       const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
       onSnapshot(msgQuery, (snapshot) => {
         latestMessages = [];
@@ -4037,7 +4051,7 @@ Thank you! — [Business Name]</div>
       netlifyIdentity.logout();
     });
 
-    function sendOverviewMessage() {
+    async function sendOverviewMessage() {
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (!text) return;
@@ -4045,8 +4059,19 @@ Thank you! — [Business Name]</div>
       const db = window.db;
       if (!db) return;
 
+      // messages rules require a signed-in session — wait for the bridge
+      // before writing. Text is left in the input so the click can be
+      // retried rather than silently lost.
+      const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+      if (!authReady) {
+        console.error('Message Joseph: client auth bridge not ready — message not sent.');
+        return;
+      }
+
       const { collection, addDoc, serverTimestamp } = window.firestoreModules;
-      const clientEmail = currentClientEmail();
+      // Lowercased to match request.auth.token.email — see the same
+      // note in the main Messages tab's handler above.
+      const clientEmail = (currentClientEmail() || '').toLowerCase();
       const clientInfo = getClientInfo(clientEmail);
 
       addDoc(collection(db, 'messages'), {

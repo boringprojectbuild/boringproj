@@ -1863,6 +1863,7 @@ Boring Project
         startLeaderboard();
         startReports();
         startWorkCompleted();
+        startClientMessages();
       } catch (err) {
         console.error('Reps auth bridge failed:', err);
       }
@@ -1944,73 +1945,86 @@ Boring Project
       });
     }
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        activeClientEmail = tab.dataset.email;
-        renderClientHeader(activeClientEmail);
-        subscribeToClient(activeClientEmail);
-      });
-    });
+    // messages/{messageId} rules require a signed-in admin session —
+    // only started once bridgeRepsAuth has actually signed in, same
+    // reasoning as startLeadsAndThread/startReports/startWorkCompleted.
+    // Wires up tab clicks, the send button (messages AND repMessages —
+    // one shared listener, branching on activeView), and the view
+    // toggle together, so switching tabs after this runs keeps working
+    // exactly as it always has — nothing here is ever un-wired.
+    let clientMessagesStarted = false;
+    function startClientMessages() {
+      if (clientMessagesStarted) return;
+      clientMessagesStarted = true;
 
-    renderClientHeader(activeClientEmail);
-    subscribeToClient(activeClientEmail);
-
-    sendBtn.addEventListener('click', async () => {
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-
-      if (activeView === 'reps') {
-        if (!activeRepEmail) return;
-        await addDoc(collection(db, 'repMessages'), {
-          text,
-          sender: 'joseph',
-          repEmail: activeRepEmail,
-          repName: repsIndex[activeRepEmail] || activeRepEmail,
-          timestamp: serverTimestamp()
-        });
-        return;
-      }
-
-      await addDoc(collection(db, 'messages'), {
-        text,
-        sender: 'joseph',
-        clientEmail: activeClientEmail,
-        timestamp: serverTimestamp()
-      });
-    });
-
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendBtn.click();
-      }
-    });
-
-    // ── Messages view toggle: Clients (existing) vs Reps ──
-    document.querySelectorAll('#msgViewToggle .msg-view-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#msgViewToggle .msg-view-tab').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeView = btn.dataset.view;
-
-        if (activeView === 'clients') {
-          msgClientTabsEl.style.display = 'flex';
-          repTabsEl.style.display = 'none';
-          repTabsEmptyEl.style.display = 'none';
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          activeClientEmail = tab.dataset.email;
           renderClientHeader(activeClientEmail);
           subscribeToClient(activeClientEmail);
-        } else {
-          if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-          msgClientTabsEl.style.display = 'none';
-          renderRepTabs();
-          renderRepHeader();
-          renderRepThread();
+        });
+      });
+
+      renderClientHeader(activeClientEmail);
+      subscribeToClient(activeClientEmail);
+
+      sendBtn.addEventListener('click', async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+
+        if (activeView === 'reps') {
+          if (!activeRepEmail) return;
+          await addDoc(collection(db, 'repMessages'), {
+            text,
+            sender: 'joseph',
+            repEmail: activeRepEmail,
+            repName: repsIndex[activeRepEmail] || activeRepEmail,
+            timestamp: serverTimestamp()
+          });
+          return;
+        }
+
+        await addDoc(collection(db, 'messages'), {
+          text,
+          sender: 'joseph',
+          clientEmail: activeClientEmail,
+          timestamp: serverTimestamp()
+        });
+      });
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendBtn.click();
         }
       });
-    });
+
+      // ── Messages view toggle: Clients (existing) vs Reps ──
+      document.querySelectorAll('#msgViewToggle .msg-view-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#msgViewToggle .msg-view-tab').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeView = btn.dataset.view;
+
+          if (activeView === 'clients') {
+            msgClientTabsEl.style.display = 'flex';
+            repTabsEl.style.display = 'none';
+            repTabsEmptyEl.style.display = 'none';
+            renderClientHeader(activeClientEmail);
+            subscribeToClient(activeClientEmail);
+          } else {
+            if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+            msgClientTabsEl.style.display = 'none';
+            renderRepTabs();
+            renderRepHeader();
+            renderRepThread();
+          }
+        });
+      });
+    }
 
     // ── Rep messages — tabs are built live from repMessages, not hardcoded ──
     let activeRepEmail = null;
