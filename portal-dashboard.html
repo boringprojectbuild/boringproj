@@ -1830,6 +1830,13 @@
     let resolveClientAuthReady;
     window.__clientAuthReady = new Promise(resolve => { resolveClientAuthReady = resolve; });
 
+    // Server-verified client record (name/contact/hasWebsiteService/hasCRM),
+    // populated once the bridge below resolves. This — not the local
+    // CLIENTS fallback further down — is the source of truth getClientInfo()
+    // reads from, since entitlements coming from an authenticated response
+    // can't be edited from browser dev tools the way a local object could.
+    window.__clientAuthInfo = null;
+
     async function bridgeClientAuth() {
       try {
         const freshToken = await netlifyIdentity.refresh();
@@ -1843,6 +1850,19 @@
           return;
         }
         await signInWithCustomToken(auth, data.token);
+        if (data.clientKey) {
+          window.__clientAuthInfo = {
+            key: data.clientKey,
+            name: data.name,
+            contact: data.contact,
+            hasWebsiteService: data.hasWebsiteService !== false,
+            hasCRM: !!data.hasCRM,
+          };
+          // applySidebarGating() may already have run once (against the
+          // local CLIENTS fallback) before this async bridge resolved —
+          // re-run it now that the server-verified record is in.
+          if (typeof window.__applySidebarGating === 'function') window.__applySidebarGating();
+        }
         resolveClientAuthReady(true);
       } catch (err) {
         console.error('Client auth bridge failed:', err);
@@ -2999,9 +3019,14 @@ Thank you! — [Business Name]</div>
     }
     renderReviews(REVIEW_COUNT);
 
-    // ── Client registry — maps logged-in email to business identity ──
-    // hasWebsiteService/hasCRM gate the sidebar's two dashboard groups (see
-    // applySidebarGating()) — existing clients default to website-only.
+    // ── Client registry — FALLBACK ONLY, for the brief window before the
+    // Firebase Auth bridge (see bridgeClientAuth() in the <head> module
+    // script) resolves, or the rare case where it fails outright. The
+    // source of truth for entitlements (hasWebsiteService/hasCRM) is
+    // CLIENT_REGISTRY in functions/index.js, delivered via the mint
+    // response into window.__clientAuthInfo — see getClientInfo() below.
+    // Keep `key` here correct regardless, since reports/workcompleted
+    // reads use it immediately on load without waiting on that bridge.
     const CLIENTS = {
       'luminaservices220@outlook.com': { key: 'lumina',        name: 'Lumina Cleaning Service', contact: 'Aislinn Venegas', hasWebsiteService: true, hasCRM: false },
       'boringprj210@gmail.com':        { key: 'boringproject', name: 'boring project.',         contact: 'Joseph Gutierrez', hasWebsiteService: true, hasCRM: true }
@@ -3010,6 +3035,10 @@ Thank you! — [Business Name]</div>
     const DEFAULT_CLIENT_EMAIL = 'luminaservices220@outlook.com';
 
     function getClientInfo(email) {
+      // Prefer the server-verified record once the auth bridge has landed —
+      // entitlements should come from an authenticated response, not a
+      // local object anyone could edit in browser dev tools.
+      if (window.__clientAuthInfo) return window.__clientAuthInfo;
       const key = (email || '').toLowerCase();
       return CLIENTS[key] || { name: 'Client', contact: '', hasWebsiteService: true, hasCRM: false };
     }
@@ -3163,6 +3192,10 @@ Thank you! — [Business Name]</div>
     applySidebarGating();
     netlifyIdentity.on('login', applySidebarGating);
     netlifyIdentity.on('init', user => { if (user) applySidebarGating(); });
+    // Exposed so bridgeClientAuth() (module script in <head>) can re-run
+    // this once the server-verified record lands — that async bridge
+    // usually resolves after this first, local-fallback-only pass.
+    window.__applySidebarGating = applySidebarGating;
 
     // Firebase messaging
     window.addEventListener('load', () => {
@@ -4270,7 +4303,7 @@ Thank you! — [Business Name]</div>
       const { collection, doc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp } = window.firestoreModules;
 
       const clientEmail = currentClientEmail();
-      const clientInfo = getClientInfo(clientEmail);
+      let clientInfo = getClientInfo(clientEmail);
       if (!clientInfo.key) return;
 
       // contacts/quotes rules require a signed-in Firebase Auth session
@@ -4279,7 +4312,15 @@ Thank you! — [Business Name]</div>
       // Tab switching / Messages reuse below don't depend on this, since
       // messages/reports/etc. rules are unchanged.
       const authReady = await (window.__clientAuthReady || Promise.resolve(false));
-      if (!authReady) console.error('CRM: client auth bridge not ready — contacts/quotes will not load.');
+      if (!authReady) {
+        console.error('CRM: client auth bridge not ready — contacts/quotes will not load.');
+      } else {
+        // Re-read now that window.__clientAuthInfo is populated, so the
+        // clientKey used to query/write below is the exact same one
+        // baked into the auth token's claim — not just the local
+        // fallback guess taken before the bridge resolved.
+        clientInfo = getClientInfo(clientEmail);
+      }
 
       const STAGES = ['new_lead', 'contacted', 'quoted', 'won', 'lost'];
       const STAGE_LABELS = { new_lead: 'New lead', contacted: 'Contacted', quoted: 'Quoted', won: 'Won', lost: 'Lost' };

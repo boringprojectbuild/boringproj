@@ -26,7 +26,9 @@
 //    email } apply — a rep/admin gets { role, email }, a client gets
 //    { clientKey, email }, and an account that's both (e.g. Joseph's own
 //    admin login, which doubles as the "boringproject" demo client) gets
-//    all three
+//    all three. The JSON response (not just the token's claims) also
+//    carries a client's full record — name, contact, hasWebsiteService,
+//    hasCRM — so the dashboard doesn't need its own copy of any of that.
 // 6. Dashboard signs into Firebase with that token, unlocking real
 //    Firestore Security Rules enforcement
 
@@ -52,14 +54,29 @@ const USER_REGISTRY = {
 };
 
 // --- Client registry ---
-// Mirrors the CLIENTS object duplicated in portal-dashboard.html /
-// admin.html — keep the `clientKey` values in sync with those if a
-// client is ever added or renamed there. Server-side only, same
-// reasoning as USER_REGISTRY: a client can't grant themselves another
-// client's clientKey by editing browser code.
+// The single source of truth for client identity AND entitlements
+// (hasWebsiteService/hasCRM). portal-dashboard.html's local CLIENTS
+// object is a fallback only, for the brief window before this bridge
+// resolves (or if it fails outright) — it should never be the thing
+// that decides what a client is entitled to, since anyone could edit it
+// in browser dev tools. admin.html has its own separate, unrelated
+// CLIENTS object (key/name/contact only, for the messaging UI) that
+// doesn't reference entitlements and isn't affected by this one.
 const CLIENT_REGISTRY = {
-  "luminaservices220@outlook.com": {clientKey: "lumina", name: "Lumina Cleaning Service"},
-  "boringprj210@gmail.com": {clientKey: "boringproject", name: "boring project."},
+  "luminaservices220@outlook.com": {
+    clientKey: "lumina",
+    name: "Lumina Cleaning Service",
+    contact: "Aislinn Venegas",
+    hasWebsiteService: true,
+    hasCRM: false,
+  },
+  "boringprj210@gmail.com": {
+    clientKey: "boringproject",
+    name: "boring project.",
+    contact: "Joseph Gutierrez",
+    hasWebsiteService: true,
+    hasCRM: true,
+  },
 };
 
 exports.mintFirebaseToken = onRequest(
@@ -127,6 +144,9 @@ exports.mintFirebaseToken = onRequest(
           role: repEntry ? repEntry.role : undefined,
           clientKey: clientEntry ? clientEntry.clientKey : undefined,
           name: (repEntry && repEntry.name) || (clientEntry && clientEntry.name),
+          contact: clientEntry ? clientEntry.contact : undefined,
+          hasWebsiteService: clientEntry ? clientEntry.hasWebsiteService : undefined,
+          hasCRM: clientEntry ? clientEntry.hasCRM : undefined,
           email,
         });
       } catch (err) {
