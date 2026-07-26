@@ -3297,6 +3297,11 @@ Thank you! — [Business Name]</div>
         setUnread(false);
         lastReadMillis = Date.now();
         try {
+          // users/{userId} rules require a signed-in session whose own
+          // email matches this doc's ID — wait for the bridge started in
+          // the <head> module script before writing.
+          const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+          if (!authReady) return;
           await setDoc(userRef, { lastReadMessages: serverTimestamp() }, { merge: true });
         } catch (err) {
           console.error('notifications: failed to update lastReadMessages', err);
@@ -3315,28 +3320,47 @@ Thank you! — [Business Name]</div>
 
       if (messagesNavItem) messagesNavItem.addEventListener('click', markMessagesRead);
 
+      // Cache of the latest messages snapshot, recomputed whenever either
+      // it or lastReadMillis changes — needed because the users/{userId}
+      // read below now resolves independently (and later) than the
+      // messages subscription, instead of always running before it.
+      let latestMessages = null;
+      function recomputeUnread() {
+        if (!latestMessages) return;
+        let unread = false;
+        latestMessages.forEach(data => {
+          if ((data.clientEmail || DEFAULT_CLIENT_EMAIL) !== clientEmail) return;
+          if (data.sender !== 'joseph') return;
+          const ts = data.timestamp && data.timestamp.toMillis ? data.timestamp.toMillis() : 0;
+          if (ts > lastReadMillis) unread = true;
+        });
+        setUnread(unread);
+      }
+
+      // users/{userId} read — waits for the auth bridge, same reasoning
+      // as the write in markMessagesRead() above.
       (async () => {
+        const authReady = await (window.__clientAuthReady || Promise.resolve(false));
+        if (!authReady) return;
         try {
           const snap = await getDoc(userRef);
           const stored = snap.exists() ? snap.data().lastReadMessages : null;
           lastReadMillis = stored && stored.toMillis ? stored.toMillis() : 0;
+          recomputeUnread();
         } catch (err) {
           console.error('notifications: failed to load lastReadMessages', err);
         }
-
-        const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
-        onSnapshot(msgQuery, (snapshot) => {
-          let unread = false;
-          snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            if ((data.clientEmail || DEFAULT_CLIENT_EMAIL) !== clientEmail) return;
-            if (data.sender !== 'joseph') return;
-            const ts = data.timestamp && data.timestamp.toMillis ? data.timestamp.toMillis() : 0;
-            if (ts > lastReadMillis) unread = true;
-          });
-          setUnread(unread);
-        });
       })();
+
+      // messages — untouched/ungated on purpose. Its own rules are still
+      // open; tightening those is a separate, later change, so this
+      // subscription keeps firing immediately like it always has.
+      const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
+      onSnapshot(msgQuery, (snapshot) => {
+        latestMessages = [];
+        snapshot.forEach(docSnap => latestMessages.push(docSnap.data()));
+        recomputeUnread();
+      });
     });
 
     // ── Reports (Google Drive links) ────
