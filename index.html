@@ -1727,7 +1727,7 @@
   <div id="heroTileGrid"></div>
 
   <div id="heroVideoOverlay">
-    <video id="heroVideo" src="assets/video/hero-ad.mp4" playsinline></video>
+    <video id="heroVideo" src="assets/video/hero-ad.mp4" playsinline preload="none"></video>
   </div>
 
   <button id="heroCloseBtn" aria-label="Close">✕</button>
@@ -2675,7 +2675,7 @@
   <!-- Self-hosted Three.js r160 UMD build (extracted from process-section-prototype.html
        per CLAUDE_CODE_INTEGRATION_BRIEF.md — not inlined). Confirmed working in isolation
        at wave-grid-test.html before this port. -->
-  <script src="assets/vendor/three.min.js"></script>
+  <script src="assets/vendor/three.min.js" defer></script>
 
   <!-- ═══════════════════════════════ PROCESS: MOUSE-DRIVEN WAVE GRID ═══════════════════════════════ -->
   <script>
@@ -2969,15 +2969,21 @@
         requestAnimationFrame(animate);
       }
 
-      // The wave scene is desktop/tablet only — mobile keeps the process section's
-      // static step list, both for scope and for performance (a phone shouldn't be
-      // asked to run a shader scene built for a desktop background).
-      if (window.innerWidth >= 768) {
-        initWaveScene();
-      } else {
-        const waveCanvas = document.getElementById('waveCanvas');
-        if (waveCanvas) waveCanvas.style.display = 'none';
-      }
+      // three.min.js is deferred, so THREE doesn't exist while this inline script
+      // is being parsed. `defer` is ignored on inline scripts, so waiting for
+      // DOMContentLoaded is what actually orders us after the library: every
+      // deferred script is guaranteed to have run by the time that event fires.
+      document.addEventListener('DOMContentLoaded', function () {
+        // The wave scene is desktop/tablet only — mobile keeps the process section's
+        // static step list, both for scope and for performance (a phone shouldn't be
+        // asked to run a shader scene built for a desktop background).
+        if (window.innerWidth >= 768) {
+          initWaveScene();
+        } else {
+          const waveCanvas = document.getElementById('waveCanvas');
+          if (waveCanvas) waveCanvas.style.display = 'none';
+        }
+      });
     })();
   </script>
 
