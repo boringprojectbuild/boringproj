@@ -452,6 +452,31 @@
       white-space: nowrap;
     }
 
+    /* Desktop-only hero extras. Cut off at 767px rather than the site's usual
+       768px so this lines up exactly with the video ad's `innerWidth >= 768`
+       JS guard — at exactly 768 the button must still be there for the
+       sequence it initializes. */
+    @media (max-width: 767px) {
+      /* click-to-play ad: desktop/tablet only, same as the process section's
+         wave scene */
+      .play-btn {
+        display: none;
+      }
+
+      /* the rotating icon graphic is decorative and 480px square — on a phone
+         it only pushed the real content up and left dead space behind */
+      .hero-right {
+        display: none;
+      }
+
+      /* with the icon gone, hero-left's content is all there is, so the
+         section's height should follow it instead of being held open by the
+         base rule's `min-height: 100vh` */
+      #hero {
+        min-height: 0;
+      }
+    }
+
     /* ---- tile grid overlay ---- */
     #heroTileGrid {
       position: fixed;
@@ -2260,6 +2285,11 @@
   <!-- ═══════════════════════════════ HERO: CLICK-TO-PLAY VIDEO AD ═══════════════════════════════ -->
   <script>
     (function () {
+      // Desktop/tablet only, matching the wave scene below: on mobile the play
+      // button is hidden by CSS and nothing here initializes — no tile grid is
+      // built, no listeners are attached, the video is never played.
+      if (window.innerWidth < 768) return;
+
       const CELL = 60;
       const tileGrid = document.getElementById('heroTileGrid');
       const videoOverlay = document.getElementById('heroVideoOverlay');

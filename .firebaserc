@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "boringproject-portal"
+  },
+  "targets": {},
+  "etags": {
+    "boringproject-portal": {
+      "extensionInstances": {
+        "firestore-send-email": "f12899f6dbdb0f74e9bee389e4c346fb8452a7aa931c64f89402b68529a4d441"
+      }
+    }
   }
 }
