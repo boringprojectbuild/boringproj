@@ -3215,10 +3215,11 @@ Thank you! — [Business Name]</div>
     window.__applySidebarGating = applySidebarGating;
 
     // Firebase messaging
+    // Firebase messaging
     window.addEventListener('load', async () => {
       const db = window.db;
       if (!db) return;
-      const { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
+      const { collection, addDoc, onSnapshot, orderBy, query, where, serverTimestamp } = window.firestoreModules;
 
       const thread = document.getElementById('msg-thread');
       const input = document.getElementById('msg-input');
@@ -3239,8 +3240,14 @@ Thank you! — [Business Name]</div>
         return;
       }
 
+      // Filtered server-side by clientEmail — required by Firestore
+      // Security Rules for a client-role token (see firestore.rules
+      // /messages/{messageId}: a client can only pass the rule if the
+      // query is provably scoped to their own email; an unfiltered
+      // collection query is rejected outright with permission-denied).
       const msgQuery = query(
         collection(db, 'messages'),
+        where('clientEmail', '==', clientEmail),
         orderBy('timestamp', 'asc')
       );
 
@@ -3306,7 +3313,7 @@ Thank you! — [Business Name]</div>
       const bell = document.getElementById('notifBell');
       const badge = document.getElementById('notifBadge');
       if (!db || !bell || !badge) return;
-      const { collection, doc, getDoc, setDoc, onSnapshot, orderBy, query, serverTimestamp } = window.firestoreModules;
+      const { collection, doc, getDoc, setDoc, onSnapshot, orderBy, query, where, serverTimestamp } = window.firestoreModules;
 
       // Lowercased to match request.auth.token.email — the users/{userId}
       // rule (see firestore.rules) requires the doc ID itself to equal
@@ -3386,7 +3393,13 @@ Thank you! — [Business Name]</div>
         console.error('notifications: failed to load lastReadMessages', err);
       }
 
-      const msgQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
+      // Same clientEmail filter as the main Messages handler above —
+      // required for a client-role token to pass Firestore rules.
+      const msgQuery = query(
+        collection(db, 'messages'),
+        where('clientEmail', '==', clientEmail),
+        orderBy('timestamp', 'asc')
+      );
       onSnapshot(msgQuery, (snapshot) => {
         latestMessages = [];
         snapshot.forEach(docSnap => latestMessages.push(docSnap.data()));
