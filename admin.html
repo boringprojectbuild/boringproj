@@ -1923,7 +1923,7 @@ Boring Project
     const repTabsEl = document.getElementById('repClientTabs');
     const repTabsEmptyEl = document.getElementById('repTabsEmpty');
 
-    let activeClientEmail = DEFAULT_CLIENT_EMAIL;
+    let activeClientEmail = Object.keys(CLIENTS)[0];
     let unsubscribe = null;
     let activeView = 'clients'; // 'clients' | 'reps'
 
