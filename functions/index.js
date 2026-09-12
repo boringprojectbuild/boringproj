@@ -263,6 +263,76 @@ exports.generateReviewRequestDrafts = onSchedule("every 1 hours", async () => {
   console.log(`generateReviewRequestDrafts: staged ${staged} draft(s).`);
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// TEMPORARY TESTING TOOL — triggerReviewDraftsNow
+//
+// DELETE THIS FUNCTION once testing is done. A manual "generate drafts
+// right now, ignore the delay" endpoint has no reason to exist in
+// production after that.
+//
+// Manual, HTTP-triggered copy of generateReviewRequestDrafts' logic
+// above, for testing without waiting on the hourly schedule or the real
+// 24-hour wonAt delay. It deliberately duplicates that logic instead of
+// factoring out something shared, so deleting this later is a clean,
+// single removal — the real scheduled function above is completely
+// untouched by this and needs no follow-up cleanup either way.
+//
+// The wonAt-cutoff check is skipped entirely: any 'won' contact with no
+// reviewRequestStatus yet gets a draft immediately, regardless of how
+// long ago it was won (or even if wonAt is missing altogether).
+// Everything else — the reviewRequestStatus/emailOptOut checks that
+// make this idempotent — still applies exactly as in the real function,
+// so running this twice is still safe: the second run finds nothing
+// left to stage.
+//
+// Gated by a shared-secret query param instead of real auth, since a
+// trigger that skips the normal timing safeguard shouldn't be publicly
+// callable by anyone who finds the URL. This is a stopgap, not a real
+// security boundary — the secret below is a hardcoded constant checked
+// in plaintext, fine for a short-lived manual test but not something to
+// trust broadly or leave around long-term.
+const TRIGGER_REVIEW_DRAFTS_SECRET = "5497387d2e09346d02111c0f";
+
+exports.triggerReviewDraftsNow = onRequest(async (req, res) => {
+  if (req.query.secret !== TRIGGER_REVIEW_DRAFTS_SECRET) {
+    res.status(403).json({error: "Forbidden."});
+    return;
+  }
+
+  const db = admin.firestore();
+
+  const wonSnapshot = await db.collection("contacts")
+      .where("stage", "==", "won")
+      .get();
+
+  const batch = db.batch();
+  let staged = 0;
+
+  wonSnapshot.forEach((docSnap) => {
+    const c = docSnap.data();
+
+    // Same idempotency guard as the real function — never re-stages a
+    // contact that already has a status.
+    if (c.reviewRequestStatus) return;
+    if (c.emailOptOut === true) return;
+    // wonAt-cutoff check intentionally skipped — see comment above.
+
+    const clientMeta = CLIENT_BY_KEY[c.clientKey];
+    const businessName = clientMeta ? clientMeta.name : "us";
+    const firstName = (c.name || "").trim().split(/\s+/)[0] || "there";
+
+    batch.update(docSnap.ref, {
+      reviewRequestDraft: buildReviewRequestDraft(firstName, businessName),
+      reviewRequestStatus: "pending",
+    });
+    staged++;
+  });
+
+  if (staged > 0) await batch.commit();
+  console.log(`triggerReviewDraftsNow: staged ${staged} draft(s).`);
+  res.status(200).json({staged});
+});
+
 /**
  * Minimal HTML-escape for values interpolated into the unsubscribe page.
  * CLIENT_REGISTRY entries are hardcoded server-side, not user input, so
