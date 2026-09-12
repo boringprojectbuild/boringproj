@@ -66,6 +66,25 @@ service cloud.firestore {
                     && request.auth.token.clientKey == request.resource.data.clientKey;
     }
 
+    // ── Outbound mail queue — read by the firestore-send-email extension
+    // (Admin SDK, server-side, always bypasses these rules regardless of
+    // what's written here). The only client ever writing here is the CRM's
+    // review-request "Send" action in portal-dashboard.html. clientKey is
+    // an extra field the extension itself doesn't read, added purely so
+    // this rule can scope create to the client's own session, same
+    // ownership pattern as contacts/quotes above. replyTo is pinned to the
+    // sender's own verified login email so a write here can't be made to
+    // look like a reply-path to someone else's inbox. No read/update/
+    // delete — the client only ever needs to create a send request, never
+    // look back at the queue (the extension owns the doc's lifecycle after
+    // that, adding its own delivery-status fields). ──
+    match /mail/{mailId} {
+      allow create: if request.auth != null
+                    && request.auth.token.clientKey == request.resource.data.clientKey
+                    && request.resource.data.replyTo == request.auth.token.email;
+      allow read, update, delete: if false;
+    }
+
     // ── Leads table — real enforcement, via the Netlify -> Firebase
     // custom-token auth bridge (mint-firebase-token) ──
     match /leads/{leadId} {

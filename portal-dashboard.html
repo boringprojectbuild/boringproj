@@ -1515,6 +1515,12 @@
 
     .crm-btn-secondary:hover { background: rgba(245, 245, 243, 0.1); }
 
+    .crm-btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .crm-btn-primary:disabled:hover { background: var(--gold); }
+
     /* ── Table ── */
     .crm-table-wrap {
       background: rgba(245, 245, 243, 0.04);
@@ -1759,6 +1765,40 @@
       border-color: var(--gold);
     }
 
+    /* Plain-text field — From/Reply-To/footer preview in the review
+       compose modal. Looks like a .crm-input so it sits visually
+       consistent with the editable fields around it, but it's a <div>,
+       not an input — not focusable, not editable, matching the spec's
+       "shown as plain text, not editable". */
+    .crm-static-field {
+      background: rgba(245, 245, 243, 0.03);
+      border: 0.5px solid rgba(245, 245, 243, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .crm-static-field-pre {
+      white-space: pre-line;
+      line-height: 1.6;
+    }
+
+    /* ── Ready to send (Overview tab) ── */
+    .crm-ready-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 4px;
+      border-bottom: 0.5px solid rgba(245, 245, 243, 0.06);
+      cursor: pointer;
+      transition: background var(--t-fast);
+    }
+    .crm-ready-item:last-child { border-bottom: none; }
+    .crm-ready-item:hover { background: rgba(245, 245, 243, 0.03); }
+    .crm-ready-item-name { font-size: 13px; font-weight: 600; color: var(--white); }
+    .crm-ready-item-meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
     /* ── Contact detail: activity log ── */
     .crm-activity-list {
       display: flex;
@@ -1857,6 +1897,7 @@
             contact: data.contact,
             hasWebsiteService: data.hasWebsiteService !== false,
             hasCRM: !!data.hasCRM,
+            address: data.address,
           };
           // applySidebarGating() may already have run once (against the
           // local CLIENTS fallback) before this async bridge resolved —
@@ -2763,6 +2804,15 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
               <div class="crm-card-subtext">Sum of quoted-stage contacts</div>
             </div>
           </div>
+
+          <!-- ── Ready to send — flat card only, no glass (the glass budget
+               for this tab is already spent on #crmInsightPanel above) ── -->
+          <div class="crm-card" id="crmReadyToSendCard" style="margin-top:16px;">
+            <div class="crm-card-label">Ready to send</div>
+            <div id="crmReadyToSendList">
+              <div class="crm-card-subtext">No review requests staged right now.</div>
+            </div>
+          </div>
         </div>
 
         <!-- ── CONTACTS ── -->
@@ -2933,6 +2983,54 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
           <div class="crm-activity-add">
             <textarea id="crmActivityInput" class="crm-input" rows="2" placeholder="Add a note…"></textarea>
             <button type="button" class="crm-btn-secondary" id="crmActivityAddBtn" style="align-self:flex-start;">Add note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review request compose modal -->
+    <div
+      class="modal-overlay"
+      id="crmReviewComposeModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="crmReviewComposeTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-box" style="max-width:620px; max-height:88vh; overflow-y:auto;">
+        <button class="modal-close" id="crmReviewComposeClose" aria-label="Close modal">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <line x1="2" y1="2" x2="14" y2="14"/>
+            <line x1="14" y1="2" x2="2" y2="14"/>
+          </svg>
+        </button>
+
+        <div class="modal-title" id="crmReviewComposeTitle">Review request</div>
+        <div class="modal-subtitle" id="crmReviewComposeContext">—</div>
+
+        <div class="crm-form">
+          <label class="crm-field-label">From</label>
+          <div class="crm-static-field" id="crmReviewComposeFrom">—</div>
+
+          <label class="crm-field-label">Reply-To</label>
+          <div class="crm-static-field" id="crmReviewComposeReplyTo">—</div>
+
+          <label class="crm-field-label">Subject</label>
+          <input type="text" id="crmReviewComposeSubject" class="crm-input">
+
+          <label class="crm-field-label">Body</label>
+          <textarea id="crmReviewComposeBody" class="crm-input" rows="9"></textarea>
+
+          <label class="crm-field-label">Footer (added automatically when sent)</label>
+          <div class="crm-static-field crm-static-field-pre" id="crmReviewComposeFooter">—</div>
+
+          <div class="crm-card-subtext" id="crmReviewComposeNoEmailWarning" style="display:none; color:var(--danger);">
+            This contact has no email on file — add one before sending.
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:6px;">
+            <button type="button" class="crm-btn-secondary" id="crmReviewDismissBtn">Dismiss</button>
+            <button type="button" class="crm-btn-primary" id="crmReviewSendBtn">Send</button>
           </div>
         </div>
       </div>
@@ -4422,6 +4520,13 @@ Thank you! — [Business Name]</div>
       const STAGE_LABELS = { new_lead: 'New lead', contacted: 'Contacted', quoted: 'Quoted', won: 'Won', lost: 'Lost' };
       const SOURCE_LABELS = { gbp_call: 'GBP call', web_form: 'Web form', referral: 'Referral', manual: 'Manual' };
       const IDLE_MS = 2 * 24 * 60 * 60 * 1000;
+      // Confirmed via actual `firebase deploy` output — NOT the
+      // *.a.run.app pattern mintFirebaseToken happens to use. Newly
+      // created 2nd-gen functions in this project surface the
+      // cloudfunctions.net URL as canonical (the .a.run.app alias also
+      // resolves, but this is the one Firebase itself reports, so it's
+      // the one to trust for a link embedded in real outbound email).
+      const UNSUBSCRIBE_BASE_URL = 'https://us-central1-boringproject-portal.cloudfunctions.net/unsubscribeContact';
 
       let contactsCache = [];
       let quotesCache = [];
@@ -4446,6 +4551,24 @@ Thank you! — [Business Name]</div>
         if (days <= 0) return 'Today';
         if (days === 1) return '1 day ago';
         return `${days} days ago`;
+      }
+
+      function fmtHoursAgo(millis) {
+        if (!millis) return '—';
+        const hours = Math.max(0, Math.floor((Date.now() - millis) / 3600000));
+        return `${hours}h ago`;
+      }
+
+      // Cryptographically random token for the unsubscribe link — deliberately
+      // not the Firestore document ID, so opting a contact out requires this
+      // token, not a guessable/enumerable doc ID. This runs in the browser
+      // (contact creation is client-side), so it's the Web Crypto equivalent
+      // of Node's crypto.randomBytes(16).toString('hex') — same 16-byte
+      // random value, same 32-character hex output, browser-native API.
+      function randomHexToken(byteLength) {
+        const bytes = new Uint8Array(byteLength);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
       }
 
       function escapeHtml(str) {
@@ -4680,10 +4803,23 @@ Thank you! — [Business Name]</div>
           lastActivityAt: serverTimestamp(),
         };
 
+        // wonAt marks the FIRST time this contact ever reaches Won — never
+        // overwritten on a later re-save, including moving out of Won and
+        // back in. Same rule applied in the kanban drop handler below.
+        const existing = activeContactId ? contactsCache.find(c => c.id === activeContactId) : null;
+        if (payload.stage === 'won' && !(existing && existing.wonAt)) {
+          payload.wonAt = serverTimestamp();
+        }
+
         if (activeContactId) {
           await updateDoc(doc(db, 'contacts', activeContactId), payload);
         } else {
-          await addDoc(collection(db, 'contacts'), { ...payload, notes: [], createdAt: serverTimestamp() });
+          // emailOptOut defaults false and unsubscribeToken is minted at
+          // creation only — neither must ever be touched by a later
+          // edit-save via the shared payload above (emailOptOut could get
+          // silently un-opted-out; unsubscribeToken could get rotated out
+          // from under a link already sent).
+          await addDoc(collection(db, 'contacts'), { ...payload, notes: [], emailOptOut: false, unsubscribeToken: randomHexToken(16), createdAt: serverTimestamp() });
         }
         closeContactModalUI();
       });
@@ -4782,7 +4918,15 @@ Thank you! — [Business Name]</div>
           zone.classList.remove('drag-over');
           const contactId = e.dataTransfer.getData('text/plain');
           if (!contactId) return;
-          await updateDoc(doc(db, 'contacts', contactId), { stage: s, lastActivityAt: serverTimestamp() });
+
+          const update = { stage: s, lastActivityAt: serverTimestamp() };
+          // Same wonAt rule as the manual edit form: set only the first
+          // time this contact reaches Won, never overwritten after.
+          const existing = contactsCache.find(c => c.id === contactId);
+          if (s === 'won' && !(existing && existing.wonAt)) {
+            update.wonAt = serverTimestamp();
+          }
+          await updateDoc(doc(db, 'contacts', contactId), update);
         });
       });
 
@@ -4901,7 +5045,131 @@ Thank you! — [Business Name]</div>
         document.getElementById('crmInsightText').textContent = idleCount > 0
           ? `${idleCount} lead${idleCount === 1 ? '' : 's'} idle more than 2 days — follow up before they go cold.`
           : 'All active leads have been touched within the last 2 days.';
+
+        renderReadyToSend();
       }
+
+      // ── Ready to send (Overview tab) ────
+      // contactsCache is already this client's own contacts (the
+      // onSnapshot query above is scoped to clientKey == clientInfo.key),
+      // so "pending drafts for this client" is just a filter over it —
+      // same approach already used for won/lost/idle counts above, no
+      // second Firestore query needed.
+      function buildFooterText(c) {
+        const businessName = clientInfo.name || 'Us';
+        const address = clientInfo.address || 'Address on file';
+        const unsubUrl = `${UNSUBSCRIBE_BASE_URL}?token=${encodeURIComponent(c.unsubscribeToken || '')}`;
+        return `${businessName}\n${address}\n\nDon't want these emails? Unsubscribe: ${unsubUrl}`;
+      }
+
+      function renderReadyToSend() {
+        const listEl = document.getElementById('crmReadyToSendList');
+        const pending = contactsCache
+          .filter(c => c.reviewRequestStatus === 'pending')
+          .sort((a, b) => tsToMillis(a.wonAt) - tsToMillis(b.wonAt));
+
+        if (pending.length === 0) {
+          listEl.innerHTML = '<div class="crm-card-subtext">No review requests staged right now.</div>';
+          return;
+        }
+
+        listEl.innerHTML = '';
+        pending.forEach(c => {
+          const item = document.createElement('div');
+          item.className = 'crm-ready-item';
+          item.innerHTML = `
+            <span class="crm-ready-item-name">${escapeHtml(c.name || 'Unnamed')}</span>
+            <span class="crm-ready-item-meta">Review request · ${fmtHoursAgo(tsToMillis(c.wonAt))}</span>
+          `;
+          item.addEventListener('click', () => openReviewComposeModal(c));
+          listEl.appendChild(item);
+        });
+      }
+
+      const reviewComposeModal = document.getElementById('crmReviewComposeModal');
+      const reviewComposeCloseBtn = document.getElementById('crmReviewComposeClose');
+      const reviewComposeContext = document.getElementById('crmReviewComposeContext');
+      const reviewComposeFrom = document.getElementById('crmReviewComposeFrom');
+      const reviewComposeReplyTo = document.getElementById('crmReviewComposeReplyTo');
+      const reviewComposeSubject = document.getElementById('crmReviewComposeSubject');
+      const reviewComposeBody = document.getElementById('crmReviewComposeBody');
+      const reviewComposeFooter = document.getElementById('crmReviewComposeFooter');
+      const reviewComposeNoEmailWarning = document.getElementById('crmReviewComposeNoEmailWarning');
+      const reviewDismissBtn = document.getElementById('crmReviewDismissBtn');
+      const reviewSendBtn = document.getElementById('crmReviewSendBtn');
+      let activeReviewContactId = null;
+
+      function openReviewComposeModalUI() {
+        reviewComposeModal.classList.add('open');
+        reviewComposeModal.setAttribute('aria-hidden', 'false');
+      }
+      function closeReviewComposeModalUI() {
+        reviewComposeModal.classList.remove('open');
+        reviewComposeModal.setAttribute('aria-hidden', 'true');
+        activeReviewContactId = null;
+      }
+
+      function openReviewComposeModal(c) {
+        activeReviewContactId = c.id;
+
+        const hours = Math.max(0, Math.floor((Date.now() - tsToMillis(c.wonAt)) / 3600000));
+        reviewComposeContext.textContent =
+          `${c.name || 'Unnamed'} — ${c.jobDescription || 'no job description on file'} — marked Won ${hours} hour${hours === 1 ? '' : 's'} ago. Review request staged and ready.`;
+
+        reviewComposeFrom.textContent = `${clientInfo.name} <notifications@boringproj.com>`;
+        reviewComposeReplyTo.textContent = clientEmail;
+
+        const draft = c.reviewRequestDraft || { subject: '', body: '' };
+        reviewComposeSubject.value = draft.subject || '';
+        reviewComposeBody.value = draft.body || '';
+        reviewComposeFooter.textContent = buildFooterText(c);
+
+        const hasEmail = !!(c.email && c.email.trim());
+        reviewComposeNoEmailWarning.style.display = hasEmail ? 'none' : '';
+        reviewSendBtn.disabled = !hasEmail;
+        reviewSendBtn.title = hasEmail ? '' : 'This contact has no email on file.';
+
+        openReviewComposeModalUI();
+      }
+
+      reviewComposeCloseBtn.addEventListener('click', closeReviewComposeModalUI);
+      reviewComposeModal.addEventListener('click', e => { if (e.target === reviewComposeModal) closeReviewComposeModalUI(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && reviewComposeModal.classList.contains('open')) closeReviewComposeModalUI();
+      });
+
+      reviewDismissBtn.addEventListener('click', async () => {
+        if (!activeReviewContactId) return;
+        await updateDoc(doc(db, 'contacts', activeReviewContactId), { reviewRequestStatus: 'dismissed' });
+        closeReviewComposeModalUI();
+      });
+
+      reviewSendBtn.addEventListener('click', async () => {
+        if (!activeReviewContactId) return;
+        const c = contactsCache.find(x => x.id === activeReviewContactId);
+        if (!c || !c.email) return;
+
+        const subject = reviewComposeSubject.value.trim();
+        const bodyText = `${reviewComposeBody.value.trim()}\n\n---\n${buildFooterText(c)}`;
+
+        // Writing here is what actually sends the email — this collection
+        // is watched by the firestore-send-email extension (see
+        // firebase.json / extensions/firestore-send-email.env), the same
+        // one DEFAULT_FROM=notifications@boringproj.com belongs to.
+        // replyTo must equal the signed-in client's own token email to
+        // satisfy the firestore.rules check on this collection.
+        await addDoc(collection(db, 'mail'), {
+          clientKey: clientInfo.key,
+          to: c.email,
+          from: `"${clientInfo.name}" <notifications@boringproj.com>`,
+          replyTo: clientEmail,
+          message: { subject, text: bodyText },
+          createdAt: serverTimestamp(),
+        });
+
+        await updateDoc(doc(db, 'contacts', activeReviewContactId), { reviewRequestStatus: 'sent' });
+        closeReviewComposeModalUI();
+      });
 
       let sourceChartInstance = null;
       function renderSourceChart(bySource) {
