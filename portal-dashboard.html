@@ -1521,6 +1521,14 @@
     }
     .crm-btn-primary:disabled:hover { background: var(--gold); }
 
+    /* Brief inline "Sent ✓" confirmation next to a compose modal's Send
+       button — shown for ~1s before the modal closes. */
+    .crm-send-confirm {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
     /* ── Table ── */
     .crm-table-wrap {
       background: rgba(245, 245, 243, 0.04);
@@ -1597,6 +1605,13 @@
 
     .crm-tag.status-sent     { background: rgba(43,95,166,0.15);  color: var(--blue); }
     .crm-tag.status-accepted { background: rgba(76,175,130,0.15); color: var(--success); }
+
+    /* Review-request status pill (Clients table) — emailOptOut takes
+       priority over reviewRequestStatus wherever both could apply. */
+    .crm-tag.review-pending   { background: rgba(196,146,42,0.15); color: var(--gold); }
+    .crm-tag.review-sent      { background: rgba(76,175,130,0.15); color: var(--success); }
+    .crm-tag.review-dismissed { background: rgba(245,245,243,0.1); color: var(--muted); }
+    .crm-tag.review-optout    { background: rgba(224,85,85,0.15);  color: var(--danger); }
 
     /* Idle follow-up warning pill on kanban cards */
     .crm-idle-pill {
@@ -1840,8 +1855,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDGTM9AbW0vyEjfVy5JCAWSr_Z8L0zLVSg",
@@ -1855,10 +1871,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const storage = getStorage(app);
 
     window.db = db;
     window.fbAuth = auth;
-    window.firestoreModules = { collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp };
+    window.fbStorage = storage;
+    window.firestoreModules = { collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp, arrayUnion };
+    window.storageModules = { storageRef, uploadBytes, getDownloadURL };
 
     // ── Netlify Identity → Firebase Auth bridge, needed only to satisfy
     // Firestore rules for the CRM contacts/quotes collections below.
@@ -2169,9 +2188,16 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
             </ul>
           </li>
 
-          <!-- ── Group: CRM dashboard (single link, no dropdown) ── -->
-          <li>
-            <button class="nav-item" data-page="crm" id="crmNavItem" title="CRM dashboard">
+          <!-- ── Group: CRM dashboard (collapsible, same pattern as Web
+               dashboard above — reused, not rebuilt) ── -->
+          <li class="nav-group" id="crmDashboardGroup">
+            <button
+              class="nav-item nav-group-toggle"
+              id="crmDashboardToggle"
+              aria-expanded="false"
+              aria-controls="crmDashboardList"
+              title="CRM dashboard"
+            >
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="7" cy="6" r="2.5"/>
@@ -2187,7 +2213,44 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
                   <path d="M7 9V6.5a3 3 0 0 1 6 0V9"/>
                 </svg>
               </span>
+              <span class="nav-chevron" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 8 10 12 14 8"/>
+                </svg>
+              </span>
             </button>
+
+            <ul class="nav-group-list" id="crmDashboardList" role="list">
+
+              <li>
+                <button class="nav-item" data-page="crm" title="Overview">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+                      <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+                      <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+                      <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Overview</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="nav-item" data-page="crm-clients" title="Contacts">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="7" cy="6" r="2.5"/>
+                      <path d="M2.5 17c0-2.8 2-4.5 4.5-4.5s4.5 1.7 4.5 4.5"/>
+                      <path d="M12.5 4.5a2.5 2.5 0 0 1 0 5"/>
+                      <path d="M14 12.6c1.9.4 3.5 1.9 3.5 4.4"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Contacts</span>
+                </button>
+              </li>
+
+            </ul>
           </li>
 
         </ul>
@@ -2769,7 +2832,7 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
 
         <div class="crm-tabbar" role="tablist" aria-label="CRM sections">
           <button class="crm-tab active" data-crm-tab="overview" role="tab" aria-selected="true">Overview</button>
-          <button class="crm-tab" data-crm-tab="contacts" role="tab" aria-selected="false">Contacts</button>
+          <button class="crm-tab" data-crm-tab="contacts" role="tab" aria-selected="false">Clients</button>
           <button class="crm-tab" data-crm-tab="pipeline" role="tab" aria-selected="false">Pipeline</button>
           <button class="crm-tab" data-crm-tab="quotes" role="tab" aria-selected="false">Quotes</button>
           <button class="crm-tab" data-crm-tab="messages" role="tab" aria-selected="false">Messages</button>
@@ -2815,11 +2878,12 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
           </div>
         </div>
 
-        <!-- ── CONTACTS ── -->
+        <!-- ── CONTACTS (labeled "Clients" in the UI — data/collection/field
+             names are unchanged, this tab's user-facing copy only) ── -->
         <div class="crm-panel" id="crm-panel-contacts" style="display:none;">
           <div class="crm-toolbar">
             <div class="chart-subtitle" style="margin:0;">Sorted by last activity</div>
-            <button class="crm-btn-primary" id="crmAddContactBtn">+ Add contact</button>
+            <button class="crm-btn-primary" id="crmAddContactBtn">+ Add Client</button>
           </div>
           <div class="crm-table-wrap">
             <table class="crm-table">
@@ -2828,6 +2892,7 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
                   <th>Name</th>
                   <th>Source</th>
                   <th>Stage</th>
+                  <th>Status</th>
                   <th style="text-align:right;">Value</th>
                   <th class="crm-sortable" id="crmContactsSortBtn" style="text-align:right;">
                     Last activity <span id="crmSortArrow">↓</span>
@@ -2835,7 +2900,7 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
                 </tr>
               </thead>
               <tbody id="crmContactsTbody">
-                <tr><td colspan="5" class="crm-empty-row">No contacts yet.</td></tr>
+                <tr><td colspan="6" class="crm-empty-row">No clients yet.</td></tr>
               </tbody>
             </table>
           </div>
@@ -2913,6 +2978,48 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
       </div>
     </section>
 
+    <!-- ═══════════════════════════════ CONTACTS PAGE (per-client outreach
+         hub — separate from the CRM dashboard's "Clients" tab above,
+         which stays focused on stage/value/source. This page is purely
+         communication history and sending. ═══════════════════════════════ -->
+    <section
+      id="page-crm-clients"
+      class="main-content"
+      style="display:none; flex-direction:column; height:100%; padding:0;"
+      aria-label="Contacts"
+    >
+      <div class="crm-wrap">
+
+        <div class="crm-panel" id="crmClientsListView">
+          <div>
+            <div class="chart-title" style="font-size:20px;">Contacts</div>
+            <div class="chart-subtitle">Outreach history and messaging, per client. Stage, value, and pipeline info live on the CRM dashboard's Clients tab.</div>
+          </div>
+          <div class="crm-card">
+            <div id="crmClientsList">
+              <div class="crm-card-subtext">No clients yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="crm-panel" id="crmClientsDetailView" style="display:none;">
+          <button type="button" class="crm-btn-secondary" id="crmClientsBackBtn" style="align-self:flex-start;">← Back to Contacts</button>
+          <div class="crm-toolbar">
+            <div>
+              <div class="chart-title" style="font-size:20px;" id="crmClientsDetailName">—</div>
+              <div class="chart-subtitle" id="crmClientsDetailSummary">—</div>
+            </div>
+            <button type="button" class="crm-btn-primary" id="crmClientsDetailContactBtn">Contact</button>
+          </div>
+          <div class="crm-card">
+            <div class="crm-card-label">Outreach history</div>
+            <div class="crm-activity-list" id="crmClientsHistoryList"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- Add / view contact modal — reused for both create and detail-edit -->
     <div
       class="modal-overlay"
@@ -2930,7 +3037,7 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
           </svg>
         </button>
 
-        <div class="modal-title" id="crmContactModalTitle">Add contact</div>
+        <div class="modal-title" id="crmContactModalTitle">Add Client</div>
         <div class="modal-subtitle" id="crmContactModalSubtitle">Manually add a new lead to the pipeline.</div>
 
         <form id="crmContactForm" class="crm-form">
@@ -2974,10 +3081,14 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
             </div>
           </div>
 
-          <button type="submit" class="crm-btn-primary" id="crmContactFormSubmit" style="margin-top:6px;">Add contact</button>
+          <button type="submit" class="crm-btn-primary" id="crmContactFormSubmit" style="margin-top:6px;">Add Client</button>
         </form>
 
         <div id="crmContactActivitySection" style="display:none; margin-top:22px;">
+          <!-- Quick access to the general compose modal (Part F) without
+               leaving this modal or navigating to the Contacts page. -->
+          <button type="button" class="crm-btn-secondary" id="crmContactQuickComposeBtn" style="margin-bottom:16px;">✉ Contact</button>
+
           <div class="crm-field-label" style="margin-bottom:8px;">Activity log</div>
           <div class="crm-activity-list" id="crmActivityList"></div>
           <div class="crm-activity-add">
@@ -3028,9 +3139,75 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
             This contact has no email on file — add one before sending.
           </div>
 
-          <div style="display:flex; gap:10px; margin-top:6px;">
+          <div style="display:flex; gap:10px; align-items:center; margin-top:6px;">
             <button type="button" class="crm-btn-secondary" id="crmReviewDismissBtn">Dismiss</button>
             <button type="button" class="crm-btn-primary" id="crmReviewSendBtn">Send</button>
+            <span class="crm-send-confirm" id="crmReviewSendConfirm" style="display:none;">Sent ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- General-purpose client outreach compose modal — separate from the
+         review-request modal above (different trigger, different data:
+         this one is driven by a hand-picked category + template, not a
+         generated draft). Opens from the Contacts page (Part E) and from
+         the "✉ Contact" quick-access button on the Client detail modal. -->
+    <div
+      class="modal-overlay"
+      id="crmComposeModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="crmComposeTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-box" style="max-width:620px; max-height:88vh; overflow-y:auto;">
+        <button class="modal-close" id="crmComposeClose" aria-label="Close modal">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <line x1="2" y1="2" x2="14" y2="14"/>
+            <line x1="14" y1="2" x2="2" y2="14"/>
+          </svg>
+        </button>
+
+        <div class="modal-title" id="crmComposeTitle">Contact client</div>
+        <div class="modal-subtitle" id="crmComposeSubtitle">—</div>
+
+        <div class="crm-form">
+          <label class="crm-field-label">Category</label>
+          <select id="crmComposeCategory" class="crm-input">
+            <option value="">Choose a template…</option>
+            <option value="proposal">Proposal</option>
+            <option value="invoice">Invoice</option>
+            <option value="work_agreement">Work Agreement</option>
+            <option value="licensing_permits">Licensing/Permits</option>
+            <option value="proposal_followup">Proposal Follow-up</option>
+            <option value="invoice_followup">Invoice Follow-up</option>
+          </select>
+
+          <label class="crm-field-label">From</label>
+          <div class="crm-static-field" id="crmComposeFrom">—</div>
+
+          <label class="crm-field-label">Reply-To</label>
+          <div class="crm-static-field" id="crmComposeReplyTo">—</div>
+
+          <label class="crm-field-label">Subject</label>
+          <input type="text" id="crmComposeSubject" class="crm-input">
+
+          <label class="crm-field-label">Body</label>
+          <textarea id="crmComposeBody" class="crm-input" rows="9"></textarea>
+
+          <label class="crm-field-label">Attachment (optional)</label>
+          <input type="file" id="crmComposeAttachment" class="crm-input">
+          <div class="crm-card-subtext" id="crmComposeAttachmentStatus"></div>
+
+          <div class="crm-card-subtext" id="crmComposeNoEmailWarning" style="display:none; color:var(--danger);">
+            This contact has no email on file — add one before sending.
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; margin-top:6px;">
+            <button type="button" class="crm-btn-secondary" id="crmComposeCancelBtn">Cancel</button>
+            <button type="button" class="crm-btn-primary" id="crmComposeSendBtn">Send</button>
+            <span class="crm-send-confirm" id="crmComposeSendConfirm" style="display:none;">Sent ✓</span>
           </div>
         </div>
       </div>
@@ -3239,6 +3416,7 @@ Thank you! — [Business Name]</div>
         const trafficPage = document.getElementById('page-traffic');
         const reportsPage = document.getElementById('page-reports');
         const crmPage = document.getElementById('page-crm');
+        const crmClientsPage = document.getElementById('page-crm-clients');
 
         mainContent.style.display = 'none';
         messagesPage.style.display = 'none';
@@ -3247,6 +3425,7 @@ Thank you! — [Business Name]</div>
         trafficPage.style.display = 'none';
         reportsPage.style.display = 'none';
         crmPage.style.display = 'none';
+        crmClientsPage.style.display = 'none';
 
         // Messages may currently be reparented into the CRM tab's
         // "Messages" slot — restore it before leaving the CRM page so
@@ -3269,7 +3448,13 @@ Thank you! — [Business Name]</div>
           messagesPage.style.display = 'flex';
         } else if (page === 'crm') {
           crmPage.style.display = 'flex';
-          if (typeof window.__onCrmPageShown === 'function') window.__onCrmPageShown();
+          // Sidebar's "Overview" sub-item always lands on the Overview
+          // tab specifically, regardless of whichever CRM tab was last
+          // active — see the forceTab param on __onCrmPageShown.
+          if (typeof window.__onCrmPageShown === 'function') window.__onCrmPageShown('overview');
+        } else if (page === 'crm-clients') {
+          crmClientsPage.style.display = 'flex';
+          if (typeof window.__onCrmClientsPageShown === 'function') window.__onCrmClientsPageShown();
         }
 
         if (isMobile()) closeSidebar();
@@ -3285,6 +3470,17 @@ Thank you! — [Business Name]</div>
       webDashboardToggle.setAttribute('aria-expanded', String(expanded));
     });
 
+    // ── "CRM dashboard" group expand/collapse — same pattern as Web
+    // dashboard above, not expanded by default (Web dashboard is the
+    // primary surface most clients land on). ────
+    const crmDashboardGroup = document.getElementById('crmDashboardGroup');
+    const crmDashboardToggle = document.getElementById('crmDashboardToggle');
+    crmDashboardToggle.addEventListener('click', () => {
+      if (crmDashboardGroup.classList.contains('locked')) return;
+      const expanded = crmDashboardGroup.classList.toggle('expanded');
+      crmDashboardToggle.setAttribute('aria-expanded', String(expanded));
+    });
+
     // ── Sidebar gating — hasWebsiteService / hasCRM ────
     function applySidebarGating() {
       const info = getClientInfo(currentClientEmail());
@@ -3297,11 +3493,11 @@ Thank you! — [Business Name]</div>
       if (webLock) webLock.hidden = hasWebsiteService;
       if (!hasWebsiteService) webDashboardGroup.classList.remove('expanded');
 
-      const crmNavItem = document.getElementById('crmNavItem');
-      const crmLock = crmNavItem.querySelector('.nav-lock');
-      crmNavItem.classList.toggle('locked', !hasCRM);
-      crmNavItem.setAttribute('aria-disabled', String(!hasCRM));
+      const crmLock = crmDashboardToggle.querySelector('.nav-lock');
+      crmDashboardGroup.classList.toggle('locked', !hasCRM);
+      crmDashboardToggle.setAttribute('aria-disabled', String(!hasCRM));
       if (crmLock) crmLock.hidden = hasCRM;
+      if (!hasCRM) crmDashboardGroup.classList.remove('expanded');
     }
 
     applySidebarGating();
@@ -4494,7 +4690,9 @@ Thank you! — [Business Name]</div>
     window.addEventListener('load', async () => {
       const db = window.db;
       if (!db) return;
-      const { collection, doc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp } = window.firestoreModules;
+      const { collection, doc, addDoc, updateDoc, onSnapshot, orderBy, query, where, serverTimestamp, arrayUnion } = window.firestoreModules;
+      const { storageRef, uploadBytes, getDownloadURL } = window.storageModules;
+      const storage = window.fbStorage;
 
       const clientEmail = currentClientEmail();
       let clientInfo = getClientInfo(clientEmail);
@@ -4628,9 +4826,12 @@ Thank you! — [Business Name]</div>
 
       crmTabs.forEach(tab => tab.addEventListener('click', () => showCrmTab(tab.dataset.crmTab)));
 
-      window.__onCrmPageShown = function () {
+      // forceTab lets the sidebar's "Overview" sub-item always land on the
+      // Overview tab specifically, rather than whatever tab was last left
+      // active inside the CRM page (the default when called with no arg).
+      window.__onCrmPageShown = function (forceTab) {
         const activeTab = document.querySelector('.crm-tab.active');
-        showCrmTab(activeTab ? activeTab.dataset.crmTab : 'overview');
+        showCrmTab(forceTab || (activeTab ? activeTab.dataset.crmTab : 'overview'));
       };
 
       // ── Firestore subscriptions — filtered server-side by clientKey,
@@ -4652,6 +4853,7 @@ Thank you! — [Business Name]</div>
           renderKanban();
           renderOverview();
           populateQuoteContactSelect();
+          if (typeof refreshCrmClientsPage === 'function') refreshCrmClientsPage();
         }, err => console.error('CRM: contacts subscription failed', err));
 
         const quotesQuery = query(
@@ -4686,7 +4888,7 @@ Thank you! — [Business Name]</div>
         });
 
         if (sorted.length === 0) {
-          contactsTbody.innerHTML = '<tr><td colspan="5" class="crm-empty-row">No contacts yet.</td></tr>';
+          contactsTbody.innerHTML = '<tr><td colspan="6" class="crm-empty-row">No clients yet.</td></tr>';
           return;
         }
 
@@ -4697,12 +4899,31 @@ Thank you! — [Business Name]</div>
             <td>${escapeHtml(c.name || 'Unnamed')}</td>
             <td><span class="crm-tag source-${c.source}">${SOURCE_LABELS[c.source] || c.source}</span></td>
             <td><span class="crm-tag stage-${c.stage}">${STAGE_LABELS[c.stage] || c.stage}</span></td>
+            <td>${reviewStatusPillHtml(c)}</td>
             <td style="text-align:right;">${fmtMoney(c.value)}</td>
             <td style="text-align:right;">${fmtRelative(tsToMillis(c.lastActivityAt))}</td>
           `;
           tr.addEventListener('click', () => openContactModal(c));
           contactsTbody.appendChild(tr);
         });
+      }
+
+      // emailOptOut takes priority over reviewRequestStatus — an opted-out
+      // contact should never look "pending"/"sent" at a glance.
+      function reviewStatusPillHtml(c) {
+        if (c.emailOptOut === true) {
+          return '<span class="crm-tag review-optout">Unsubscribed</span>';
+        }
+        if (c.reviewRequestStatus === 'pending') {
+          return '<span class="crm-tag review-pending">Review staged</span>';
+        }
+        if (c.reviewRequestStatus === 'sent') {
+          return '<span class="crm-tag review-sent">Review sent</span>';
+        }
+        if (c.reviewRequestStatus === 'dismissed') {
+          return '<span class="crm-tag review-dismissed">Review dismissed</span>';
+        }
+        return '<span class="crm-card-subtext">—</span>';
       }
 
       // ── Add / view contact modal — reused for create and detail-edit ────
@@ -4739,9 +4960,9 @@ Thank you! — [Business Name]</div>
 
       function openAddContactModal() {
         activeContactId = null;
-        contactModalTitle.textContent = 'Add contact';
+        contactModalTitle.textContent = 'Add Client';
         contactModalSubtitle.textContent = 'Manually add a new lead to the pipeline.';
-        contactFormSubmit.textContent = 'Add contact';
+        contactFormSubmit.textContent = 'Add Client';
         contactForm.reset();
         fieldId.value = '';
         fieldSource.value = 'manual';
@@ -5062,6 +5283,50 @@ Thank you! — [Business Name]</div>
         return `${businessName}\n${address}\n\nDon't want these emails? Unsubscribe: ${unsubUrl}`;
       }
 
+      // ── HTML email formatting ────
+      // The firestore-send-email extension renders message.html when
+      // present, alongside message.text as a fallback for clients that
+      // render text-only. Without it, links (unsubscribe, a pasted-in
+      // review link) show as raw URLs instead of clickable words.
+      function autoLinkifyHtml(escapedText) {
+        // Linkifies real http(s) URLs already present in the text — e.g.
+        // a review link a human pasted over the [GOOGLE_REVIEW_LINK]
+        // placeholder. A placeholder left unedited has no real URL to
+        // link to, so it deliberately stays inert plain text rather than
+        // becoming a link that goes nowhere.
+        return escapedText.replace(/(https?:\/\/[^\s<]+)/g, url => `<a href="${url}">${url}</a>`);
+      }
+
+      function plainTextToHtml(text) {
+        // Paragraphs on blank lines (<p>), single line breaks within a
+        // paragraph as <br> — preserves the template's existing spacing.
+        const linked = autoLinkifyHtml(escapeHtml(text));
+        return linked
+          .split(/\n{2,}/)
+          .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+          .join('');
+      }
+
+      function buildFooterHtml(c) {
+        const businessName = escapeHtml(clientInfo.name || 'Us');
+        const address = escapeHtml(clientInfo.address || 'Address on file');
+        const unsubUrl = `${UNSUBSCRIBE_BASE_URL}?token=${encodeURIComponent(c.unsubscribeToken || '')}`;
+        return `<p>${businessName}<br>${address}</p><p>Don't want these emails? <a href="${unsubUrl}">Unsubscribe</a>.</p>`;
+      }
+
+      // ── Send confirmation feedback ────
+      // Shows "Sent ✓" next to a compose modal's Send button briefly
+      // before the modal closes — used by both this modal and the
+      // general compose modal below, so clicking Send never just
+      // silently closes with no feedback that anything happened.
+      function showSendConfirmationThenClose(confirmEl, closeFn) {
+        confirmEl.style.display = '';
+        setTimeout(() => {
+          confirmEl.style.display = 'none';
+          closeFn();
+        }, 900);
+      }
+
       function renderReadyToSend() {
         const listEl = document.getElementById('crmReadyToSendList');
         const pending = contactsCache
@@ -5097,6 +5362,7 @@ Thank you! — [Business Name]</div>
       const reviewComposeNoEmailWarning = document.getElementById('crmReviewComposeNoEmailWarning');
       const reviewDismissBtn = document.getElementById('crmReviewDismissBtn');
       const reviewSendBtn = document.getElementById('crmReviewSendBtn');
+      const reviewSendConfirm = document.getElementById('crmReviewSendConfirm');
       let activeReviewContactId = null;
 
       function openReviewComposeModalUI() {
@@ -5150,7 +5416,9 @@ Thank you! — [Business Name]</div>
         if (!c || !c.email) return;
 
         const subject = reviewComposeSubject.value.trim();
-        const bodyText = `${reviewComposeBody.value.trim()}\n\n---\n${buildFooterText(c)}`;
+        const plainBody = reviewComposeBody.value.trim();
+        const bodyText = `${plainBody}\n\n---\n${buildFooterText(c)}`;
+        const bodyHtml = `${plainTextToHtml(plainBody)}<hr>${buildFooterHtml(c)}`;
 
         // Writing here is what actually sends the email — this collection
         // is watched by the firestore-send-email extension (see
@@ -5163,13 +5431,315 @@ Thank you! — [Business Name]</div>
           to: c.email,
           from: `"${clientInfo.name}" <notifications@boringproj.com>`,
           replyTo: clientEmail,
-          message: { subject, text: bodyText },
+          message: { subject, text: bodyText, html: bodyHtml },
           createdAt: serverTimestamp(),
         });
 
         await updateDoc(doc(db, 'contacts', activeReviewContactId), { reviewRequestStatus: 'sent' });
-        closeReviewComposeModalUI();
+        showSendConfirmationThenClose(reviewSendConfirm, closeReviewComposeModalUI);
       });
+
+      // ── General compose modal (category templates + attachment) ────
+      // Separate from the review-request modal above — different
+      // trigger (a hand-picked category, not a generated draft),
+      // different data (contactHistory, not reviewRequestDraft/Status).
+      const COMPOSE_TEMPLATES = {
+        proposal: {
+          subject: 'Your proposal from {businessName}',
+          body: 'Hi {clientName},\n\nThanks for the opportunity — attached is our proposal for {jobDescription}.\n\nTake a look and let us know if you have any questions. We\'re ready to get started as soon as you give the word.',
+        },
+        invoice: {
+          subject: 'Invoice from {businessName}',
+          body: 'Hi {clientName},\n\nAttached is your invoice for {jobDescription}. Total due: {amount}.\n\nLet us know if you have any questions — thanks again for choosing us.',
+        },
+        work_agreement: {
+          subject: 'Work agreement — {businessName}',
+          body: 'Hi {clientName},\n\nAttached is the work agreement for {jobDescription}. Please review and let us know if everything looks right.',
+        },
+        licensing_permits: {
+          subject: 'Documentation for your project',
+          body: 'Hi {clientName},\n\nAttached is the licensing/permit documentation for {jobDescription} — for your records.',
+        },
+        proposal_followup: {
+          subject: 'Following up on our proposal',
+          body: 'Hi {clientName},\n\nJust checking in on the proposal we sent over — happy to answer any questions or make adjustments if needed.',
+        },
+        invoice_followup: {
+          subject: 'Quick follow-up on your invoice',
+          body: 'Hi {clientName},\n\nWanted to follow up on the invoice we sent for {jobDescription}. Let us know if you have any questions.',
+        },
+      };
+
+      // Used both to fill the category <select> label shown in Part E's
+      // outreach history (stored value stays the machine slug above,
+      // same stage/source-vs-STAGE_LABELS/SOURCE_LABELS split already
+      // used elsewhere in this file) and as the contactHistory type.
+      const COMPOSE_CATEGORY_LABELS = {
+        proposal: 'Proposal',
+        invoice: 'Invoice',
+        work_agreement: 'Work Agreement',
+        licensing_permits: 'Licensing/Permits',
+        proposal_followup: 'Proposal Follow-up',
+        invoice_followup: 'Invoice Follow-up',
+        general: 'Message',
+      };
+
+      // Leaves a {placeholder} untouched wherever the real value isn't
+      // available (falsy — including value:0, which this schema uses as
+      // "no amount set", not a real $0 charge).
+      function fillTemplate(text, values) {
+        return text.replace(/\{(\w+)\}/g, (match, key) => (values[key] ? String(values[key]) : match));
+      }
+
+      function composeTemplateValues(c) {
+        return {
+          clientName: c.name || '',
+          businessName: clientInfo.name || '',
+          jobDescription: c.jobDescription || '',
+          amount: c.value ? fmtMoney(c.value) : '',
+        };
+      }
+
+      const composeModal = document.getElementById('crmComposeModal');
+      const composeCloseBtn = document.getElementById('crmComposeClose');
+      const composeCancelBtn = document.getElementById('crmComposeCancelBtn');
+      const composeTitle = document.getElementById('crmComposeTitle');
+      const composeSubtitleEl = document.getElementById('crmComposeSubtitle');
+      const composeCategory = document.getElementById('crmComposeCategory');
+      const composeFrom = document.getElementById('crmComposeFrom');
+      const composeReplyTo = document.getElementById('crmComposeReplyTo');
+      const composeSubject = document.getElementById('crmComposeSubject');
+      const composeBody = document.getElementById('crmComposeBody');
+      const composeAttachment = document.getElementById('crmComposeAttachment');
+      const composeAttachmentStatus = document.getElementById('crmComposeAttachmentStatus');
+      const composeNoEmailWarning = document.getElementById('crmComposeNoEmailWarning');
+      const composeSendBtn = document.getElementById('crmComposeSendBtn');
+      const composeSendConfirm = document.getElementById('crmComposeSendConfirm');
+      let activeComposeContactId = null;
+
+      function openComposeModalUI() {
+        composeModal.classList.add('open');
+        composeModal.setAttribute('aria-hidden', 'false');
+      }
+      function closeComposeModalUI() {
+        composeModal.classList.remove('open');
+        composeModal.setAttribute('aria-hidden', 'true');
+        activeComposeContactId = null;
+        composeAttachment.value = '';
+        composeAttachmentStatus.textContent = '';
+      }
+
+      function openComposeModal(c) {
+        activeComposeContactId = c.id;
+        composeTitle.textContent = `Contact ${c.name || 'client'}`;
+        composeSubtitleEl.textContent = 'Choose a category to load a starting template, then edit freely before sending.';
+        composeCategory.value = '';
+        composeSubject.value = '';
+        composeBody.value = '';
+        composeAttachment.value = '';
+        composeAttachmentStatus.textContent = '';
+        composeFrom.textContent = `${clientInfo.name} <notifications@boringproj.com>`;
+        composeReplyTo.textContent = clientEmail;
+
+        const hasEmail = !!(c.email && c.email.trim());
+        composeNoEmailWarning.style.display = hasEmail ? 'none' : '';
+        composeSendBtn.disabled = !hasEmail;
+        composeSendBtn.title = hasEmail ? '' : 'This contact has no email on file.';
+
+        openComposeModalUI();
+      }
+
+      composeCategory.addEventListener('change', () => {
+        const c = contactsCache.find(x => x.id === activeComposeContactId);
+        const tpl = COMPOSE_TEMPLATES[composeCategory.value];
+        if (!c || !tpl) return;
+        const values = composeTemplateValues(c);
+        composeSubject.value = fillTemplate(tpl.subject, values);
+        composeBody.value = fillTemplate(tpl.body, values);
+      });
+
+      composeCloseBtn.addEventListener('click', closeComposeModalUI);
+      composeCancelBtn.addEventListener('click', closeComposeModalUI);
+      composeModal.addEventListener('click', e => { if (e.target === composeModal) closeComposeModalUI(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && composeModal.classList.contains('open')) closeComposeModalUI();
+      });
+
+      composeSendBtn.addEventListener('click', async () => {
+        if (!activeComposeContactId) return;
+        const c = contactsCache.find(x => x.id === activeComposeContactId);
+        if (!c || !c.email) return;
+
+        const subject = composeSubject.value.trim();
+        const plainBody = composeBody.value.trim();
+        if (!subject || !plainBody) return;
+
+        composeSendBtn.disabled = true;
+
+        // Attachment goes to Storage, not on the email itself — a link in
+        // the body keeps the email small and reuses the same "link, not a
+        // custom token" pattern as the unsubscribe link. getDownloadURL()
+        // already returns an unguessable, non-expiring, no-auth-required
+        // URL, so there's nothing else to build here.
+        let attachmentUrl = null;
+        const file = composeAttachment.files[0];
+        if (file) {
+          composeAttachmentStatus.textContent = 'Uploading attachment…';
+          try {
+            const path = `attachments/${clientInfo.key}/${c.id}/${file.name}`;
+            const fileRef = storageRef(storage, path);
+            await uploadBytes(fileRef, file);
+            attachmentUrl = await getDownloadURL(fileRef);
+            composeAttachmentStatus.textContent = 'Attachment uploaded.';
+          } catch (err) {
+            console.error('Attachment upload failed:', err);
+            composeAttachmentStatus.textContent = 'Attachment upload failed — sending without it.';
+          }
+        }
+
+        const bodyText = attachmentUrl ? `${plainBody}\n\n${attachmentUrl}` : plainBody;
+        const bodyHtml = attachmentUrl ?
+          `${plainTextToHtml(plainBody)}<p><a href="${attachmentUrl}">View attachment</a></p>` :
+          plainTextToHtml(plainBody);
+
+        await addDoc(collection(db, 'mail'), {
+          clientKey: clientInfo.key,
+          to: c.email,
+          from: `"${clientInfo.name}" <notifications@boringproj.com>`,
+          replyTo: clientEmail,
+          message: { subject, text: bodyText, html: bodyHtml },
+          createdAt: serverTimestamp(),
+        });
+
+        // NOTE: sentAt is a plain client-clock Date, not serverTimestamp().
+        // Firestore doesn't allow the serverTimestamp() sentinel inside an
+        // array element (arrayUnion here) — a Date is the closest
+        // equivalent and is still stored/read back as a real Timestamp.
+        await updateDoc(doc(db, 'contacts', c.id), {
+          contactHistory: arrayUnion({
+            type: composeCategory.value || 'general',
+            subject,
+            sentAt: new Date(),
+          }),
+        });
+
+        composeSendBtn.disabled = false;
+        showSendConfirmationThenClose(composeSendConfirm, closeComposeModalUI);
+      });
+
+      // Quick access from the Client detail modal (Part C's renamed tab) —
+      // reads whichever contact that modal currently has open.
+      document.getElementById('crmContactQuickComposeBtn').addEventListener('click', () => {
+        const c = contactsCache.find(x => x.id === activeContactId);
+        if (c) openComposeModal(c);
+      });
+
+      // ── Contacts page (per-client outreach hub) ────
+      // Separate top-level sidebar page from the CRM dashboard's Clients
+      // tab — that tab stays focused on stage/value/source; this page is
+      // purely communication history and sending. Reads the same
+      // contactsCache already loaded above (already scoped to this
+      // client's own clientKey), no second Firestore query.
+      const crmClientsListView = document.getElementById('crmClientsListView');
+      const crmClientsDetailView = document.getElementById('crmClientsDetailView');
+      const crmClientsListEl = document.getElementById('crmClientsList');
+      const crmClientsBackBtn = document.getElementById('crmClientsBackBtn');
+      const crmClientsDetailName = document.getElementById('crmClientsDetailName');
+      const crmClientsDetailSummary = document.getElementById('crmClientsDetailSummary');
+      const crmClientsHistoryList = document.getElementById('crmClientsHistoryList');
+      const crmClientsDetailContactBtn = document.getElementById('crmClientsDetailContactBtn');
+      let activeCrmClientId = null;
+
+      function latestContactHistoryEntry(c) {
+        const history = c.contactHistory || [];
+        if (history.length === 0) return null;
+        return [...history].sort((a, b) => tsToMillis(b.sentAt) - tsToMillis(a.sentAt))[0];
+      }
+
+      // Plain elapsed-time display only — deliberately never implies
+      // whether the client responded. Reply-To is the business owner's
+      // own inbox, invisible to this system, so there's nothing honest
+      // to say about a response either way.
+      function outreachSummaryText(c) {
+        const latest = latestContactHistoryEntry(c);
+        if (!latest) return 'No outreach yet';
+        const label = COMPOSE_CATEGORY_LABELS[latest.type] || 'Message';
+        return `${label} sent ${fmtRelative(tsToMillis(latest.sentAt)).toLowerCase()}`;
+      }
+
+      function renderCrmClientsList() {
+        if (contactsCache.length === 0) {
+          crmClientsListEl.innerHTML = '<div class="crm-card-subtext">No clients yet.</div>';
+          return;
+        }
+        crmClientsListEl.innerHTML = '';
+        contactsCache.forEach(c => {
+          const item = document.createElement('div');
+          item.className = 'crm-ready-item';
+          item.innerHTML = `
+            <span class="crm-ready-item-name">${escapeHtml(c.name || 'Unnamed')}</span>
+            <span class="crm-ready-item-meta">${escapeHtml(outreachSummaryText(c))}</span>
+          `;
+          item.addEventListener('click', () => openCrmClientDetail(c));
+          crmClientsListEl.appendChild(item);
+        });
+      }
+
+      function renderCrmClientHistory(c) {
+        const history = [...(c.contactHistory || [])].sort((a, b) => tsToMillis(b.sentAt) - tsToMillis(a.sentAt));
+        if (history.length === 0) {
+          crmClientsHistoryList.innerHTML = '<div class="crm-card-subtext">No outreach yet.</div>';
+          return;
+        }
+        crmClientsHistoryList.innerHTML = history.map(h => `
+          <div class="crm-activity-item">
+            <div class="crm-activity-item-time">${escapeHtml(COMPOSE_CATEGORY_LABELS[h.type] || 'Message')} · ${escapeHtml(fmtRelative(tsToMillis(h.sentAt)))}</div>
+            <div class="crm-activity-item-text">${escapeHtml(h.subject || '(no subject)')}</div>
+          </div>
+        `).join('');
+      }
+
+      function openCrmClientDetail(c) {
+        activeCrmClientId = c.id;
+        crmClientsDetailName.textContent = c.name || 'Unnamed';
+        crmClientsDetailSummary.textContent = outreachSummaryText(c);
+        renderCrmClientHistory(c);
+        crmClientsListView.style.display = 'none';
+        crmClientsDetailView.style.display = '';
+      }
+
+      crmClientsBackBtn.addEventListener('click', () => {
+        activeCrmClientId = null;
+        crmClientsDetailView.style.display = 'none';
+        crmClientsListView.style.display = '';
+      });
+
+      crmClientsDetailContactBtn.addEventListener('click', () => {
+        const c = contactsCache.find(x => x.id === activeCrmClientId);
+        if (c) openComposeModal(c);
+      });
+
+      // Keeps the Contacts page live-updated the same way every other CRM
+      // view already is — called from the contacts onSnapshot below.
+      function refreshCrmClientsPage() {
+        renderCrmClientsList();
+        if (activeCrmClientId) {
+          const c = contactsCache.find(x => x.id === activeCrmClientId);
+          if (c) {
+            crmClientsDetailSummary.textContent = outreachSummaryText(c);
+            renderCrmClientHistory(c);
+          }
+        }
+      }
+
+      window.__onCrmClientsPageShown = function () {
+        // Always land on the list, not whichever detail view was last
+        // open on a previous visit to this page.
+        activeCrmClientId = null;
+        crmClientsDetailView.style.display = 'none';
+        crmClientsListView.style.display = '';
+        renderCrmClientsList();
+      };
 
       let sourceChartInstance = null;
       function renderSourceChart(bySource) {

@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── CRM outreach attachments — uploaded via the general compose
+    // modal in portal-dashboard.html (Part F). Path is
+    // attachments/{clientKey}/{contactId}/{filename}; write is scoped to
+    // the signed-in client's own clientKey claim, same ownership pattern
+    // as contacts/quotes/mail in firestore.rules. Read is public — the
+    // link itself (an unguessable getDownloadURL() token, not auth) is
+    // what protects it, since the recipient opening it from their own
+    // inbox has no Firebase session at all, same reasoning as the
+    // unsubscribe endpoint. ──
+    match /attachments/{clientKey}/{contactId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.token.clientKey == clientKey;
+    }
+
+    // Default-deny everything else.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
