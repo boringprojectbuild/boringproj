@@ -264,6 +264,51 @@
       border: 1.5px solid rgba(0,0,0,0.4);
     }
 
+    /* Notification dropdown — small positioned panel, same modal-box
+       surface treatment as the rest of the app; rows inside it reuse
+       .crm-ready-item (see notif-dropdown-item below) rather than a new
+       list style. */
+    .notif-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 280px;
+      max-height: 320px;
+      overflow-y: auto;
+      background: rgba(16, 16, 16, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+      padding: 6px;
+      z-index: 500;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity var(--t-fast), transform var(--t-fast);
+    }
+
+    .notif-dropdown.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+    }
+
+    /* .crm-ready-item as a real <button> (for click + keyboard access) —
+       resets the parts of native button styling that would otherwise
+       fight the reused row look. */
+    .notif-dropdown-item {
+      display: flex;
+      width: 100%;
+      border: none;
+      background: none;
+      font-family: inherit;
+      cursor: pointer;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
     /* Profile pill */
     .profile-pill {
       display: flex;
@@ -1613,6 +1658,19 @@
     .crm-tag.review-dismissed { background: rgba(245,245,243,0.1); color: var(--muted); }
     .crm-tag.review-optout    { background: rgba(224,85,85,0.15);  color: var(--danger); }
 
+    /* "Finish email" affordance (Contacts page) — a composeDraft with
+       content sitting unsent. Same tone as review-pending (staged,
+       needs action) but a separate class since the meaning differs. */
+    .crm-tag.draft-pending { background: rgba(196,146,42,0.15); color: var(--gold); }
+
+    /* .crm-tag doubling as a real <button> (Contacts page, notif
+       dropdown) still needs to look like a plain pill, not a button. */
+    button.crm-tag {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
     /* Idle follow-up warning pill on kanban cards */
     .crm-idle-pill {
       display: inline-flex;
@@ -2013,19 +2071,34 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
         </svg>
       </button>
 
-      <!-- Notification bell -->
-      <button
-        class="header-icon-btn notif-wrap"
-        id="notifBell"
-        aria-label="Notifications — no unread messages"
-        title="Notifications"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-        <span class="notif-badge" id="notifBadge" aria-hidden="true" style="display:none;"></span>
-      </button>
+      <!-- Notification bell — unread admin messages + pending compose
+           drafts share one combined badge/dropdown (see notif bell
+           script for the reasoning). -->
+      <div class="notif-wrap">
+        <button
+          class="header-icon-btn"
+          id="notifBell"
+          aria-label="Notifications — no unread messages"
+          aria-haspopup="true"
+          aria-expanded="false"
+          title="Notifications"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-badge" id="notifBadge" aria-hidden="true" style="display:none;"></span>
+        </button>
+
+        <div class="notif-dropdown" id="notifDropdown" aria-hidden="true">
+          <button type="button" class="crm-ready-item notif-dropdown-item" id="notifMessagesItem" style="display:none;">
+            <span class="crm-ready-item-name">New message</span>
+            <span class="crm-ready-item-meta">from boring project.</span>
+          </button>
+          <div id="notifDraftsList"></div>
+          <div class="crm-card-subtext" id="notifEmptyState" style="padding:14px;">No notifications.</div>
+        </div>
+      </div>
 
       <!-- Profile -->
       <button
@@ -3009,7 +3082,10 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
               <div class="chart-title" style="font-size:20px;" id="crmClientsDetailName">—</div>
               <div class="chart-subtitle" id="crmClientsDetailSummary">—</div>
             </div>
-            <button type="button" class="crm-btn-primary" id="crmClientsDetailContactBtn">Contact</button>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button type="button" class="crm-tag draft-pending" id="crmClientsDetailFinishBtn" style="display:none;">Finish email</button>
+              <button type="button" class="crm-btn-primary" id="crmClientsDetailContactBtn">Contact</button>
+            </div>
           </div>
           <div class="crm-card">
             <div class="crm-card-label">Outreach history</div>
@@ -3171,11 +3247,13 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
 
         <div class="modal-title" id="crmComposeTitle">Contact client</div>
         <div class="modal-subtitle" id="crmComposeSubtitle">—</div>
+        <span class="crm-tag" style="background:rgba(245,245,243,0.1); color:var(--muted); margin:-8px 0 14px; display:inline-block;">Autosave is on</span>
 
         <div class="crm-form">
           <label class="crm-field-label">Category</label>
           <select id="crmComposeCategory" class="crm-input">
             <option value="">Choose a template…</option>
+            <option value="general">Custom message (no template)</option>
             <option value="proposal">Proposal</option>
             <option value="invoice">Invoice</option>
             <option value="work_agreement">Work Agreement</option>
@@ -3196,8 +3274,8 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
           <label class="crm-field-label">Body</label>
           <textarea id="crmComposeBody" class="crm-input" rows="9"></textarea>
 
-          <label class="crm-field-label">Attachment (optional)</label>
-          <input type="file" id="crmComposeAttachment" class="crm-input">
+          <label class="crm-field-label">Attachments (optional)</label>
+          <input type="file" id="crmComposeAttachment" class="crm-input" multiple>
           <div class="crm-card-subtext" id="crmComposeAttachmentStatus"></div>
 
           <div class="crm-card-subtext" id="crmComposeNoEmailWarning" style="display:none; color:var(--danger);">
@@ -3601,13 +3679,106 @@ Thank you! — [Business Name]</div>
       });
     });
 
-    // ── Notification bell — unread admin replies ────
+    // ── Notification bell — unread admin replies + pending compose drafts ────
+    // These two notification types come from entirely different sources
+    // (admin messages here vs. the CRM script block's contactsCache), so
+    // they're combined into one shared badge/dropdown via a small
+    // window.__updateDraftNotifications bridge, same window.__xxx pattern
+    // already used for __onCrmPageShown/__restoreMessagesToDefaultSlot
+    // elsewhere in this file — not a new cross-script mechanism.
+    //
+    // Combined vs separate indicators: one dot badge covers both (simplest
+    // "something needs your attention" signal, matches how most apps treat
+    // a single bell), but the dropdown itself keeps them visually distinct
+    // — an unread-message row up top, a divider-like gap, then one row per
+    // contact with an unsent draft — so opening the panel still tells you
+    // which kind of thing is waiting, not just that something is.
     window.addEventListener('load', async () => {
       const db = window.db;
       const bell = document.getElementById('notifBell');
       const badge = document.getElementById('notifBadge');
-      if (!db || !bell || !badge) return;
+      const dropdown = document.getElementById('notifDropdown');
+      const messagesItem = document.getElementById('notifMessagesItem');
+      const draftsList = document.getElementById('notifDraftsList');
+      const emptyState = document.getElementById('notifEmptyState');
+      if (!db || !bell || !badge || !dropdown) return;
       const { collection, doc, getDoc, setDoc, onSnapshot, orderBy, query, where, serverTimestamp } = window.firestoreModules;
+
+      // Local — the CRM script's escapeHtml() isn't reachable from this
+      // separate <script> block (it's function-scoped in there, not
+      // global). Same DOM textContent->innerHTML trick, just duplicated
+      // rather than restructuring where the other one lives.
+      function escapeHtmlLocal(str) {
+        const div = document.createElement('div');
+        div.textContent = str == null ? '' : String(str);
+        return div.innerHTML;
+      }
+
+      let hasUnreadMessages = false;
+      let draftContacts = []; // [{ id, name }]
+
+      function renderDropdown() {
+        messagesItem.style.display = hasUnreadMessages ? '' : 'none';
+
+        draftsList.innerHTML = draftContacts.map(c => `
+          <button type="button" class="crm-ready-item notif-dropdown-item" data-contact-id="${escapeHtmlLocal(c.id)}">
+            <span class="crm-ready-item-name">Email not sent</span>
+            <span class="crm-ready-item-meta">to ${escapeHtmlLocal(c.name)}</span>
+          </button>
+        `).join('');
+        draftsList.querySelectorAll('[data-contact-id]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            closeDropdown();
+            const clientsNavItem = document.querySelector('.nav-item[data-page="crm-clients"]');
+            const crmGroup = document.getElementById('crmDashboardGroup');
+            if (crmGroup) crmGroup.classList.add('expanded');
+            if (clientsNavItem) clientsNavItem.click();
+            if (typeof window.__openClientComposeFromNotification === 'function') {
+              window.__openClientComposeFromNotification(btn.dataset.contactId);
+            }
+          });
+        });
+
+        const anyNotifications = hasUnreadMessages || draftContacts.length > 0;
+        emptyState.style.display = anyNotifications ? 'none' : '';
+        badge.style.display = anyNotifications ? '' : 'none';
+        bell.setAttribute('aria-label', anyNotifications ? 'Notifications — new activity' : 'Notifications — no unread messages');
+      }
+
+      // Bridge from the CRM script block — see comment above.
+      window.__updateDraftNotifications = function (list) {
+        draftContacts = list || [];
+        renderDropdown();
+      };
+
+      function openDropdown() {
+        dropdown.classList.add('open');
+        dropdown.setAttribute('aria-hidden', 'false');
+        bell.setAttribute('aria-expanded', 'true');
+      }
+      function closeDropdown() {
+        dropdown.classList.remove('open');
+        dropdown.setAttribute('aria-hidden', 'true');
+        bell.setAttribute('aria-expanded', 'false');
+      }
+
+      bell.addEventListener('click', () => {
+        if (dropdown.classList.contains('open')) closeDropdown();
+        else openDropdown();
+      });
+      document.addEventListener('click', e => {
+        if (!dropdown.classList.contains('open')) return;
+        if (bell.contains(e.target) || dropdown.contains(e.target)) return;
+        closeDropdown();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && dropdown.classList.contains('open')) closeDropdown();
+      });
+
+      function setUnread(state) {
+        hasUnreadMessages = state;
+        renderDropdown();
+      }
 
       // Lowercased to match request.auth.token.email — the users/{userId}
       // rule (see firestore.rules) requires the doc ID itself to equal
@@ -3617,13 +3788,6 @@ Thank you! — [Business Name]</div>
       const userRef = doc(db, 'users', clientEmail);
 
       let lastReadMillis = 0;
-      let hasUnread = false;
-
-      function setUnread(state) {
-        hasUnread = state;
-        badge.style.display = state ? '' : 'none';
-        bell.setAttribute('aria-label', state ? 'Notifications — new message from boring project.' : 'Notifications — no unread messages');
-      }
 
       async function markMessagesRead() {
         setUnread(false);
@@ -3642,12 +3806,12 @@ Thank you! — [Business Name]</div>
 
       const messagesNavItem = document.querySelector('.nav-item[data-page="messages"]');
 
-      // Clicking the bell only does something once there's an unread badge —
-      // reuses the sidebar nav-item's own click handler (tab switch), which
-      // also triggers the "mark read" listener attached below.
-      bell.addEventListener('click', () => {
-        if (!hasUnread || !messagesNavItem) return;
-        messagesNavItem.click();
+      // Clicking the "new message" row navigates to Messages and marks it
+      // read, same as the bell's own click used to do directly before it
+      // became a dropdown toggle.
+      messagesItem.addEventListener('click', () => {
+        closeDropdown();
+        if (messagesNavItem) messagesNavItem.click();
       });
 
       if (messagesNavItem) messagesNavItem.addEventListener('click', markMessagesRead);
@@ -3671,7 +3835,11 @@ Thank you! — [Business Name]</div>
 
       // Both the users/{userId} read below and the messages subscription
       // require a signed-in session — wait for the bridge once, then
-      // start both together.
+      // start both together. A failure here only affects the
+      // unread-messages half of the bell — draft notifications come from
+      // a separate subscription (the CRM script's own contacts listener)
+      // and keep working regardless, since __updateDraftNotifications was
+      // already wired above before this check.
       const authReady = await (window.__clientAuthReady || Promise.resolve(false));
       if (!authReady) {
         console.error('Notifications: client auth bridge not ready — unread state will not load.');
@@ -4854,6 +5022,13 @@ Thank you! — [Business Name]</div>
           renderOverview();
           populateQuoteContactSelect();
           if (typeof refreshCrmClientsPage === 'function') refreshCrmClientsPage();
+          if (typeof window.__updateDraftNotifications === 'function') {
+            window.__updateDraftNotifications(
+              contactsCache
+                .filter(c => c.composeDraft && (c.composeDraft.subject || c.composeDraft.body))
+                .map(c => ({ id: c.id, name: c.name || 'Unnamed' }))
+            );
+          }
         }, err => console.error('CRM: contacts subscription failed', err));
 
         const quotesQuery = query(
@@ -5540,17 +5715,58 @@ Thank you! — [Business Name]</div>
         composeAttachmentStatus.textContent = '';
       }
 
+      // Autosave: called from every close path EXCEPT a successful Send
+      // (which clears composeDraft itself, right after it's actually
+      // resolved — see the send handler below). Keeps whatever's typed
+      // if there's any content, clears the field otherwise, so a contact
+      // can never be left with a stale draft that has nothing in it.
+      async function saveOrClearComposeDraft() {
+        if (!activeComposeContactId) return;
+        const contactId = activeComposeContactId;
+        const subject = composeSubject.value.trim();
+        const body = composeBody.value.trim();
+        try {
+          await updateDoc(doc(db, 'contacts', contactId), {
+            composeDraft: (subject || body) ? {
+              category: composeCategory.value || '',
+              subject,
+              body,
+              savedAt: new Date(),
+            } : null,
+          });
+        } catch (err) {
+          console.error('Failed to save/clear compose draft:', err);
+        }
+      }
+
+      async function closeComposeModalWithSave() {
+        await saveOrClearComposeDraft();
+        closeComposeModalUI();
+      }
+
       function openComposeModal(c) {
         activeComposeContactId = c.id;
         composeTitle.textContent = `Contact ${c.name || 'client'}`;
         composeSubtitleEl.textContent = 'Choose a category to load a starting template, then edit freely before sending.';
-        composeCategory.value = '';
-        composeSubject.value = '';
-        composeBody.value = '';
         composeAttachment.value = '';
         composeAttachmentStatus.textContent = '';
         composeFrom.textContent = `${clientInfo.name} <notifications@boringproj.com>`;
         composeReplyTo.textContent = clientEmail;
+
+        // Reopening a contact with an unfinished draft loads it back
+        // instead of starting blank — this is also how the "Finish
+        // email" affordance (Contacts page, notification dropdown) ends
+        // up pre-filled, since they all funnel through this same function.
+        const draft = c.composeDraft;
+        if (draft && (draft.subject || draft.body)) {
+          composeCategory.value = draft.category || '';
+          composeSubject.value = draft.subject || '';
+          composeBody.value = draft.body || '';
+        } else {
+          composeCategory.value = '';
+          composeSubject.value = '';
+          composeBody.value = '';
+        }
 
         const hasEmail = !!(c.email && c.email.trim());
         composeNoEmailWarning.style.display = hasEmail ? 'none' : '';
@@ -5563,17 +5779,21 @@ Thank you! — [Business Name]</div>
       composeCategory.addEventListener('change', () => {
         const c = contactsCache.find(x => x.id === activeComposeContactId);
         const tpl = COMPOSE_TEMPLATES[composeCategory.value];
+        // No matching template — the blank placeholder and 'general'
+        // ("Custom message (no template)") both fall through here on
+        // purpose, leaving Subject/Body exactly as they are (blank, or
+        // whatever's already been typed) instead of loading anything.
         if (!c || !tpl) return;
         const values = composeTemplateValues(c);
         composeSubject.value = fillTemplate(tpl.subject, values);
         composeBody.value = fillTemplate(tpl.body, values);
       });
 
-      composeCloseBtn.addEventListener('click', closeComposeModalUI);
-      composeCancelBtn.addEventListener('click', closeComposeModalUI);
-      composeModal.addEventListener('click', e => { if (e.target === composeModal) closeComposeModalUI(); });
+      composeCloseBtn.addEventListener('click', closeComposeModalWithSave);
+      composeCancelBtn.addEventListener('click', closeComposeModalWithSave);
+      composeModal.addEventListener('click', e => { if (e.target === composeModal) closeComposeModalWithSave(); });
       document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && composeModal.classList.contains('open')) closeComposeModalUI();
+        if (e.key === 'Escape' && composeModal.classList.contains('open')) closeComposeModalWithSave();
       });
 
       composeSendBtn.addEventListener('click', async () => {
@@ -5587,15 +5807,20 @@ Thank you! — [Business Name]</div>
 
         composeSendBtn.disabled = true;
 
-        // Attachment goes to Storage, not on the email itself — a link in
+        // Attachments go to Storage, not on the email itself — a link in
         // the body keeps the email small and reuses the same "link, not a
         // custom token" pattern as the unsubscribe link. getDownloadURL()
         // already returns an unguessable, non-expiring, no-auth-required
-        // URL, so there's nothing else to build here.
-        let attachmentUrl = null;
-        const file = composeAttachment.files[0];
-        if (file) {
-          composeAttachmentStatus.textContent = 'Uploading attachment…';
+        // URL, so there's nothing else to build here. Uploaded one at a
+        // time (not Promise.all) so the "N of M" status is meaningful and
+        // one failure doesn't abort the ones after it.
+        const files = Array.from(composeAttachment.files);
+        const uploaded = []; // { name, url }
+        const failed = []; // name only
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          composeAttachmentStatus.textContent = `Uploading ${i + 1} of ${files.length}…`;
           try {
             const path = `attachments/${clientInfo.key}/${c.id}/${file.name}`;
             const fileRef = storageRef(storage, path);
@@ -5608,23 +5833,32 @@ Thank you! — [Business Name]</div>
               contentType: file.type,
               contentDisposition: `attachment; filename="${file.name.replace(/"/g, '\\"')}"`,
             });
-            attachmentUrl = await getDownloadURL(fileRef);
-            composeAttachmentStatus.textContent = 'Attachment uploaded.';
+            uploaded.push({ name: file.name, url: await getDownloadURL(fileRef) });
           } catch (err) {
-            console.error('Attachment upload failed:', err);
-            composeAttachmentStatus.textContent = 'Attachment upload failed — sending without it.';
+            console.error('Attachment upload failed:', file.name, err);
+            failed.push(file.name);
           }
         }
 
-        const bodyText = attachmentUrl ? `${plainBody}\n\n${attachmentUrl}` : plainBody;
-        // escapeHtml() here is the actual fix for the broken-link bug:
-        // getDownloadURL() returns ...?alt=media&token=..., and a raw
+        if (files.length > 0) {
+          composeAttachmentStatus.textContent = failed.length > 0 ?
+            `${uploaded.length} of ${files.length} attachment${files.length === 1 ? '' : 's'} uploaded (${failed.length} failed).` :
+            `${uploaded.length} attachment${uploaded.length === 1 ? '' : 's'} uploaded.`;
+        }
+
+        const bodyText = uploaded.length > 0 ?
+          `${plainBody}\n\n${uploaded.map(a => `View attachment: ${a.name} — ${a.url}`).join('\n')}` :
+          plainBody;
+
+        // escapeHtml() on each url is the actual fix for the broken-link
+        // bug: getDownloadURL() returns ...?alt=media&token=..., and a raw
         // (unescaped) & inside an href is exactly what made SendGrid's
         // click-tracking rewrite serve its own "invalid link" page instead
         // of the real one — the unsubscribe link happened to dodge this
-        // by having only one query param.
-        const bodyHtml = attachmentUrl ?
-          `${plainTextToHtml(plainBody)}<p><a href="${escapeHtml(attachmentUrl)}">View attachment</a></p>` :
+        // by having only one query param. a.name is also escaped since
+        // it's shown as visible text, not just used as a URL.
+        const bodyHtml = uploaded.length > 0 ?
+          `${plainTextToHtml(plainBody)}${uploaded.map(a => `<p><a href="${escapeHtml(a.url)}">View attachment: ${escapeHtml(a.name)}</a></p>`).join('')}` :
           plainTextToHtml(plainBody);
 
         await addDoc(collection(db, 'mail'), {
@@ -5640,12 +5874,16 @@ Thank you! — [Business Name]</div>
         // Firestore doesn't allow the serverTimestamp() sentinel inside an
         // array element (arrayUnion here) — a Date is the closest
         // equivalent and is still stored/read back as a real Timestamp.
+        // composeDraft is cleared here (not saved) — a successful send
+        // resolves whatever draft was in progress, there's nothing left
+        // to remember it for.
         await updateDoc(doc(db, 'contacts', c.id), {
           contactHistory: arrayUnion({
             type: composeCategory.value || 'general',
             subject,
             sentAt: new Date(),
           }),
+          composeDraft: null,
         });
 
         composeSendBtn.disabled = false;
@@ -5673,6 +5911,7 @@ Thank you! — [Business Name]</div>
       const crmClientsDetailSummary = document.getElementById('crmClientsDetailSummary');
       const crmClientsHistoryList = document.getElementById('crmClientsHistoryList');
       const crmClientsDetailContactBtn = document.getElementById('crmClientsDetailContactBtn');
+      const crmClientsDetailFinishBtn = document.getElementById('crmClientsDetailFinishBtn');
       let activeCrmClientId = null;
 
       function latestContactHistoryEntry(c) {
@@ -5692,6 +5931,10 @@ Thank you! — [Business Name]</div>
         return `${label} sent ${fmtRelative(tsToMillis(latest.sentAt)).toLowerCase()}`;
       }
 
+      function hasComposeDraft(c) {
+        return !!(c.composeDraft && (c.composeDraft.subject || c.composeDraft.body));
+      }
+
       function renderCrmClientsList() {
         if (contactsCache.length === 0) {
           crmClientsListEl.innerHTML = '<div class="crm-card-subtext">No clients yet.</div>';
@@ -5703,9 +5946,21 @@ Thank you! — [Business Name]</div>
           item.className = 'crm-ready-item';
           item.innerHTML = `
             <span class="crm-ready-item-name">${escapeHtml(c.name || 'Unnamed')}</span>
-            <span class="crm-ready-item-meta">${escapeHtml(outreachSummaryText(c))}</span>
+            <span style="display:flex; align-items:center; gap:8px;">
+              ${hasComposeDraft(c) ? '<button type="button" class="crm-tag draft-pending" data-finish-email>Finish email</button>' : ''}
+              <span class="crm-ready-item-meta">${escapeHtml(outreachSummaryText(c))}</span>
+            </span>
           `;
           item.addEventListener('click', () => openCrmClientDetail(c));
+          const finishBtn = item.querySelector('[data-finish-email]');
+          if (finishBtn) {
+            // Its own click, not the row's — opens compose directly
+            // instead of just navigating to the detail view first.
+            finishBtn.addEventListener('click', e => {
+              e.stopPropagation();
+              openComposeModal(c);
+            });
+          }
           crmClientsListEl.appendChild(item);
         });
       }
@@ -5728,6 +5983,7 @@ Thank you! — [Business Name]</div>
         activeCrmClientId = c.id;
         crmClientsDetailName.textContent = c.name || 'Unnamed';
         crmClientsDetailSummary.textContent = outreachSummaryText(c);
+        crmClientsDetailFinishBtn.style.display = hasComposeDraft(c) ? '' : 'none';
         renderCrmClientHistory(c);
         crmClientsListView.style.display = 'none';
         crmClientsDetailView.style.display = '';
@@ -5744,6 +6000,11 @@ Thank you! — [Business Name]</div>
         if (c) openComposeModal(c);
       });
 
+      crmClientsDetailFinishBtn.addEventListener('click', () => {
+        const c = contactsCache.find(x => x.id === activeCrmClientId);
+        if (c) openComposeModal(c);
+      });
+
       // Keeps the Contacts page live-updated the same way every other CRM
       // view already is — called from the contacts onSnapshot below.
       function refreshCrmClientsPage() {
@@ -5752,6 +6013,7 @@ Thank you! — [Business Name]</div>
           const c = contactsCache.find(x => x.id === activeCrmClientId);
           if (c) {
             crmClientsDetailSummary.textContent = outreachSummaryText(c);
+            crmClientsDetailFinishBtn.style.display = hasComposeDraft(c) ? '' : 'none';
             renderCrmClientHistory(c);
           }
         }
@@ -5764,6 +6026,17 @@ Thank you! — [Business Name]</div>
         crmClientsDetailView.style.display = 'none';
         crmClientsListView.style.display = '';
         renderCrmClientsList();
+      };
+
+      // Bridge for the notification bell (separate <script> block below —
+      // it has no access to contactsCache/openComposeModal directly, same
+      // window.__xxx pattern already used for __onCrmPageShown etc.).
+      // Called after the sidebar has already navigated to this page.
+      window.__openClientComposeFromNotification = function (contactId) {
+        const c = contactsCache.find(x => x.id === contactId);
+        if (!c) return;
+        openCrmClientDetail(c);
+        openComposeModal(c);
       };
 
       let sourceChartInstance = null;
