@@ -5294,6 +5294,12 @@ Thank you! — [Business Name]</div>
         // placeholder. A placeholder left unedited has no real URL to
         // link to, so it deliberately stays inert plain text rather than
         // becoming a link that goes nowhere.
+        //
+        // Safe by construction: this only ever runs on text that's
+        // already been through escapeHtml() (see plainTextToHtml below),
+        // so a raw & in a matched URL is already &amp; by the time the
+        // regex sees it — the href built here inherits that, it doesn't
+        // need its own separate escaping pass.
         return escapedText.replace(/(https?:\/\/[^\s<]+)/g, url => `<a href="${url}">${url}</a>`);
       }
 
@@ -5311,7 +5317,12 @@ Thank you! — [Business Name]</div>
         const businessName = escapeHtml(clientInfo.name || 'Us');
         const address = escapeHtml(clientInfo.address || 'Address on file');
         const unsubUrl = `${UNSUBSCRIBE_BASE_URL}?token=${encodeURIComponent(c.unsubscribeToken || '')}`;
-        return `<p>${businessName}<br>${address}</p><p>Don't want these emails? <a href="${unsubUrl}">Unsubscribe</a>.</p>`;
+        // escapeHtml() here: unsubUrl only ever has one query param today
+        // (?token=...) so this happens to render fine either way, but a
+        // second param later (an & in the href) would break SendGrid's
+        // click-tracking rewrite exactly like the attachment link did —
+        // fixed here too, not just where it just broke.
+        return `<p>${businessName}<br>${address}</p><p>Don't want these emails? <a href="${escapeHtml(unsubUrl)}">Unsubscribe</a>.</p>`;
       }
 
       // ── Send confirmation feedback ────
@@ -5588,7 +5599,15 @@ Thank you! — [Business Name]</div>
           try {
             const path = `attachments/${clientInfo.key}/${c.id}/${file.name}`;
             const fileRef = storageRef(storage, path);
-            await uploadBytes(fileRef, file);
+            // contentDisposition/contentType so a recipient downloading the
+            // link gets the real original filename and type back, instead
+            // of whatever generic default the browser falls back to.
+            // Escaping the embedded quote guards against a filename that
+            // itself contains a " from breaking the header's own syntax.
+            await uploadBytes(fileRef, file, {
+              contentType: file.type,
+              contentDisposition: `attachment; filename="${file.name.replace(/"/g, '\\"')}"`,
+            });
             attachmentUrl = await getDownloadURL(fileRef);
             composeAttachmentStatus.textContent = 'Attachment uploaded.';
           } catch (err) {
@@ -5598,8 +5617,14 @@ Thank you! — [Business Name]</div>
         }
 
         const bodyText = attachmentUrl ? `${plainBody}\n\n${attachmentUrl}` : plainBody;
+        // escapeHtml() here is the actual fix for the broken-link bug:
+        // getDownloadURL() returns ...?alt=media&token=..., and a raw
+        // (unescaped) & inside an href is exactly what made SendGrid's
+        // click-tracking rewrite serve its own "invalid link" page instead
+        // of the real one — the unsubscribe link happened to dodge this
+        // by having only one query param.
         const bodyHtml = attachmentUrl ?
-          `${plainTextToHtml(plainBody)}<p><a href="${attachmentUrl}">View attachment</a></p>` :
+          `${plainTextToHtml(plainBody)}<p><a href="${escapeHtml(attachmentUrl)}">View attachment</a></p>` :
           plainTextToHtml(plainBody);
 
         await addDoc(collection(db, 'mail'), {
