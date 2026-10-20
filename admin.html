@@ -265,6 +265,11 @@
       padding: 22px 24px 18px;
     }
 
+    .data-status { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .data-status.unavailable { color: rgba(245,245,243,0.35); }
+    .chart-empty { font-size: 13px; color: rgba(245,245,243,0.35); padding: 8px 0; }
+    .manual-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(245,245,243,0.4); margin-left: 6px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; }
+
     .chart-title { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 3px; line-height: 1.3; }
     .chart-subtitle { font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 18px; }
 
@@ -1121,21 +1126,40 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
       <section class="page-section active" id="page-overview">
         <div class="page-header">
           <div class="page-title">Overview</div>
-          <div class="page-sub">boring project. — your own site performance. May 2026.</div>
+          <div class="page-sub" id="overviewSub">boring project. — your own site performance. Last 30 days</div>
+          <div class="data-status" id="overviewStatus" role="status"></div>
         </div>
 
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="card-label">Site Visitors</div>
-            <div class="card-number">847</div>
-            <div class="card-subtext">Total this month</div>
-            <div class="card-trend">↑ +34%</div>
+            <div class="card-number" id="num-visitors">—</div>
+            <div class="card-subtext">Total users</div>
+            <div class="card-trend" id="trend-visitors">Not connected</div>
+          </div>
+          <div class="metric-card">
+            <div class="card-label">Search Clicks</div>
+            <div class="card-number" id="num-clicks">—</div>
+            <div class="card-subtext">From Google Search</div>
+            <div class="card-trend" id="trend-clicks">Not connected</div>
+          </div>
+          <div class="metric-card">
+            <div class="card-label">Avg. Position</div>
+            <div class="card-number" id="num-position">—</div>
+            <div class="card-subtext">Average Google ranking</div>
+            <div class="card-trend" id="trend-position">Not connected</div>
+          </div>
+          <div class="metric-card">
+            <div class="card-label">Impressions</div>
+            <div class="card-number" id="num-impressions">—</div>
+            <div class="card-subtext">Times shown in Search</div>
+            <div class="card-trend" id="trend-impressions">Not connected</div>
           </div>
           <div class="metric-card">
             <div class="card-label">GBP Views</div>
             <div class="card-number">312</div>
             <div class="card-subtext">Profile views this month</div>
-            <div class="card-trend">↑ +18%</div>
+            <div class="card-trend" style="color:var(--muted);">Updated manually</div>
           </div>
           <div class="metric-card">
             <div class="card-label">Active Clients</div>
@@ -1153,35 +1177,36 @@ src="https://www.facebook.com/tr?id=1010233811838344&ev=PageView&noscript=1"
 
         <div style="display:grid; grid-template-columns:60fr 40fr; gap:16px;">
           <div class="chart-card">
-            <div class="chart-title">Site Traffic</div>
-            <div class="chart-subtitle">Monthly visitors to boringproj.com</div>
+            <div class="chart-title">Daily sessions</div>
+            <div class="chart-subtitle">Last 30 days</div>
+            <div class="chart-empty" id="trafficEmpty" hidden>Not connected</div>
             <div style="position:relative; width:100%; height:220px;">
               <canvas id="adminTrafficChart"></canvas>
             </div>
           </div>
           <div class="chart-card" style="display:flex; flex-direction:column; gap:12px;">
             <div class="chart-title">Quick Stats</div>
-            <div class="chart-subtitle">This month at a glance</div>
+            <div class="chart-subtitle">At a glance</div>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
               <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
-                <span style="font-size:13px; color:var(--muted);">Cold emails sent</span>
+                <span style="font-size:13px; color:var(--muted);">Cold emails sent <span class="manual-tag">manual</span></span>
                 <span style="font-size:13px; color:var(--white); font-weight:600;">12</span>
               </div>
               <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
                 <span style="font-size:13px; color:var(--muted);">Leads in pipeline</span>
-                <span style="font-size:13px; color:var(--white); font-weight:600;">7</span>
+                <span style="font-size:13px; color:var(--white); font-weight:600;" id="stat-pipeline">—</span>
               </div>
               <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
-                <span style="font-size:13px; color:var(--muted);">Proposals sent</span>
+                <span style="font-size:13px; color:var(--muted);">Proposals sent <span class="manual-tag">manual</span></span>
                 <span style="font-size:13px; color:var(--white); font-weight:600;">2</span>
               </div>
               <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
-                <span style="font-size:13px; color:var(--muted);">GBP posts live</span>
+                <span style="font-size:13px; color:var(--muted);">GBP posts live <span class="manual-tag">manual</span></span>
                 <span style="font-size:13px; color:var(--white); font-weight:600;">4</span>
               </div>
               <div style="display:flex; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
                 <span style="font-size:13px; color:var(--muted);">Blog posts live</span>
-                <span style="font-size:13px; color:var(--white); font-weight:600;">3</span>
+                <span style="font-size:13px; color:var(--white); font-weight:600;">5</span>
               </div>
             </div>
           </div>
@@ -2161,6 +2186,12 @@ Boring Project
       const tbody = document.getElementById('leadsTableBody');
 
       onSnapshot(collection(db, 'leads'), (snapshot) => {
+        const pipelineEl = document.getElementById('stat-pipeline');
+        if (pipelineEl) {
+          let open = 0;
+          snapshot.forEach(d => { const st = d.data().stage; if (st !== 'Won' && st !== 'Dead') open++; });
+          pipelineEl.textContent = open;
+        }
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:rgba(245,245,243,0.35); padding:24px;">No leads yet - add the first one below.</td></tr>';
           return;
@@ -2751,19 +2782,77 @@ Boring Project
       });
     });
 
-    // Chart
+    // Overview live data
+    const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dayLabel = isoDate => {
+      const [, m, d] = isoDate.split('-');
+      return `${MONTH_ABBR[Number(m) - 1]} ${Number(d)}`;
+    };
+
+    function setDataStatus(id, state) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('unavailable', 'success');
+      if (state === 'loading') {
+        el.textContent = 'Loading live data…';
+      } else if (state === 'unavailable') {
+        el.classList.add('unavailable');
+        el.textContent = 'Not connected';
+      } else {
+        el.classList.add('success');
+        const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        el.textContent = `Updated ${time}`;
+      }
+    }
+
+    function setOverviewCard(key, value, decimals) {
+      const numEl = document.getElementById(`num-${key}`);
+      const trendEl = document.getElementById(`trend-${key}`);
+      if (!numEl) return;
+      if (value == null || isNaN(value)) {
+        numEl.textContent = '—';
+        if (trendEl) { trendEl.textContent = 'Not connected'; trendEl.style.color = 'rgba(245,245,243,0.35)'; }
+        return;
+      }
+      numEl.textContent = decimals ? Number(value).toFixed(decimals) : Math.round(value).toLocaleString('en-US');
+      if (trendEl) { trendEl.textContent = 'Live · last 30 days'; trendEl.style.color = ''; }
+    }
+
     window.addEventListener('load', () => {
-      const ctx = document.getElementById('adminTrafficChart');
-      if (ctx && window.Chart) {
+      const now = new Date();
+      const nowLabel = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      document.getElementById('overviewSub').textContent =
+        `boring project. — your own site performance. Last 30 days · updated ${nowLabel}`;
+
+      const CLIENT = 'boringproject';
+      const fetchJson = url => fetch(url)
+        .then(res => { if (!res.ok) throw new Error(`${url} → ${res.status}`); return res.json(); })
+        .catch(err => { console.error('live data fetch failed:', err); return null; });
+
+      setDataStatus('overviewStatus', 'loading');
+      const analyticsPromise = fetchJson(`/api/analytics?client=${CLIENT}`);
+      const gscPromise = fetchJson(`/api/searchconsole?client=${CLIENT}`);
+
+      analyticsPromise.then(data => {
+        const ok = data && data.available && data.totals;
+        setOverviewCard('visitors', ok ? data.totals.users : null, 0);
+        const days = ok && Array.isArray(data.sessionsByDay) ? data.sessionsByDay : [];
+        const ctx = document.getElementById('adminTrafficChart');
+        const emptyEl = document.getElementById('trafficEmpty');
+        if (!days.length || !ctx || !window.Chart) {
+          if (emptyEl) emptyEl.hidden = false;
+          return;
+        }
+        emptyEl.hidden = true;
         new Chart(ctx.getContext('2d'), {
           type: 'bar',
           data: {
-            labels: ['Feb', 'Mar', 'Apr', 'May'],
+            labels: days.map(d => dayLabel(d.date)),
             datasets: [{
-              label: 'Site Visitors',
-              data: [420, 580, 710, 847],
+              label: 'Sessions',
+              data: days.map(d => d.sessions),
               backgroundColor: 'rgba(43,95,166,0.85)',
-              borderRadius: 6,
+              borderRadius: 4,
               borderSkipped: false,
             }]
           },
@@ -2772,16 +2861,28 @@ Boring Project
             maintainAspectRatio: false,
             animation: { duration: 900, easing: 'easeOutQuart' },
             plugins: {
-              legend: { labels: { color: 'rgba(245,245,243,0.7)', font: { family: 'Poppins', size: 11 }, boxWidth: 10, boxHeight: 10 } },
+              legend: { display: false },
               tooltip: { backgroundColor: 'rgba(10,10,10,0.93)', titleColor: '#F5F5F3', bodyColor: 'rgba(245,245,243,0.72)', padding: 11, cornerRadius: 8 }
             },
             scales: {
-              x: { border: { display: false }, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(245,245,243,0.6)', font: { family: 'Poppins', size: 11 } } },
-              y: { border: { display: false }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: 'rgba(245,245,243,0.6)', font: { family: 'Poppins', size: 11 }, maxTicksLimit: 6 } }
+              x: { border: { display: false }, grid: { display: false }, ticks: { color: 'rgba(245,245,243,0.6)', font: { family: 'Poppins', size: 11 }, maxTicksLimit: 8 } },
+              y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: 'rgba(245,245,243,0.6)', font: { family: 'Poppins', size: 11 }, maxTicksLimit: 6 } }
             }
           }
         });
-      }
+      });
+
+      gscPromise.then(data => {
+        const ok = data && data.available && data.totals;
+        setOverviewCard('clicks', ok ? data.totals.clicks : null, 0);
+        setOverviewCard('position', ok ? data.totals.position : null, 1);
+        setOverviewCard('impressions', ok ? data.totals.impressions : null, 0);
+      });
+
+      Promise.all([analyticsPromise, gscPromise]).then(([a, g]) => {
+        const anyOk = (a && a.available) || (g && g.available);
+        setDataStatus('overviewStatus', anyOk ? 'success' : 'unavailable');
+      });
     });
 
     // Logout
