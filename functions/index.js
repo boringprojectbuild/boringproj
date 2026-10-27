@@ -368,3 +368,199 @@ exports.unsubscribeContact = onRequest(async (req, res) => {
 </html>`);
 });
 
+
+// captureTallyLead — public Cloud Function (no Firebase auth)
+//
+// Webhook target for Tally forms: each submission is POSTed here as a
+// FORM_RESPONSE event and becomes a new_lead contact in the CRM. Reached
+// by Tally's servers, not a signed-in user, so like unsubscribeContact it
+// uses the Admin SDK and can't be protected by Firestore rules. One
+// webhook URL per form, with ?client=<clientKey> saying whose CRM the
+// lead belongs to (must be a CLIENT_REGISTRY client with hasCRM).
+//
+// Verification: Tally sends Tally-Signature = base64(HMAC-SHA256(secret,
+// raw body)). The HMAC is computed over req.rawBody — the exact bytes
+// Tally signed — not a re-serialized req.body, since re-stringifying can
+// change whitespace/key order and break the match. Compared with
+// crypto.timingSafeEqual on equal-length buffers (length is checked
+// first, since timingSafeEqual throws on a mismatch). A missing header is
+// rejected the same as a bad one — there is deliberately no "unsigned is
+// fine" path, or anyone who finds the URL could fill the CRM with junk.
+//
+// Idempotency: Tally retries on timeouts/non-2xx, so the same submission
+// can arrive more than once. The contact's document ID is derived from
+// the submission id ("tally_<id>") and written with create(), which fails
+// if the doc exists — a retry then returns 200 without writing again,
+// with no read-then-write race.
+//
+// Logging: client key, result and field LABELS only. Values are
+// customers' personal information and never get logged.
+const crypto = require("crypto");
+const {defineSecret} = require("firebase-functions/params");
+
+const TALLY_SIGNING_SECRET = defineSecret("TALLY_SIGNING_SECRET");
+
+/**
+ * Checks Tally's HMAC signature over the raw request body.
+ * @param {Buffer} rawBody The exact bytes Tally sent.
+ * @param {string} header The Tally-Signature header value.
+ * @param {string} secret The shared signing secret.
+ * @return {boolean} True only if the signature matches.
+ */
+function verifyTallySignature(rawBody, header, secret) {
+  if (!rawBody || typeof header !== "string" || !header || !secret) {
+    return false;
+  }
+  const expected = Buffer.from(
+      crypto.createHmac("sha256", secret).update(rawBody).digest("base64"),
+  );
+  const received = Buffer.from(header);
+  if (expected.length !== received.length) return false;
+  return crypto.timingSafeEqual(expected, received);
+}
+
+/**
+ * Turns a Tally field value into display text. Handles plain strings,
+ * choice/dropdown arrays (option ids resolved via field.options), and
+ * option/file objects.
+ * @param {Object} field One entry of data.fields.
+ * @return {string} The text, or "" if unanswered.
+ */
+function tallyValueToText(field) {
+  const options = Array.isArray(field.options) ? field.options : [];
+  const one = (v) => {
+    if (v === null || v === undefined) return "";
+    if (typeof v === "object") {
+      return String(v.text || v.label || v.name || v.url || "").trim();
+    }
+    const match = options.find((o) => o && o.id === v);
+    return String(match && match.text ? match.text : v).trim();
+  };
+  const v = field.value;
+  if (Array.isArray(v)) return v.map(one).filter(Boolean).join(", ");
+  return one(v);
+}
+
+/**
+ * Maps Tally's label-based answers onto CRM contact fields.
+ * @param {Array} fields data.fields from the Tally payload.
+ * @return {{contact: Object, extras: string[]}} Mapped values, plus
+ *     "Label: value" lines for answered fields that didn't map.
+ */
+function mapTallyFields(fields) {
+  const contact = {};
+  const extras = [];
+  const has = (label, words) => words.some((w) => label.includes(w));
+
+  fields.forEach((f) => {
+    if (!f || typeof f !== "object") return;
+    const text = tallyValueToText(f);
+    if (!text) return;
+    const label = String(f.label || "").toLowerCase();
+
+    let target = null;
+    if (f.type === "INPUT_EMAIL" || label.includes("email")) {
+      target = "email";
+    } else if (f.type === "INPUT_PHONE_NUMBER" ||
+        has(label, ["phone", "number"])) {
+      target = "phone";
+    } else if (label.includes("name")) {
+      target = "name";
+    } else if (has(label, ["message", "describe", "details", "service",
+      "help", "project"])) {
+      target = "jobDescription";
+    }
+
+    // First answer for each target wins; a second one (two "message"-ish
+    // questions, say) is kept as an extra rather than overwriting it.
+    if (target && contact[target] === undefined) {
+      contact[target] = text;
+    } else {
+      extras.push(`${f.label || "Untitled"}: ${text}`);
+    }
+  });
+  return {contact, extras};
+}
+
+exports.captureTallyLead = onRequest(
+    {secrets: [TALLY_SIGNING_SECRET]},
+    async (req, res) => {
+      if (req.method !== "POST") {
+        res.status(405).json({error: "Method not allowed."});
+        return;
+      }
+
+      if (!verifyTallySignature(
+          req.rawBody,
+          req.get("Tally-Signature"),
+          TALLY_SIGNING_SECRET.value(),
+      )) {
+        console.warn("captureTallyLead: rejected (bad or missing signature).");
+        res.status(401).json({error: "Unauthorized."});
+        return;
+      }
+
+      const clientKey = typeof req.query.client === "string" ?
+        req.query.client : "";
+      const clientMeta = CLIENT_BY_KEY[clientKey];
+      if (!clientMeta || !clientMeta.hasCRM) {
+        console.warn("captureTallyLead: rejected (unknown or non-CRM client).");
+        res.status(400).json({error: "Bad request."});
+        return;
+      }
+
+      const payload = req.body || {};
+      const data = payload.data || {};
+      const submissionId = data.submissionId || data.responseId;
+      const fields = Array.isArray(data.fields) ? data.fields : [];
+      if (payload.eventType !== "FORM_RESPONSE" || !submissionId) {
+        console.warn(`captureTallyLead: ${clientKey} rejected (bad payload).`);
+        res.status(400).json({error: "Bad request."});
+        return;
+      }
+
+      const labels = fields.map((f) => f && f.label);
+      const {contact, extras} = mapTallyFields(fields);
+      const notes = extras.length ? [{
+        text: extras.map((line) => `Form submission, ${line}`).join("\n"),
+        createdAt: Date.now(),
+      }] : [];
+
+      const FieldValue = admin.firestore.FieldValue;
+      try {
+        await admin.firestore()
+            .collection("contacts")
+            .doc(`tally_${submissionId}`)
+            .create({
+              name: contact.name || "Website lead",
+              phone: contact.phone || "",
+              email: contact.email || "",
+              jobDescription: contact.jobDescription || "",
+              source: "web_form",
+              stage: "new_lead",
+              value: 0,
+              clientKey,
+              notes,
+              emailOptOut: false,
+              unsubscribeToken: crypto.randomBytes(16).toString("hex"),
+              createdAt: FieldValue.serverTimestamp(),
+              lastActivityAt: FieldValue.serverTimestamp(),
+            });
+        console.log(`captureTallyLead: ${clientKey} created; labels:`,
+            JSON.stringify(labels));
+      } catch (err) {
+        // gRPC ALREADY_EXISTS (6): a Tally retry of a submission we
+        // already stored.
+        if (err && (err.code === 6 || err.code === "already-exists")) {
+          console.log(`captureTallyLead: ${clientKey} duplicate; labels:`,
+              JSON.stringify(labels));
+          res.status(200).json({ok: true});
+          return;
+        }
+        console.error("captureTallyLead error:", err && err.code);
+        res.status(500).json({error: "Failed to save."});
+        return;
+      }
+      res.status(200).json({ok: true});
+    },
+);
