@@ -1975,6 +1975,7 @@
             hasWebsiteService: data.hasWebsiteService !== false,
             hasCRM: !!data.hasCRM,
             address: data.address,
+            googleReviewLink: data.googleReviewLink || '',
           };
           // applySidebarGating() may already have run once (against the
           // local CLIENTS fallback) before this async bridge resolved —
@@ -5573,7 +5574,13 @@ Thank you! — [Business Name]</div>
 
         const draft = c.reviewRequestDraft || { subject: '', body: '' };
         reviewComposeSubject.value = draft.subject || '';
-        reviewComposeBody.value = draft.body || '';
+        // Drafts staged before the link existed have the literal placeholder
+        // baked in; swap it in here only (not written back to Firestore).
+        let draftBody = draft.body || '';
+        if (clientInfo.googleReviewLink && draftBody.includes('[GOOGLE_REVIEW_LINK]')) {
+          draftBody = draftBody.split('[GOOGLE_REVIEW_LINK]').join(clientInfo.googleReviewLink);
+        }
+        reviewComposeBody.value = draftBody;
         reviewComposeFooter.textContent = buildFooterText(c);
 
         const hasEmail = !!(c.email && c.email.trim());

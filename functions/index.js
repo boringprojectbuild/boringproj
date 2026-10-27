@@ -73,6 +73,10 @@ const CLIENT_REGISTRY = {
     // this account could ever send real automated email. A CAN-SPAM
     // footer with a fake address is worse than no footer at all.
     address: "Address on file",
+    // TODO: placeholder only — get Lumina's real Google review link.
+    // Empty means generated review drafts keep the [GOOGLE_REVIEW_LINK]
+    // placeholder for a human to fill in.
+    googleReviewLink: "",
   },
   "boringprj210@gmail.com": {
     clientKey: "boringproject",
@@ -81,6 +85,7 @@ const CLIENT_REGISTRY = {
     hasWebsiteService: true,
     hasCRM: true,
     address: "7746 Beechnut Oak, San Antonio, TX 78223",
+    googleReviewLink: "https://g.page/r/Cd6a2R5zYMGmEAI/review",
   },
 };
 
@@ -160,6 +165,7 @@ exports.mintFirebaseToken = onRequest(
           hasWebsiteService: clientEntry ? clientEntry.hasWebsiteService : undefined,
           hasCRM: clientEntry ? clientEntry.hasCRM : undefined,
           address: clientEntry ? clientEntry.address : undefined,
+          googleReviewLink: clientEntry ? clientEntry.googleReviewLink : undefined,
           email,
         });
       } catch (err) {
@@ -193,10 +199,9 @@ exports.mintFirebaseToken = onRequest(
 // correct to fetch everything with stage == 'won' (a single-field
 // equality query — no new index needed) and filter the rest in memory.
 //
-// Known gap: GOOGLE_REVIEW_LINK below is a literal placeholder. Real
-// per-client Google review links aren't wired up anywhere yet (not in
-// CLIENT_REGISTRY, not in the CRM). Until that exists, every generated
-// draft needs a human to swap the placeholder in before actually sending.
+// Each client's googleReviewLink lives in CLIENT_REGISTRY. If it's empty,
+// the draft keeps the literal [GOOGLE_REVIEW_LINK] placeholder so a human
+// knows to swap it in before sending.
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 
 const WON_REVIEW_DELAY_MS = 24 * 60 * 60 * 1000;
@@ -205,9 +210,10 @@ const WON_REVIEW_DELAY_MS = 24 * 60 * 60 * 1000;
  * Builds the personalized review-request draft for one won contact.
  * @param {string} firstName Contact's first name.
  * @param {string} businessName Client's business name (from CLIENT_REGISTRY).
+ * @param {string} googleReviewLink Client's review URL; empty keeps the placeholder.
  * @return {{subject: string, body: string}} The draft.
  */
-function buildReviewRequestDraft(firstName, businessName) {
+function buildReviewRequestDraft(firstName, businessName, googleReviewLink) {
   const subject = `${firstName}, got 60 seconds for ${businessName}?`;
   const body = `Hi ${firstName},
 
@@ -216,7 +222,7 @@ Thanks again for choosing ${businessName} — we're glad we could help.
 If you have a minute, a quick Google review would mean a lot to us and
 helps other folks in the area find us:
 
-[GOOGLE_REVIEW_LINK]
+${googleReviewLink || "[GOOGLE_REVIEW_LINK]"}
 
 Thanks again,
 ${businessName}`;
@@ -250,10 +256,13 @@ exports.generateReviewRequestDrafts = onSchedule("every 1 hours", async () => {
 
     const clientMeta = CLIENT_BY_KEY[c.clientKey];
     const businessName = clientMeta ? clientMeta.name : "us";
+    const reviewLink = clientMeta && typeof clientMeta.googleReviewLink === "string" ?
+      clientMeta.googleReviewLink.trim() :
+      "";
     const firstName = (c.name || "").trim().split(/\s+/)[0] || "there";
 
     batch.update(docSnap.ref, {
-      reviewRequestDraft: buildReviewRequestDraft(firstName, businessName),
+      reviewRequestDraft: buildReviewRequestDraft(firstName, businessName, reviewLink),
       reviewRequestStatus: "pending",
     });
     staged++;
@@ -261,76 +270,6 @@ exports.generateReviewRequestDrafts = onSchedule("every 1 hours", async () => {
 
   if (staged > 0) await batch.commit();
   console.log(`generateReviewRequestDrafts: staged ${staged} draft(s).`);
-});
-
-// ═══════════════════════════════════════════════════════════════════
-// TEMPORARY TESTING TOOL — triggerReviewDraftsNow
-//
-// DELETE THIS FUNCTION once testing is done. A manual "generate drafts
-// right now, ignore the delay" endpoint has no reason to exist in
-// production after that.
-//
-// Manual, HTTP-triggered copy of generateReviewRequestDrafts' logic
-// above, for testing without waiting on the hourly schedule or the real
-// 24-hour wonAt delay. It deliberately duplicates that logic instead of
-// factoring out something shared, so deleting this later is a clean,
-// single removal — the real scheduled function above is completely
-// untouched by this and needs no follow-up cleanup either way.
-//
-// The wonAt-cutoff check is skipped entirely: any 'won' contact with no
-// reviewRequestStatus yet gets a draft immediately, regardless of how
-// long ago it was won (or even if wonAt is missing altogether).
-// Everything else — the reviewRequestStatus/emailOptOut checks that
-// make this idempotent — still applies exactly as in the real function,
-// so running this twice is still safe: the second run finds nothing
-// left to stage.
-//
-// Gated by a shared-secret query param instead of real auth, since a
-// trigger that skips the normal timing safeguard shouldn't be publicly
-// callable by anyone who finds the URL. This is a stopgap, not a real
-// security boundary — the secret below is a hardcoded constant checked
-// in plaintext, fine for a short-lived manual test but not something to
-// trust broadly or leave around long-term.
-const TRIGGER_REVIEW_DRAFTS_SECRET = "5497387d2e09346d02111c0f";
-
-exports.triggerReviewDraftsNow = onRequest(async (req, res) => {
-  if (req.query.secret !== TRIGGER_REVIEW_DRAFTS_SECRET) {
-    res.status(403).json({error: "Forbidden."});
-    return;
-  }
-
-  const db = admin.firestore();
-
-  const wonSnapshot = await db.collection("contacts")
-      .where("stage", "==", "won")
-      .get();
-
-  const batch = db.batch();
-  let staged = 0;
-
-  wonSnapshot.forEach((docSnap) => {
-    const c = docSnap.data();
-
-    // Same idempotency guard as the real function — never re-stages a
-    // contact that already has a status.
-    if (c.reviewRequestStatus) return;
-    if (c.emailOptOut === true) return;
-    // wonAt-cutoff check intentionally skipped — see comment above.
-
-    const clientMeta = CLIENT_BY_KEY[c.clientKey];
-    const businessName = clientMeta ? clientMeta.name : "us";
-    const firstName = (c.name || "").trim().split(/\s+/)[0] || "there";
-
-    batch.update(docSnap.ref, {
-      reviewRequestDraft: buildReviewRequestDraft(firstName, businessName),
-      reviewRequestStatus: "pending",
-    });
-    staged++;
-  });
-
-  if (staged > 0) await batch.commit();
-  console.log(`triggerReviewDraftsNow: staged ${staged} draft(s).`);
-  res.status(200).json({staged});
 });
 
 /**
