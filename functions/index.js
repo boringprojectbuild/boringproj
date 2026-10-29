@@ -564,3 +564,232 @@ exports.captureTallyLead = onRequest(
       res.status(200).json({ok: true});
     },
 );
+
+// addProspectLeads — public Cloud Function (bearer-secret auth)
+//
+// Lets an automated prospecting job (Cowork) drop vetted leads into the
+// same `leads` collection the admin portal's Add Lead form writes to, in
+// the exact same shape, so they show up in the shared Leads table.
+// Reached by a script, not a signed-in user, so like captureTallyLead it
+// uses the Admin SDK and is protected by a shared secret instead of
+// Firestore rules: "Authorization: Bearer <PROSPECT_INGEST_SECRET>".
+//
+// Secret check: both sides are hashed with SHA-256 first, so the two
+// buffers handed to crypto.timingSafeEqual are always the same length
+// (it throws otherwise) and the comparison leaks nothing about length.
+// Missing or wrong gets a bare 401.
+//
+// Safety rails: at most 5 leads per request, and at most 5 created per
+// America/Chicago calendar day in total (counter doc
+// leadIngestCounters/<YYYY-MM-DD>). Each lead is validated on its own, so
+// one bad entry doesn't sink the batch. Creation, the cap check, the
+// doc-ID duplicate check and the phone duplicate check all happen in one
+// transaction per lead, so concurrent calls can't overshoot the cap or
+// double-create. Duplicates and invalid leads don't use up the cap.
+//
+// Added By is Joseph on purpose so these count toward his lead capture
+// score; source: "cowork" is how they're told apart from his own.
+//
+// Logging: counts per status only — never phones, emails, names, notes,
+// drafts or the secret.
+const PROSPECT_INGEST_SECRET = defineSecret("PROSPECT_INGEST_SECRET");
+
+const PROSPECT_MAX_PER_REQUEST = 5;
+const PROSPECT_MAX_PER_DAY = 5;
+
+/**
+ * Constant-time check of an "Authorization: Bearer <secret>" header.
+ * @param {string} header The Authorization header value.
+ * @param {string} secret The expected secret.
+ * @return {boolean} True only on an exact match.
+ */
+function verifyBearerSecret(header, secret) {
+  if (typeof header !== "string" || !secret) return false;
+  const match = /^Bearer (.+)$/.exec(header);
+  if (!match) return false;
+  const sha = (s) => crypto.createHash("sha256").update(s).digest();
+  return crypto.timingSafeEqual(sha(match[1]), sha(secret));
+}
+
+/**
+ * Today's date in America/Chicago as YYYY-MM-DD.
+ * @return {string} The date string.
+ */
+function chicagoDateString() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Chicago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/**
+ * Validates and normalizes one prospect lead.
+ * @param {*} raw One entry of the request's leads array.
+ * @return {{lead: Object}|{reason: string}} Cleaned lead or rejection.
+ */
+function validateProspectLead(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return {reason: "not an object"};
+  }
+  const str = (v) => (typeof v === "string" ? v.trim() : null);
+
+  const businessName = str(raw.businessName);
+  if (!businessName) return {reason: "businessName is required"};
+  if (businessName.length > 120) return {reason: "businessName too long"};
+  const id = businessName.toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  if (!id) return {reason: "businessName has no usable characters"};
+
+  const industry = str(raw.industry);
+  if (!industry) return {reason: "industry is required"};
+  if (industry.length > 80) return {reason: "industry too long"};
+
+  let phone = str(raw.phone);
+  if (!phone) return {reason: "phone is required"};
+  phone = phone.replace(/\D/g, "");
+  if (phone.length === 11 && phone.startsWith("1")) phone = phone.slice(1);
+  if (phone.length !== 10) return {reason: "phone must be 10 digits"};
+
+  let email = "";
+  if (raw.email !== undefined && raw.email !== null && raw.email !== "") {
+    email = str(raw.email);
+    if (email === null || email.length > 200 ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return {reason: "email is not valid"};
+    }
+  }
+
+  const notes = str(raw.notes);
+  if (!notes) return {reason: "notes is required"};
+  if (notes.length > 300) return {reason: "notes over 300 characters"};
+
+  if (!Number.isInteger(raw.score) || raw.score < 1 || raw.score > 10) {
+    return {reason: "score must be a whole number 1-10"};
+  }
+
+  let sourceUrl = "";
+  if (raw.sourceUrl !== undefined && raw.sourceUrl !== null &&
+      raw.sourceUrl !== "") {
+    sourceUrl = str(raw.sourceUrl);
+    if (sourceUrl === null || sourceUrl.length > 500 ||
+        !/^https?:\/\/\S+$/i.test(sourceUrl)) {
+      return {reason: "sourceUrl must be an http(s) URL"};
+    }
+  }
+
+  let outreachDraft = "";
+  if (raw.outreachDraft !== undefined && raw.outreachDraft !== null &&
+      raw.outreachDraft !== "") {
+    outreachDraft = str(raw.outreachDraft);
+    if (outreachDraft === null || outreachDraft.length > 1500) {
+      return {reason: "outreachDraft invalid or over 1500 characters"};
+    }
+  }
+
+  return {lead: {
+    id, businessName, industry, phone, email, notes,
+    score: raw.score, sourceUrl, outreachDraft,
+  }};
+}
+
+exports.addProspectLeads = onRequest(
+    {region: "us-central1", secrets: [PROSPECT_INGEST_SECRET]},
+    async (req, res) => {
+      if (req.method !== "POST") {
+        res.status(405).json({error: "Method not allowed."});
+        return;
+      }
+
+      if (!verifyBearerSecret(
+          req.get("Authorization"), PROSPECT_INGEST_SECRET.value())) {
+        console.warn("addProspectLeads: rejected (unauthorized).");
+        res.status(401).json({error: "Unauthorized."});
+        return;
+      }
+
+      const leads = req.body && req.body.leads;
+      if (!Array.isArray(leads) || leads.length < 1 ||
+          leads.length > PROSPECT_MAX_PER_REQUEST) {
+        console.warn("addProspectLeads: rejected (bad batch size).");
+        res.status(400).json({error: "Bad request."});
+        return;
+      }
+
+      const db = admin.firestore();
+      const today = chicagoDateString();
+      const counterRef = db.collection("leadIngestCounters").doc(today);
+      const results = [];
+
+      // Sequential on purpose: later leads in a batch must see the
+      // earlier ones for the duplicate and cap checks.
+      for (const raw of leads) {
+        const checked = validateProspectLead(raw);
+        const label = raw && typeof raw.businessName === "string" ?
+          raw.businessName.trim() : "";
+        if (!checked.lead) {
+          results.push({
+            businessName: label, status: "invalid", reason: checked.reason,
+          });
+          continue;
+        }
+        const lead = checked.lead;
+        const leadRef = db.collection("leads").doc(lead.id);
+
+        try {
+          const status = await db.runTransaction(async (tx) => {
+            const counterSnap = await tx.get(counterRef);
+            const used = counterSnap.exists ?
+              (counterSnap.data().count || 0) : 0;
+            const idSnap = await tx.get(leadRef);
+            const phoneSnap = await tx.get(
+                db.collection("leads")
+                    .where("phone", "==", lead.phone).limit(1));
+
+            if (idSnap.exists || !phoneSnap.empty) return "duplicate";
+            if (used >= PROSPECT_MAX_PER_DAY) return "capped";
+
+            tx.create(leadRef, {
+              businessName: lead.businessName,
+              industry: lead.industry,
+              phone: lead.phone,
+              email: lead.email,
+              notes: lead.notes,
+              stage: "Not Contacted",
+              dateAdded: today,
+              activeRep: "Joseph Gutierrez",
+              addedByName: "Joseph Gutierrez",
+              addedByEmail: "boringprj210@gmail.com",
+              wonAt: null,
+              score: lead.score,
+              source: "cowork",
+              sourceUrl: lead.sourceUrl,
+              outreachDraft: lead.outreachDraft,
+            });
+            tx.set(counterRef, {date: today, count: used + 1});
+            return "created";
+          });
+          results.push({businessName: lead.businessName, status});
+        } catch (err) {
+          // Already-exists from a racing create counts as a duplicate;
+          // anything else is a generic failure.
+          if (err && (err.code === 6 || err.code === "already-exists")) {
+            results.push({businessName: lead.businessName,
+              status: "duplicate"});
+          } else {
+            console.error("addProspectLeads error:", err && err.code);
+            res.status(500).json({error: "Failed to save."});
+            return;
+          }
+        }
+      }
+
+      const counts = {};
+      results.forEach((r) => {
+        counts[r.status] = (counts[r.status] || 0) + 1;
+      });
+      console.log("addProspectLeads:", JSON.stringify(counts));
+      res.status(200).json({results});
+    },
+);
